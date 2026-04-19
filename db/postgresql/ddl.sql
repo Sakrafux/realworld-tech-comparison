@@ -89,3 +89,27 @@ ALTER TABLE "tag_is_article_to_tag" ADD FOREIGN KEY ("tag_id") REFERENCES "tag" 
 ALTER TABLE "favorite_is_article_to_user" ADD FOREIGN KEY ("article_id") REFERENCES "article" ("id");
 
 ALTER TABLE "favorite_is_article_to_user" ADD FOREIGN KEY ("user_id") REFERENCES "app_user" ("id");
+
+CREATE SEQUENCE seq_user_id
+    START 1
+    INCREMENT 1
+    MINVALUE 1
+    OWNED BY app_user.id;
+
+CREATE SEQUENCE seq_article_id
+    START 1
+    INCREMENT 1
+    MINVALUE 1
+    OWNED BY article.id;
+
+CREATE SEQUENCE seq_comment_id
+    START 1
+    INCREMENT 1
+    MINVALUE 1
+    OWNED BY comment.id;
+
+CREATE SEQUENCE seq_tag_id
+    START 1
+    INCREMENT 1
+    MINVALUE 1
+    OWNED BY tag.id;
