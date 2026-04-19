@@ -35,7 +35,7 @@ class TagControllerIT {
     }
 
     @Test
-    void shouldReturnAllTags() throws Exception {
+    void getTags_TagsExist_ReturnsOkWithTags() throws Exception {
         mockMvc.perform(get("/tags")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

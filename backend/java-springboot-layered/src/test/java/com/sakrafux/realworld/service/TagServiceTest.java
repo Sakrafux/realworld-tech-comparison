@@ -28,7 +28,7 @@ class TagServiceTest {
     private TagService tagService;
 
     @Test
-    void shouldReturnTagsResponseWithAllTags() {
+    void getAllTags_TagsExist_ReturnsTagsResponse() {
         // Given
         List<String> tags = List.of("reactjs", "angularjs");
         TagsResponse expectedResponse = TagsResponse.builder().tags(tags).build();

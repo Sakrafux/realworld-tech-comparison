@@ -38,7 +38,7 @@ class UserControllerIT {
     }
 
     @Test
-    void shouldRegisterUser() throws Exception {
+    void register_ValidUser_ReturnsOkWithUser() throws Exception {
         NewUserRequest request = createNewUserRequest("testuser", "test@example.com", "password123");
 
         mockMvc.perform(post("/users")
@@ -51,7 +51,7 @@ class UserControllerIT {
     }
 
     @Test
-    void shouldLoginUser() throws Exception {
+    void login_ValidCredentials_ReturnsOkWithUser() throws Exception {
         // Register user via helper method instead of calling another test
         registerUserViaApi("testuser", "test@example.com", "password123");
 
@@ -70,7 +70,7 @@ class UserControllerIT {
     }
 
     @Test
-    void shouldGetCurrentUser() throws Exception {
+    void getCurrentUser_ValidToken_ReturnsOkWithUser() throws Exception {
         // Register and extract token using the helper
         String token = registerUserViaApi("testuser", "test@example.com", "password123");
 
@@ -82,8 +82,8 @@ class UserControllerIT {
     }
 
     @Test
-    void shouldFailToRegisterDuplicateEmail() throws Exception {
-        shouldRegisterUser();
+    void register_DuplicateEmail_ReturnsUnprocessableEntity() throws Exception {
+        register_ValidUser_ReturnsOkWithUser();
 
         NewUserRequest request = NewUserRequest.builder()
                 .user(NewUserRequest.UserData.builder()
@@ -101,8 +101,8 @@ class UserControllerIT {
     }
 
     @Test
-    void shouldFailToLoginWithWrongPassword() throws Exception {
-        shouldRegisterUser();
+    void login_WrongPassword_ReturnsUnauthorized() throws Exception {
+        register_ValidUser_ReturnsOkWithUser();
 
         LoginUserRequest request = LoginUserRequest.builder()
                 .user(LoginUserRequest.UserData.builder()
@@ -119,7 +119,56 @@ class UserControllerIT {
     }
 
     @Test
-    void shouldFailToGetCurrentUserWithoutToken() throws Exception {
+    void register_InvalidEmail_ReturnsUnprocessableEntity() throws Exception {
+        NewUserRequest request = createNewUserRequest("testuser", "invalid-email", "password123");
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errors.body", notNullValue()));
+    }
+
+    @Test
+    void register_BlankUsername_ReturnsUnprocessableEntity() throws Exception {
+        NewUserRequest request = createNewUserRequest("", "test@example.com", "password123");
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errors.body", notNullValue()));
+    }
+
+    @Test
+    void register_PasswordTooShort_ReturnsUnprocessableEntity() throws Exception {
+        NewUserRequest request = createNewUserRequest("testuser", "test@example.com", "short");
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errors.body", notNullValue()));
+    }
+
+    @Test
+    void login_BlankEmail_ReturnsUnprocessableEntity() throws Exception {
+        LoginUserRequest request = LoginUserRequest.builder()
+                .user(LoginUserRequest.UserData.builder()
+                        .email("")
+                        .password("password123")
+                        .build())
+                .build();
+
+        mockMvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.errors.body", notNullValue()));
+    }
+
+    @Test
+    void getCurrentUser_NoToken_ReturnsUnauthorized() throws Exception {
         mockMvc.perform(get("/user"))
                 .andExpect(status().isUnauthorized());
     }
@@ -147,6 +196,6 @@ class UserControllerIT {
                         .content(objectMapper.writeValueAsString(request)))
                 .andReturn().getResponse().getContentAsString();
 
-        return objectMapper.readTree(response).get("user").get("token").asString();
+        return objectMapper.readTree(response).get("user").get("token").asText();
     }
-}
+    }

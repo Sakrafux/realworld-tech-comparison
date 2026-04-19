@@ -44,7 +44,7 @@ class UserServiceTest {
     private UserService userService;
 
     @Test
-    void shouldRegisterNewUser() {
+    void registerUser_ValidUser_SavesAndReturnsUser() {
         // Given
         NewUserRequest request = NewUserRequest.builder()
                 .user(NewUserRequest.UserData.builder()
@@ -84,7 +84,7 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenRegisteringWithExistingEmail() {
+    void registerUser_ExistingEmail_ThrowsUserAlreadyExistsException() {
         // Given
         NewUserRequest request = NewUserRequest.builder()
                 .user(NewUserRequest.UserData.builder()
@@ -101,7 +101,26 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldLoginUserSuccessfully() {
+    void registerUser_ExistingUsername_ThrowsUserAlreadyExistsException() {
+        // Given
+        NewUserRequest request = NewUserRequest.builder()
+                .user(NewUserRequest.UserData.builder()
+                        .username("testuser")
+                        .email("test@example.com")
+                        .build())
+                .build();
+
+        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.empty());
+        given(userRepository.findByUsername("testuser")).willReturn(Optional.of(new UserEntity()));
+
+        // When / Then
+        assertThatThrownBy(() -> userService.registerUser(request))
+                .isInstanceOf(UserAlreadyExistsException.class)
+                .hasMessage("Username already exists");
+    }
+
+    @Test
+    void loginUser_ValidCredentials_ReturnsUser() {
         // Given
         LoginUserRequest request = LoginUserRequest.builder()
                 .user(LoginUserRequest.UserData.builder()
@@ -135,7 +154,7 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenLoginUserNotFound() {
+    void loginUser_UserNotFound_ThrowsResourceNotFoundException() {
         // Given
         LoginUserRequest request = LoginUserRequest.builder()
                 .user(LoginUserRequest.UserData.builder()
@@ -151,7 +170,7 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenLoginWithWrongPassword() {
+    void loginUser_WrongPassword_ThrowsInvalidCredentialsException() {
         // Given
         LoginUserRequest request = LoginUserRequest.builder()
                 .user(LoginUserRequest.UserData.builder()
@@ -174,7 +193,18 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldGetCurrentUser() {
+    void getCurrentUser_UserNotFound_ThrowsResourceNotFoundException() {
+        // Given
+        String email = "notfound@example.com";
+        given(userRepository.findByEmail(email)).willReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> userService.getCurrentUser(email))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void getCurrentUser_ExistingUser_ReturnsUser() {
         // Given
         String email = "test@example.com";
         UserEntity user = UserEntity.builder().email(email).build();
