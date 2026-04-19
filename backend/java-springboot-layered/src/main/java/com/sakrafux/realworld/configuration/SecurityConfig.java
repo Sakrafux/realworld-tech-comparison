@@ -68,6 +68,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Defines the Cross-Origin Resource Sharing (CORS) configuration.
+     * This is necessary because modern web browsers enforce the Same-Origin Policy,
+     * which blocks web pages (like our frontend) from making requests to a different
+     * domain or port (our backend API) unless the server explicitly allows it via CORS headers.
+     * This bean configures Spring Security to allow requests from the specified frontend origins.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

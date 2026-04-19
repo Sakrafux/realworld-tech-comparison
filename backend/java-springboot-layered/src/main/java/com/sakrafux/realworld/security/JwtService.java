@@ -6,8 +6,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +13,11 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.function.Function;
 
+/**
+ * Service responsible for generating and validating JSON Web Tokens (JWT).
+ * It uses a symmetric secret key (HMAC-SHA) defined in the application properties
+ * to sign and verify the tokens.
+ */
 @Service
 @Slf4j
 public class JwtService {
@@ -33,6 +36,13 @@ public class JwtService {
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
+    /**
+     * Generates a new JWT token for a given user email.
+     * The token includes the email as the subject, the issue date, and an expiration date.
+     *
+     * @param email the email of the user to generate the token for
+     * @return the generated JWT token as a String
+     */
     public String generateToken(String email) {
         long now = System.currentTimeMillis();
 
@@ -45,8 +55,13 @@ public class JwtService {
     }
 
     /**
-     * @throws JwtException Invalid, expired or otherwise faulty JWT token
-     * @throws IllegalArgumentException JWT claims string is empty
+     * Extracts the user's email (subject) from the given JWT token.
+     * This method implicitly verifies the token's signature and expiration date.
+     *
+     * @param token the JWT token to parse
+     * @return the user's email extracted from the token's subject claim
+     * @throws JwtException if the token is invalid, expired, or otherwise faulty
+     * @throws IllegalArgumentException if the JWT claims string is empty or null
      */
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);

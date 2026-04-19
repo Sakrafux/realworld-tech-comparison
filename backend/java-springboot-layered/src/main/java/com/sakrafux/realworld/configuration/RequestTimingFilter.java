@@ -12,6 +12,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
+/**
+ * A servlet filter that intercepts incoming HTTP requests to measure their execution time
+ * and log relevant request details (method, path, IP, User-Agent). 
+ * It also generates a unique trace ID for each request to aid in distributed tracing and log aggregation.
+ */
 @Component
 @Slf4j
 public class RequestTimingFilter extends OncePerRequestFilter {
@@ -26,6 +31,9 @@ public class RequestTimingFilter extends OncePerRequestFilter {
         String ip = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
 
+        // Put the generated traceId into the Mapped Diagnostic Context (MDC).
+        // This allows logging frameworks (like Logback/SLF4J) to automatically include 
+        // this traceId in all log statements executed during the context of this thread's request.
         MDC.put(TRACE_ID, traceId);
         
         long startTime = System.currentTimeMillis();
@@ -41,7 +49,10 @@ public class RequestTimingFilter extends OncePerRequestFilter {
             int status = response.getStatus();
             
             log.info("Finished Request: {} {} | Status: {} | Time: {}ms", method, path, status, duration);
-            // Cleanup the TRACE_ID
+            
+            // Clean up the MDC at the end of the request.
+            // Since servlet containers reuse threads from a thread pool, failing to clear the MDC 
+            // would cause the traceId to leak into subsequent, unrelated requests handled by the same thread.
             MDC.clear();
         }
     }

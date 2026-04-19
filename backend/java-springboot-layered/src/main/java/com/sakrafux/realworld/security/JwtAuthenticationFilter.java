@@ -17,6 +17,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+/**
+ * A custom servlet filter responsible for intercepting HTTP requests to validate
+ * JSON Web Tokens (JWT) present in the Authorization header.
+ * If a valid token is found, it extracts the user's email and populates the 
+ * Spring SecurityContext, effectively authenticating the user for the current request.
+ * This filter executes once per request.
+ */
 @Component
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -56,6 +63,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String email = jwtService.extractEmail(token);
 
             // If we reach here, the token is 100% valid.
+            // We check if the authentication context is currently null to avoid
+            // overriding an existing authentication or doing unnecessary work if the user
+            // has already been authenticated (e.g., by another filter earlier in the chain).
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         email, null, Collections.emptyList()

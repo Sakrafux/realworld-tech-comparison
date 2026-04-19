@@ -1,7 +1,5 @@
 package com.sakrafux.realworld.service;
 
-import com.sakrafux.realworld.dto.request.LoginUserRequest;
-import com.sakrafux.realworld.dto.request.NewUserRequest;
 import com.sakrafux.realworld.dto.response.UserResponse;
 import com.sakrafux.realworld.entity.UserEntity;
 import com.sakrafux.realworld.exception.InvalidCredentialsException;
@@ -15,6 +13,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service class responsible for handling core user authentication and profile management.
+ * Acts as an intermediary between the Controllers (UserController, UsersController) and UserRepository.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -24,6 +26,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+    /**
+     * Registers a new user in the system after validating that the email and username
+     * are not already taken. Generates a fresh JWT token for the newly registered user.
+     *
+     * @param request the registration details containing email, username, and password
+     * @return a UserResponse containing user details and a valid JWT token
+     * @throws UserAlreadyExistsException if the provided email or username already exists
+     */
     @Transactional
     public UserResponse registerUser(com.sakrafux.realworld.dto.request.NewUserRequest request) {
         var userData = request.getUser();
@@ -46,6 +56,15 @@ public class UserService {
         return toUserResponse(user);
     }
 
+    /**
+     * Authenticates an existing user by verifying their email and password against
+     * the stored credentials. Generates a fresh JWT token upon successful authentication.
+     *
+     * @param request the login details containing email and password
+     * @return a UserResponse containing user details and a valid JWT token
+     * @throws ResourceNotFoundException if no user is found with the provided email
+     * @throws InvalidCredentialsException if the provided password does not match the stored hash
+     */
     @Transactional(readOnly = true)
     public UserResponse loginUser(com.sakrafux.realworld.dto.request.LoginUserRequest request) {
         var userData = request.getUser();
@@ -60,7 +79,14 @@ public class UserService {
         return toUserResponse(user);
     }
 
-
+    /**
+     * Retrieves the profile information of the currently authenticated user
+     * using their email address.
+     *
+     * @param email the email of the currently authenticated user
+     * @return a UserResponse containing the user's details and a freshly generated JWT token
+     * @throws ResourceNotFoundException if the user cannot be found in the database
+     */
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser(String email) {
         UserEntity user = userRepository.findByEmail(email)

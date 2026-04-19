@@ -2,6 +2,11 @@ package com.sakrafux.realworld.exception;
 
 import lombok.Getter;
 
+/**
+ * Exception thrown when a requested domain entity (like User, Article, etc.)
+ * cannot be found in the database.
+ * Handled globally to return a 404 Not Found HTTP status.
+ */
 @Getter
 public class ResourceNotFoundException extends RuntimeException {
     private final String resourceName;
