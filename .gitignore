@@ -62,3 +62,5 @@ release/
 # Logs
 logs
 *.log
+
+*.iml
