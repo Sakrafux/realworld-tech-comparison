@@ -11,8 +11,7 @@ spring:
     password: 
   h2:
     console:
-      enabled: true
-      path: /h2-console
+      enabled: false
   jpa:
     hibernate:
       ddl-auto: update
@@ -25,10 +24,13 @@ realworld:
   auth:
     header: Authorization
     prefix: "Token "
-    secret: ${JWT_SECRET:a-very-long-and-secure-random-secret-key-for-dev-12345}
+    secret: ${JWT_SECRET:feNiAMDB8g1bMy7AvcKdYAEi++SpBdkrgM0ug6NPII4=}
     token-expiration-msec: 3600000
   pagination:
     default-limit: 20
+  cors:
+    # Default to localhost for dev, but allow overriding via environment variable
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
 
 logging:
   level:

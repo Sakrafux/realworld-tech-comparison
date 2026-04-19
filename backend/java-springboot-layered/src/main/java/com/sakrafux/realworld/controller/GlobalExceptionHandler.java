@@ -1,7 +1,9 @@
 package com.sakrafux.realworld.controller;
 
 import com.sakrafux.realworld.dto.response.GenericErrorResponse;
+import com.sakrafux.realworld.exception.InvalidCredentialsException;
 import com.sakrafux.realworld.exception.ResourceNotFoundException;
+import com.sakrafux.realworld.exception.UserAlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +43,26 @@ public class GlobalExceptionHandler {
     public ResponseEntity<GenericErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
         log.warn("Resource not found: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(GenericErrorResponse.of(ex.getMessage()));
+    }
+
+    /**
+     * Handle UserAlreadyExistsException (422)
+     */
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<GenericErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+        log.warn("User already exists: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(GenericErrorResponse.of(ex.getMessage()));
+    }
+
+    /**
+     * Handle InvalidCredentialsException (401)
+     */
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<GenericErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        log.warn("Invalid credentials");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(GenericErrorResponse.of(ex.getMessage()));
     }
 
