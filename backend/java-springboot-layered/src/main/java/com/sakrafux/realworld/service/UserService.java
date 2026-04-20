@@ -54,7 +54,8 @@ public class UserService {
                 .build();
 
         user = userRepository.save(user);
-        return toUserResponse(user);
+        String token = jwtService.generateToken(user.getEmail());
+        return userMapper.toResponse(user, token);
     }
 
     /**
@@ -77,7 +78,8 @@ public class UserService {
             throw new InvalidCredentialsException();
         }
 
-        return toUserResponse(user);
+        String token = jwtService.generateToken(user.getEmail());
+        return userMapper.toResponse(user, token);
     }
 
     /**
@@ -93,7 +95,8 @@ public class UserService {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         
-        return toUserResponse(user);
+        String token = jwtService.generateToken(user.getEmail());
+        return userMapper.toResponse(user, token);
     }
 
     /**
@@ -140,13 +143,7 @@ public class UserService {
         }
 
         user = userRepository.save(user);
-        return toUserResponse(user);
-    }
-
-    private UserResponse toUserResponse(UserEntity user) {
-        UserResponse response = userMapper.toResponse(user);
         String token = jwtService.generateToken(user.getEmail());
-        response.getUser().setToken(token);
-        return response;
+        return userMapper.toResponse(user, token);
     }
 }
