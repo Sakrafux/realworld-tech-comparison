@@ -13,8 +13,10 @@ This implementation follows a classic **Layered Architecture** (also known as N-
 
 ## Tech Stack
 
-- **Java**
-- **Spring Boot**
+- **Java 25**
+- **Spring Boot 4.0.5**
 - **Spring Data JPA**
-- **H2/PostgreSQL** (depending on configuration)
+- **H2 / PostgreSQL** (depending on configuration)
 - **Maven**
+- **Monitoring**: Spring Boot Actuator with Micrometer & Prometheus integration
+- **Security**: Stateless JWT Authentication
