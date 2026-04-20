@@ -20,3 +20,29 @@ This implementation follows a classic **Layered Architecture** (also known as N-
 - **Maven**
 - **Monitoring**: Spring Boot Actuator with Micrometer & Prometheus integration
 - **Security**: Stateless JWT Authentication
+
+## Directory Structure
+
+```text
+src/
+├── main/
+│   ├── java/
+│   │   └── com.sakrafux.realworld/
+│   │       ├── configuration/   # Spring configuration (Security, JPA, Filters)
+│   │       ├── controller/      # REST API endpoints and Global Exception Handler
+│   │       ├── dto/             # Data Transfer Objects (Request/Response)
+│   │       ├── entity/          # JPA Database Entities
+│   │       ├── exception/       # Custom exceptions 
+│   │       ├── mapper/          # MapStruct mappers (DTO <-> Entity)
+│   │       ├── repository/      # Spring Data JPA Repositories
+│   │       ├── security/        # JWT parsing and authentication filters
+│   │       └── service/         # Core business logic
+│   └── resources/               # application.yml
+└── test/
+    ├── java/
+    │   └── com.sakrafux.realworld/
+    │       ├── controller/      # Integration tests for REST endpoints (*IT.java)
+    │       ├── security/        # Unit tests for security utilities (*Test.java)
+    │       └── service/         # Unit tests for business logic (*Test.java)
+    └── resources/               # application.yml for testing (in-memory H2)
+```
