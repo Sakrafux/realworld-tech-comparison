@@ -1,12 +1,12 @@
 package com.sakrafux.realworld.controller;
 
+import com.sakrafux.realworld.dto.request.UpdateUserRequest;
 import com.sakrafux.realworld.dto.response.UserResponse;
 import com.sakrafux.realworld.security.AuthUtil;
 import com.sakrafux.realworld.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * REST Controller for operations related to the currently authenticated user.
@@ -29,5 +29,18 @@ public class UserController {
     public UserResponse getCurrentUser() {
         String email = AuthUtil.getRequiredCurrentUserEmail();
         return userService.getCurrentUser(email);
+    }
+
+    /**
+     * Updates the profile of the currently authenticated user.
+     * Maps to: PUT /api/user
+     *
+     * @param request the updated user details
+     * @return a response containing the updated user's details and a new JWT token
+     */
+    @PutMapping
+    public UserResponse updateUser(@Valid @RequestBody UpdateUserRequest request) {
+        String currentEmail = AuthUtil.getRequiredCurrentUserEmail();
+        return userService.updateUser(currentEmail, request);
     }
 }

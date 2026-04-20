@@ -2,6 +2,7 @@ package com.sakrafux.realworld.service;
 
 import com.sakrafux.realworld.dto.request.LoginUserRequest;
 import com.sakrafux.realworld.dto.request.NewUserRequest;
+import com.sakrafux.realworld.dto.request.UpdateUserRequest;
 import com.sakrafux.realworld.dto.response.UserResponse;
 import com.sakrafux.realworld.entity.UserEntity;
 import com.sakrafux.realworld.exception.InvalidCredentialsException;
@@ -222,5 +223,67 @@ class UserServiceTest {
         // Then
         assertThat(result.getUser().getEmail()).isEqualTo(email);
         assertThat(result.getUser().getToken()).isEqualTo("testToken");
+    }
+
+    @Test
+    void updateUser_ValidUpdate_ReturnsUpdatedUser() {
+        // Given
+        String currentEmail = "test@example.com";
+        UpdateUserRequest request = UpdateUserRequest.builder()
+                .user(UpdateUserRequest.UserData.builder()
+                        .username("newusername")
+                        .bio("new bio")
+                        .build())
+                .build();
+
+        UserEntity user = UserEntity.builder()
+                .email(currentEmail)
+                .username("oldusername")
+                .bio("old bio")
+                .build();
+
+        UserResponse response = UserResponse.builder()
+                .user(UserResponse.UserData.builder()
+                        .email(currentEmail)
+                        .username("newusername")
+                        .bio("new bio")
+                        .build())
+                .build();
+
+        given(userRepository.findByEmail(currentEmail)).willReturn(Optional.of(user));
+        given(userRepository.findByUsername("newusername")).willReturn(Optional.empty());
+        given(userRepository.save(any(UserEntity.class))).willReturn(user);
+        given(userMapper.toResponse(user)).willReturn(response);
+        given(jwtService.generateToken(currentEmail)).willReturn("testToken");
+
+        // When
+        UserResponse result = userService.updateUser(currentEmail, request);
+
+        // Then
+        assertThat(result.getUser().getUsername()).isEqualTo("newusername");
+        assertThat(result.getUser().getBio()).isEqualTo("new bio");
+        verify(userRepository).save(any(UserEntity.class));
+    }
+
+    @Test
+    void updateUser_EmailAlreadyExists_ThrowsUserAlreadyExistsException() {
+        // Given
+        String currentEmail = "test@example.com";
+        String newEmail = "existing@example.com";
+        UpdateUserRequest request = UpdateUserRequest.builder()
+                .user(UpdateUserRequest.UserData.builder()
+                        .email(newEmail)
+                        .build())
+                .build();
+
+        UserEntity user = UserEntity.builder().email(currentEmail).build();
+
+        given(userRepository.findByEmail(currentEmail)).willReturn(Optional.of(user));
+        given(userRepository.findByEmail(newEmail)).willReturn(Optional.of(new UserEntity()));
+
+        // When / Then
+        assertThatThrownBy(() -> userService.updateUser(currentEmail, request))
+                .isInstanceOf(UserAlreadyExistsException.class)
+                .hasMessage("Email already exists");
     }
 }

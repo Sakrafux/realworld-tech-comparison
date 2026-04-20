@@ -1,5 +1,6 @@
 package com.sakrafux.realworld.service;
 
+import com.sakrafux.realworld.dto.request.UpdateUserRequest;
 import com.sakrafux.realworld.dto.response.UserResponse;
 import com.sakrafux.realworld.entity.UserEntity;
 import com.sakrafux.realworld.exception.InvalidCredentialsException;
@@ -92,6 +93,53 @@ public class UserService {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
         
+        return toUserResponse(user);
+    }
+
+    /**
+     * Updates the profile of the currently authenticated user.
+     * All fields are optional; only those provided in the request will be updated.
+     *
+     * @param currentEmail the email of the currently authenticated user
+     * @param request the update details containing new email, username, password, bio, or image
+     * @return a UserResponse containing the updated user details and a new JWT token
+     * @throws ResourceNotFoundException if the user cannot be found in the database
+     * @throws UserAlreadyExistsException if the new email or username is already taken by another user
+     */
+    @Transactional
+    public UserResponse updateUser(String currentEmail, UpdateUserRequest request) {
+        UserEntity user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+
+        UpdateUserRequest.UserData userData = request.getUser();
+
+        if (userData.getEmail() != null && !userData.getEmail().equals(user.getEmail())) {
+            if (userRepository.findByEmail(userData.getEmail()).isPresent()) {
+                throw new UserAlreadyExistsException("Email already exists");
+            }
+            user.setEmail(userData.getEmail());
+        }
+
+        if (userData.getUsername() != null && !userData.getUsername().equals(user.getUsername())) {
+            if (userRepository.findByUsername(userData.getUsername()).isPresent()) {
+                throw new UserAlreadyExistsException("Username already exists");
+            }
+            user.setUsername(userData.getUsername());
+        }
+
+        if (userData.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(userData.getPassword()));
+        }
+
+        if (userData.getBio() != null) {
+            user.setBio(userData.getBio());
+        }
+
+        if (userData.getImage() != null) {
+            user.setImage(userData.getImage());
+        }
+
+        user = userRepository.save(user);
         return toUserResponse(user);
     }
 
