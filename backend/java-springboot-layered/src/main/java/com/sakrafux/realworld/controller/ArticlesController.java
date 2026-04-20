@@ -6,7 +6,10 @@ import com.sakrafux.realworld.dto.response.MultipleArticlesResponse;
 import com.sakrafux.realworld.security.AuthUtil;
 import com.sakrafux.realworld.service.ArticleService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/articles")
 @RequiredArgsConstructor
+@Validated
 public class ArticlesController {
 
     private final ArticleService articleService;
@@ -36,8 +40,8 @@ public class ArticlesController {
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) String author,
             @RequestParam(required = false) String favorited,
-            @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(defaultValue = "0") int offset) {
+            @RequestParam(defaultValue = "20") @Min(1) int limit,
+            @RequestParam(defaultValue = "0") @Min(0) int offset) {
         return articleService.getArticles(tag, author, favorited, limit, offset, AuthUtil.getCurrentUserEmail());
     }
 
@@ -50,6 +54,7 @@ public class ArticlesController {
      * @return the created article
      */
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ArticleResponse createArticle(@Valid @RequestBody NewArticleRequest request) {
         return articleService.createArticle(request, AuthUtil.getRequiredCurrentUserEmail());
     }

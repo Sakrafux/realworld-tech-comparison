@@ -35,6 +35,6 @@ public class NewArticleRequest {
         @NotBlank
         private String body;
 
-        private List<String> tagList;
+        private List<@Size(max = 20) String> tagList;
     }
 }

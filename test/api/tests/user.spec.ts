@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { apiClient } from '../utils/apiClient';
-import { generateUserData, unique } from '../utils/testUtils';
+import { generateUserData, unique, createUserData } from '../utils/testUtils';
 
 interface UserResponse {
     user: {
@@ -18,11 +18,9 @@ describe('User API', () => {
 
     beforeAll(async () => {
         // Create a user to use in the tests
-        testUser = generateUserData();
-        const response = await apiClient.post<UserResponse>('/users', {
-            user: testUser
-        });
-        userToken = response.data.user.token;
+        const { user } = await createUserData();
+        testUser = user;
+        userToken = user.token;
     });
 
     describe('GET /user', () => {
@@ -51,7 +49,7 @@ describe('User API', () => {
             const newBio = 'I am a software engineer';
             const newImage = 'http://example.com/image.jpg';
 
-            const response = await apiClient.put<UserResponse>('/user', 
+            const response = await apiClient.put<UserResponse>('/user',
                 {
                     user: {
                         bio: newBio,
@@ -84,12 +82,11 @@ describe('User API', () => {
         });
 
         it('should return 422 for duplicate email during update', async () => {
-            const anotherUser = generateUserData();
-            await apiClient.post('/users', { user: anotherUser });
+            const { user } = await createUserData();
 
             try {
-                await apiClient.put('/user', 
-                    { user: { email: anotherUser.email } },
+                await apiClient.put('/user',
+                    { user: { email: user.email } },
                     { token: userToken }
                 );
                 expect.fail('Should have thrown 422 for duplicate email');
@@ -100,12 +97,11 @@ describe('User API', () => {
         });
 
         it('should return 422 for duplicate username during update', async () => {
-            const anotherUser = generateUserData();
-            await apiClient.post('/users', { user: anotherUser });
+            const { user } = await createUserData();
 
             try {
-                await apiClient.put('/user', 
-                    { user: { username: anotherUser.username } },
+                await apiClient.put('/user',
+                    { user: { username: user.username } },
                     { token: userToken }
                 );
                 expect.fail('Should have thrown 422 for duplicate username');
@@ -117,27 +113,29 @@ describe('User API', () => {
 
         it('should return 422 for invalid email during update', async () => {
             try {
-                await apiClient.put('/user', 
+                await apiClient.put('/user',
                     { user: { email: 'not-an-email' } },
                     { token: userToken }
                 );
                 expect.fail('Should have thrown 422 for invalid email');
             } catch (error: any) {
                 expect(error.status).toBe(422);
-                expect(error.data.errors.body.join(' ').toLowerCase()).toContain('email');
+                const allErrors = error.data.errors.body.join(' ');
+                expect(allErrors.toLowerCase()).toContain('email');
             }
         });
 
         it('should return 422 for short password during update', async () => {
             try {
-                await apiClient.put('/user', 
+                await apiClient.put('/user',
                     { user: { password: 'short' } },
                     { token: userToken }
                 );
                 expect.fail('Should have thrown 422 for short password');
             } catch (error: any) {
                 expect(error.status).toBe(422);
-                expect(error.data.errors.body.join(' ').toLowerCase()).toContain('password');
+                const allErrors = error.data.errors.body.join(' ');
+                expect(allErrors.toLowerCase()).toContain('password');
             }
         });
     });

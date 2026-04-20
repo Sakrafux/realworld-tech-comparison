@@ -36,7 +36,11 @@ export class ApiError extends Error {
      * @param data The error payload returned by the API
      */
     constructor(public status: number, public statusText: string, public data: any) {
-        super(`API Error: ${status} ${statusText}`);
+        let dataStr = data;
+        if (typeof data === "object") {
+            dataStr = JSON.stringify(data);
+        }
+        super(`API Error: ${status} ${statusText} ${dataStr}`);
         this.name = 'ApiError';
     }
 }

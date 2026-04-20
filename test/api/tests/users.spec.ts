@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { apiClient } from '../utils/apiClient';
-import { generateUserData } from '../utils/testUtils';
+import { generateUserData, createUserData } from '../utils/testUtils';
 
 interface UserResponse {
     user: {
@@ -27,14 +27,13 @@ describe('Users API', () => {
         });
 
         it('should return 422 for duplicate email', async () => {
-            const userData = generateUserData();
-            await apiClient.post('/users', { user: userData });
+            const { user } = await createUserData();
 
             try {
                 await apiClient.post('/users', {
                     user: {
                         username: 'different-user-' + Date.now(),
-                        email: userData.email,
+                        email: user.email,
                         password: 'password123'
                     }
                 });
@@ -46,14 +45,13 @@ describe('Users API', () => {
         });
 
         it('should return 422 for duplicate username', async () => {
-            const userData = generateUserData();
-            await apiClient.post('/users', { user: userData });
+            const { user } = await createUserData();
 
             try {
                 await apiClient.post('/users', {
                     user: {
-                        username: userData.username,
-                        email: 'different-' + userData.email,
+                        username: user.username,
+                        email: 'different-' + user.email,
                         password: 'password123'
                     }
                 });
@@ -76,19 +74,19 @@ describe('Users API', () => {
                 }
             };
 
-            it('should fail for blank username', () => 
+            it('should fail for blank username', () =>
                 testValidation({ user: { username: '', email: 'test@example.com', password: 'password123' } }, 'username')
             );
 
-            it('should fail for invalid email', () => 
+            it('should fail for invalid email', () =>
                 testValidation({ user: { username: 'user', email: 'not-an-email', password: 'password123' } }, 'email')
             );
 
-            it('should fail for short password', () => 
+            it('should fail for short password', () =>
                 testValidation({ user: { username: 'user', email: 'test@example.com', password: 'short' } }, 'password')
             );
 
-            it('should fail for missing fields', () => 
+            it('should fail for missing fields', () =>
                 testValidation({ user: { username: 'user' } }, 'email')
             );
         });
@@ -96,29 +94,27 @@ describe('Users API', () => {
 
     describe('POST /users/login (Authentication)', () => {
         it('should login an existing user successfully', async () => {
-            const userData = generateUserData();
-            await apiClient.post('/users', { user: userData });
+            const { user, password } = await createUserData();
 
             const response = await apiClient.post<UserResponse>('/users/login', {
                 user: {
-                    email: userData.email,
-                    password: userData.password
+                    email: user.email,
+                    password
                 }
             });
 
             expect(response.status).toBe(200);
-            expect(response.data.user.email).toBe(userData.email);
+            expect(response.data.user.email).toBe(user.email);
             expect(response.data.user.token).toBeDefined();
         });
 
         it('should return 401 for wrong credentials', async () => {
-            const userData = generateUserData();
-            await apiClient.post('/users', { user: userData });
+            const { user } = await createUserData();
 
             try {
                 await apiClient.post('/users/login', {
                     user: {
-                        email: userData.email,
+                        email: user.email,
                         password: 'wrong-password'
                     }
                 });
