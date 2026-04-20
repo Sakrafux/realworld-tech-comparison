@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 5s # Set the scrape interval to 5 seconds for more granular metrics during load tests
+
+scrape_configs:
+  - job_name: 'realworld-backend'
+    metrics_path: '/api/actuator/prometheus'
+    static_configs:
+      - targets: ['backend:8080']
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

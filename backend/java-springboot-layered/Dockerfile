@@ -1,12 +1,12 @@
 # This Dockerfile assumes the JAR has been built already
 # e.g., via 'mvn package -DskipTests' or 'mvn clean install'
 # from the root of the monorepo.
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 WORKDIR /app
 
 # Copy the pre-built JAR
-COPY target/realworld-1.0.0-SNAPSHOT.jar app.jar
+COPY target/java-springboot-layered-1.0.0-SNAPSHOT.jar app.jar
 
 # Default environment variables
 ENV SERVER_PORT=8080

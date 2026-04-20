@@ -42,7 +42,7 @@ realworld:
     default-limit: 20
   cors:
     # Default to localhost for dev, but allow overriding via environment variable
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 logging:
   level:

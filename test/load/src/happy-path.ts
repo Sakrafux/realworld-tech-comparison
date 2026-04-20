@@ -27,6 +27,7 @@ export let options: Options = {
 };
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080/api';
+const PROMETHEUS_URL = __ENV.K6_PROMETHEUS_RW_SERVER_URL || 'http://prometheus:9090/api/v1/write';
 
 function randomString(length: number): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';

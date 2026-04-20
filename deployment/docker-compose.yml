@@ -1,0 +1,9 @@
+# This combines monitoring and the java-springboot-layered backend.
+# To use: docker-compose up --build
+include:
+  - path: stacks/monitoring.yml
+  - path: stacks/java-springboot-layered.yml
+
+networks:
+  realworld-network:
+    name: realworld-network
