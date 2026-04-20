@@ -1,5 +1,16 @@
-# This combines monitoring and the java-springboot-layered backend.
-# To use: docker-compose up --build
+# This is the main orchestrator for the RealWorld Tech Comparison.
+# It uses Docker Compose Profiles to allow mixing and matching implementations.
+# 
+# Usage Examples:
+#   Start Java Backend:         docker-compose --profile java-springboot-layered up -d
+#   Start with Monitoring:      docker-compose --profile java-springboot-layered --profile monitoring up -d
+#   
+#   IMPORTANT: The --profile flag MUST come BEFORE the command (e.g., 'up').
+#   Incorrect: docker-compose up --profile ...
+#   Correct:   docker-compose --profile ... up
+#
+# Alternatively, use the COMPOSE_PROFILES environment variable:
+#   COMPOSE_PROFILES=java-springboot-layered,monitoring docker-compose up -d
 include:
   - path: stacks/monitoring.yml
   - path: stacks/java-springboot-layered.yml

@@ -1,5 +1,7 @@
 services:
   db:
+    profiles:
+      - java-springboot-layered
     image: postgres:latest
     container_name: db
     environment:
@@ -12,6 +14,8 @@ services:
       - realworld-network
 
   backend:
+    profiles:
+      - java-springboot-layered
     build:
       context: ../../backend/java-springboot-layered
       dockerfile: Dockerfile

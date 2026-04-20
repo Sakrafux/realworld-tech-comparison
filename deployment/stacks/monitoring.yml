@@ -1,5 +1,7 @@
 services:
   prometheus:
+    profiles:
+      - monitoring
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
@@ -16,6 +18,8 @@ services:
       - realworld-network
 
   grafana:
+    profiles:
+      - monitoring
     image: grafana/grafana:latest
     container_name: grafana
     ports:
