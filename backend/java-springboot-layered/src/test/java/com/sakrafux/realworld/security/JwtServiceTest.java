@@ -9,9 +9,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JwtServiceTest {
 
-    private JwtService jwtService;
     private final String SECRET = "dGhpcy1pcy1hLXZlcnktc2VjdXJlLXNlY3JldC1rZXktZm9yLXVuaXQtdGVzdGluZw==";
     private final long EXPIRATION = 3600000; // 1 hour
+
+    private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
