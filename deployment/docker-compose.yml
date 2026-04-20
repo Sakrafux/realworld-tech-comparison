@@ -11,6 +11,8 @@
 #
 # Alternatively, use the COMPOSE_PROFILES environment variable:
 #   COMPOSE_PROFILES=java-springboot-layered,monitoring docker-compose up -d
+name: realworld-tech-comparison
+
 include:
   - path: stacks/monitoring.yml
   - path: stacks/java-springboot-layered.yml
