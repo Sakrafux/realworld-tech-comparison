@@ -25,7 +25,7 @@ realworld:
     header: Authorization
     prefix: "Token "
     secret: ${JWT_SECRET:feNiAMDB8g1bMy7AvcKdYAEi++SpBdkrgM0ug6NPII4=}
-    token-expiration-msec: 3600000
+    token-expiration-msec: 3600000 # 1 hour
   pagination:
     default-limit: 20
   cors:

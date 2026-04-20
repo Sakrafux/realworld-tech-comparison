@@ -37,4 +37,5 @@ This file contains specific rules, architectural mandates, and coding convention
 
 *   **Lombok:** Use Lombok to reduce boilerplate (`@Getter`, `@Setter`, `@Builder`, `@RequiredArgsConstructor`, `@Slf4j`).
 *   **MapStruct:** Use MapStruct for mapping between Entities and DTOs.
+*   **Constants:** Use constant notation (`UPPER_SNAKE_CASE`) only for `final` value variables (primitives, Strings, or value-like objects) that are **initialized directly** at the site of declaration. If a final variable is initialized via a constructor (explicitly or via Lombok), it MUST use standard `camelCase` naming. This applies to both private and public fields.
 *   **Documentation:** Always provide descriptive class-level and method-level JavaDocs for Controllers, Services, Exceptions, and Configuration classes. Ensure you include `@param`, `@return`, and `@throws` tags where applicable.
