@@ -133,6 +133,48 @@ public class ArticleService {
                 profileService.getProfile(author.getUsername(), Optional.of(currentEmail)).getProfile());
     }
 
+    /**
+     * Favorites an article for the current user.
+     *
+     * @param slug         the slug of the article to favorite
+     * @param currentEmail the email of the authenticated user
+     * @return ArticleResponse containing the updated article details
+     */
+    @Transactional
+    public ArticleResponse favoriteArticle(String slug, String currentEmail) {
+        ArticleEntity article = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
+        UserEntity user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+
+        article.getFavoritedBy().add(user);
+        article = articleRepository.save(article);
+
+        return articleMapper.toResponse(article, getTagList(article), true, article.getFavoritedBy().size(),
+                profileService.getProfile(article.getAuthor().getUsername(), Optional.of(currentEmail)).getProfile());
+    }
+
+    /**
+     * Unfavorites an article for the current user.
+     *
+     * @param slug         the slug of the article to unfavorite
+     * @param currentEmail the email of the authenticated user
+     * @return ArticleResponse containing the updated article details
+     */
+    @Transactional
+    public ArticleResponse unfavoriteArticle(String slug, String currentEmail) {
+        ArticleEntity article = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
+        UserEntity user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+
+        article.getFavoritedBy().remove(user);
+        article = articleRepository.save(article);
+
+        return articleMapper.toResponse(article, getTagList(article), false, article.getFavoritedBy().size(),
+                profileService.getProfile(article.getAuthor().getUsername(), Optional.of(currentEmail)).getProfile());
+    }
+
     private ArticleResponse.ArticleData mapToArticleData(ArticleEntity article, Optional<UserEntity> currentUser) {
         List<String> tagList = getTagList(article);
         boolean favorited = currentUser

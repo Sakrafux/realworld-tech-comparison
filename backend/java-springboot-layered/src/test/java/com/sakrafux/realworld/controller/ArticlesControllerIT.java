@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -63,5 +64,39 @@ class ArticlesControllerIT extends AbstractControllerIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.articles", hasSize(1)))
                 .andExpect(jsonPath("$.articles[0].title").value("Java Article"));
+    }
+
+    @Test
+    void favoriteArticle_ValidRequest_ReturnsOkWithFavoritedArticle() throws Exception {
+        String authorToken = registerUserViaApi("author", "author@example.com", "password123");
+        createArticleViaApi(authorToken, "Favorite Me", "Desc", "Body", List.of());
+
+        String userToken = registerUserViaApi("user", "user@example.com", "password123");
+
+        mockMvc.perform(post("/articles/favorite-me/favorite")
+                        .header("Authorization", "Token " + userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.article.favorited").value(true))
+                .andExpect(jsonPath("$.article.favoritesCount").value(1));
+    }
+
+    @Test
+    void unfavoriteArticle_ValidRequest_ReturnsOkWithUnfavoritedArticle() throws Exception {
+        String authorToken = registerUserViaApi("author", "author@example.com", "password123");
+        createArticleViaApi(authorToken, "Unfavorite Me", "Desc", "Body", List.of());
+
+        String userToken = registerUserViaApi("user", "user@example.com", "password123");
+
+        // Favorite first
+        mockMvc.perform(post("/articles/unfavorite-me/favorite")
+                        .header("Authorization", "Token " + userToken))
+                .andExpect(status().isOk());
+
+        // Then unfavorite
+        mockMvc.perform(delete("/articles/unfavorite-me/favorite")
+                        .header("Authorization", "Token " + userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.article.favorited").value(false))
+                .andExpect(jsonPath("$.article.favoritesCount").value(0));
     }
 }

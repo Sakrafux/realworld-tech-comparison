@@ -58,4 +58,30 @@ public class ArticlesController {
     public ArticleResponse createArticle(@Valid @RequestBody NewArticleRequest request) {
         return articleService.createArticle(request, AuthUtil.getRequiredCurrentUserEmail());
     }
+
+    /**
+     * Favorites an article.
+     * Maps to: POST /api/articles/{slug}/favorite
+     * Auth required.
+     *
+     * @param slug the article slug
+     * @return the updated article
+     */
+    @PostMapping("/{slug}/favorite")
+    public ArticleResponse favoriteArticle(@PathVariable String slug) {
+        return articleService.favoriteArticle(slug, AuthUtil.getRequiredCurrentUserEmail());
+    }
+
+    /**
+     * Unfavorites an article.
+     * Maps to: DELETE /api/articles/{slug}/favorite
+     * Auth required.
+     *
+     * @param slug the article slug
+     * @return the updated article
+     */
+    @DeleteMapping("/{slug}/favorite")
+    public ArticleResponse unfavoriteArticle(@PathVariable String slug) {
+        return articleService.unfavoriteArticle(slug, AuthUtil.getRequiredCurrentUserEmail());
+    }
 }

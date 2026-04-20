@@ -140,4 +140,66 @@ class ArticleServiceTest {
         assertThat(result.getArticlesCount()).isEqualTo(1);
         assertThat(result.getArticles().getFirst().getTitle()).isEqualTo("Title");
     }
+
+    @Test
+    void favoriteArticle_ValidArticleAndUser_SavesAndReturnsFavoritedArticle() {
+        // Given
+        String slug = "test-article";
+        String email = "user@example.com";
+        UserEntity author = UserEntity.builder().username("author").build();
+        UserEntity user = UserEntity.builder().username("user").email(email).build();
+        ArticleEntity article = ArticleEntity.builder()
+                .slug(slug)
+                .author(author)
+                .favoritedBy(new HashSet<>())
+                .tags(new HashSet<>())
+                .build();
+
+        given(articleRepository.findBySlug(slug)).willReturn(Optional.of(article));
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+        given(articleRepository.save(any(ArticleEntity.class))).willAnswer(inv -> inv.getArgument(0));
+        given(profileService.getProfile(eq("author"), any())).willReturn(
+                ProfileResponse.builder().profile(ProfileResponse.ProfileData.builder().username("author").build()).build()
+        );
+
+        // When
+        ArticleResponse result = articleService.favoriteArticle(slug, email);
+
+        // Then
+        assertThat(result.getArticle().isFavorited()).isTrue();
+        assertThat(result.getArticle().getFavoritesCount()).isEqualTo(1);
+        assertThat(article.getFavoritedBy()).contains(user);
+        verify(articleRepository).save(article);
+    }
+
+    @Test
+    void unfavoriteArticle_ValidArticleAndUser_SavesAndReturnsUnfavoritedArticle() {
+        // Given
+        String slug = "test-article";
+        String email = "user@example.com";
+        UserEntity author = UserEntity.builder().username("author").build();
+        UserEntity user = UserEntity.builder().username("user").email(email).build();
+        ArticleEntity article = ArticleEntity.builder()
+                .slug(slug)
+                .author(author)
+                .favoritedBy(new HashSet<>(List.of(user)))
+                .tags(new HashSet<>())
+                .build();
+
+        given(articleRepository.findBySlug(slug)).willReturn(Optional.of(article));
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+        given(articleRepository.save(any(ArticleEntity.class))).willAnswer(inv -> inv.getArgument(0));
+        given(profileService.getProfile(eq("author"), any())).willReturn(
+                ProfileResponse.builder().profile(ProfileResponse.ProfileData.builder().username("author").build()).build()
+        );
+
+        // When
+        ArticleResponse result = articleService.unfavoriteArticle(slug, email);
+
+        // Then
+        assertThat(result.getArticle().isFavorited()).isFalse();
+        assertThat(result.getArticle().getFavoritesCount()).isEqualTo(0);
+        assertThat(article.getFavoritedBy()).isEmpty();
+        verify(articleRepository).save(article);
+    }
 }

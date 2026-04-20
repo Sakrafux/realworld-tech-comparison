@@ -46,15 +46,15 @@ describe('Articles API', () => {
             expect(response.data.articles.every((a: any) => a.author.username === authorUser.username)).toBe(true);
         });
 
-        // it('Filter by Favorited: should return only articles favorited by user', async () => {
-        //     const article = await createArticle(authorToken);
-        //     await apiClient.post(`/articles/${article.slug}/favorite`, undefined, { token: favoriterToken });
-        //
-        //     const response = await apiClient.get<any>('/articles', { params: { favorited: favoriterUser.username } });
-        //     expect(response.status).toBe(200);
-        //     expect(response.data.articles.length).toBeGreaterThan(0);
-        //     expect(response.data.articles.some((a: any) => a.slug === article.slug)).toBe(true);
-        // });
+        it('Filter by Favorited: should return only articles favorited by user', async () => {
+            const article = await createArticle(authorToken);
+            await apiClient.post(`/articles/${article.slug}/favorite`, undefined, { token: favoriterToken });
+
+            const response = await apiClient.get<any>('/articles', { params: { favorited: favoriterUser.username } });
+            expect(response.status).toBe(200);
+            expect(response.data.articles.length).toBeGreaterThan(0);
+            expect(response.data.articles.some((a: any) => a.slug === article.slug)).toBe(true);
+        });
 
         it('Pagination Limit: should return exact number of articles', async () => {
             await createArticle(authorToken);
@@ -98,17 +98,17 @@ describe('Articles API', () => {
             expect(response.data.articles[0].author.username).toBe(authorUser.username);
         });
 
-        // it('Authenticated Fetch: should populate favorited boolean correctly', async () => {
-        //     const article = await createArticle(authorToken);
-        //     await apiClient.post(`/articles/${article.slug}/favorite`, undefined, { token: favoriterToken });
-        //
-        //     const response = await apiClient.get<any>('/articles', { token: favoriterToken });
-        //     expect(response.status).toBe(200);
-        //     const found = response.data.articles.find((a: any) => a.slug === article.slug);
-        //     if (found) {
-        //         expect(found.favorited).toBe(true);
-        //     }
-        // });
+        it('Authenticated Fetch: should populate favorited boolean correctly', async () => {
+            const article = await createArticle(authorToken);
+            await apiClient.post(`/articles/${article.slug}/favorite`, undefined, { token: favoriterToken });
+
+            const response = await apiClient.get<any>('/articles', { token: favoriterToken });
+            expect(response.status).toBe(200);
+            const found = response.data.articles.find((a: any) => a.slug === article.slug);
+            if (found) {
+                expect(found.favorited).toBe(true);
+            }
+        });
 
         it('Edge Case: Limit Below Minimum should return 422', async () => {
             try {
@@ -291,6 +291,63 @@ describe('Articles API', () => {
                 }
             } catch (error: any) {
                 expect(error.status).toBe(422);
+            }
+        });
+    });
+
+    describe('POST/DELETE /articles/{slug}/favorite', () => {
+        let article: any;
+
+        beforeAll(async () => {
+            article = await createArticle(authorToken);
+        });
+
+        it('Favorite: should return 200 with favorited: true and increment count', async () => {
+            const response = await apiClient.post<any>(`/articles/${article.slug}/favorite`, undefined, { token: favoriterToken });
+            expect(response.status).toBe(200);
+            expect(response.data.article.favorited).toBe(true);
+            expect(response.data.article.favoritesCount).toBeGreaterThan(0);
+        });
+
+        it('Unfavorite: should return 200 with favorited: false and decrement count', async () => {
+            // Unfavorite what was favorited in the previous test
+            const response = await apiClient.delete<any>(`/articles/${article.slug}/favorite`, { token: favoriterToken });
+            expect(response.status).toBe(200);
+            expect(response.data.article.favorited).toBe(false);
+            expect(response.data.article.favoritesCount).toBe(0);
+        });
+
+        it('Edge Case: Favorite Article Twice should be idempotent', async () => {
+            await apiClient.post(`/articles/${article.slug}/favorite`, undefined, { token: favoriterToken });
+            const response = await apiClient.post<any>(`/articles/${article.slug}/favorite`, undefined, { token: favoriterToken });
+            expect(response.status).toBe(200);
+            expect(response.data.article.favoritesCount).toBe(1);
+        });
+
+        it('Edge Case: Favorite Non-Existent Article should return 404', async () => {
+            try {
+                await apiClient.post('/articles/non-existent-slug/favorite', undefined, { token: favoriterToken });
+                expect.fail('Should have thrown 404');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
+
+        it('Edge Case: Unfavorite Non-Existent Article should return 404', async () => {
+            try {
+                await apiClient.delete('/articles/non-existent-slug/favorite', { token: favoriterToken });
+                expect.fail('Should have thrown 404');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
+
+        it('Edge Case: Favorite without Auth should return 401', async () => {
+            try {
+                await apiClient.post(`/articles/${article.slug}/favorite`);
+                expect.fail('Should have thrown 401');
+            } catch (error: any) {
+                expect(error.status).toBe(401);
             }
         });
     });
