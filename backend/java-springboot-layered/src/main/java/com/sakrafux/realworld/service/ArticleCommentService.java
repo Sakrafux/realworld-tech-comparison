@@ -81,7 +81,7 @@ public class ArticleCommentService {
         List<CommentResponse.CommentData> commentDataList = comments.stream()
                 .map(comment -> commentMapper.toCommentData(comment,
                         profileService.getProfile(comment.getAuthor(), currentUser).getProfile()))
-                .collect(Collectors.toList());
+                .toList();
 
         return commentMapper.toMultipleResponse(commentDataList);
     }

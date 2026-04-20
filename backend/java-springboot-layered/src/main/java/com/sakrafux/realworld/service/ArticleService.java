@@ -69,6 +69,7 @@ public class ArticleService {
         }
 
         PageRequest pageRequest = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        // Repository uses EntityGraph to fetch relationships in a single query (fixes N+1)
         Page<ArticleEntity> articlePage = articleRepository.findAll(spec, pageRequest);
 
         // Instead of fetching the current user inside the loop for every single article,
@@ -77,7 +78,7 @@ public class ArticleService {
 
         List<ArticleResponse.ArticleData> articles = articlePage.getContent().stream()
                 .map(article -> mapToArticleData(article, currentUser))
-                .collect(Collectors.toList());
+                .toList();
 
         return articleMapper.toMultipleResponse(articles, (int) articlePage.getTotalElements());
     }
@@ -102,11 +103,12 @@ public class ArticleService {
         }
 
         PageRequest pageRequest = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        // Repository uses EntityGraph to fetch relationships in a single query (fixes N+1)
         Page<ArticleEntity> articlePage = articleRepository.findByAuthorIn(following, pageRequest);
 
         List<ArticleResponse.ArticleData> articles = articlePage.getContent().stream()
                 .map(article -> mapToArticleData(article, Optional.of(user)))
-                .collect(Collectors.toList());
+                .toList();
 
         return articleMapper.toMultipleResponse(articles, (int) articlePage.getTotalElements());
     }
@@ -142,19 +144,29 @@ public class ArticleService {
                 .author(author)
                 .build();
 
-        if (articleData.getTagList() != null) {
-            Set<TagEntity> tags = new HashSet<>();
+        if (articleData.getTagList() != null && !articleData.getTagList().isEmpty()) {
+            Set<String> tagNames = new HashSet<>(articleData.getTagList());
 
-            for (String tagName : articleData.getTagList()) {
-                Optional<TagEntity> optionalTag = tagRepository.findByTag(tagName);
-                TagEntity tag = optionalTag.orElseGet(() -> {
-                    TagEntity newTag = TagEntity.builder().tag(tagName).build();
-                    return tagRepository.save(newTag);
-                });
-                tags.add(tag);
+            // Bulk fetch all existing tags at once to avoid N+1 problem during article creation
+            Set<TagEntity> existingTags = tagRepository.findByTagIn(tagNames);
+
+            Set<String> existingTagNames = existingTags.stream()
+                    .map(TagEntity::getTag)
+                    .collect(Collectors.toSet());
+
+            // Determine which tags are missing from the database
+            List<TagEntity> missingTags = tagNames.stream()
+                    .filter(tagName -> !existingTagNames.contains(tagName))
+                    .map(tagName -> TagEntity.builder().tag(tagName).build())
+                    .toList();
+
+            // Bulk insert any new tags that don't exist yet
+            if (!missingTags.isEmpty()) {
+                List<TagEntity> newlySavedTags = tagRepository.saveAll(missingTags);
+                existingTags.addAll(newlySavedTags);
             }
 
-            article.setTags(tags);
+            article.setTags(existingTags);
         }
 
         article = articleRepository.save(article);
@@ -204,8 +216,14 @@ public class ArticleService {
             if (articleRepository.findByTitle(articleData.getTitle()).isPresent()) {
                 throw new ResourceAlreadyExistsException("Title already exists");
             }
+
+            String newSlug = toSlug(articleData.getTitle());
+            if (articleRepository.findBySlug(newSlug).isPresent()) {
+                throw new ResourceAlreadyExistsException("Slug already exists");
+            }
+
             article.setTitle(articleData.getTitle());
-            article.setSlug(toSlug(articleData.getTitle()));
+            article.setSlug(newSlug);
         }
 
         if (articleData.getDescription() != null) {
@@ -302,7 +320,7 @@ public class ArticleService {
         return article.getTags().stream()
                 .map(TagEntity::getTag)
                 .sorted()
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private String toSlug(String title) {

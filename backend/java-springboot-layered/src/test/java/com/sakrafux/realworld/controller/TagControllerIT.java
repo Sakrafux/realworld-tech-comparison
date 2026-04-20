@@ -1,8 +1,10 @@
 package com.sakrafux.realworld.controller;
 
 import com.sakrafux.realworld.entity.TagEntity;
+import com.sakrafux.realworld.repository.TagRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import static org.hamcrest.Matchers.hasItems;
@@ -14,6 +16,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for {@link TagController}.
  */
 class TagControllerIT extends AbstractControllerIT {
+
+    @Autowired
+    protected TagRepository tagRepository;
 
     @BeforeEach
     void setUp() {

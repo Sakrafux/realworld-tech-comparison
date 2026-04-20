@@ -2,11 +2,6 @@ package com.sakrafux.realworld.controller;
 
 import com.sakrafux.realworld.dto.request.NewArticleRequest;
 import com.sakrafux.realworld.dto.request.NewUserRequest;
-import com.sakrafux.realworld.repository.ArticleRepository;
-import com.sakrafux.realworld.repository.CommentRepository;
-import com.sakrafux.realworld.repository.TagRepository;
-import com.sakrafux.realworld.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,29 +29,6 @@ public abstract class AbstractControllerIT {
 
     @Autowired
     protected ObjectMapper objectMapper;
-
-    @Autowired
-    protected UserRepository userRepository;
-
-    @Autowired
-    protected ArticleRepository articleRepository;
-
-    @Autowired
-    protected TagRepository tagRepository;
-
-    @Autowired
-    protected CommentRepository commentRepository;
-
-    /**
-     * Cleans up all repositories before each test to ensure a fresh state.
-     */
-    @BeforeEach
-    void cleanup() {
-        commentRepository.deleteAll();
-        articleRepository.deleteAll();
-        tagRepository.deleteAll();
-        userRepository.deleteAll();
-    }
 
     /**
      * Registers a user via the API and returns their JWT token.

@@ -82,7 +82,7 @@ class ArticleServiceTest {
         given(userRepository.findByEmail(email)).willReturn(Optional.of(author));
         given(articleRepository.findByTitle("My Article")).willReturn(Optional.empty());
         given(articleRepository.findBySlug("my-article")).willReturn(Optional.empty());
-        given(tagRepository.findByTag("tag1")).willReturn(Optional.of(TagEntity.builder().tag("tag1").build()));
+        given(tagRepository.findByTagIn(anyCollection())).willReturn(new HashSet<>(List.of(TagEntity.builder().tag("tag1").build())));
         given(articleRepository.save(any(ArticleEntity.class))).willAnswer(inv -> inv.getArgument(0));
         given(profileService.getProfile(eq("author"), any())).willReturn(
                 ProfileResponse.builder().profile(ProfileResponse.ProfileData.builder().username("author").build()).build()
@@ -95,6 +95,42 @@ class ArticleServiceTest {
         assertThat(result.getArticle().getTitle()).isEqualTo("My Article");
         assertThat(result.getArticle().getSlug()).isEqualTo("my-article");
         assertThat(result.getArticle().getTagList()).containsExactly("tag1");
+        verify(articleRepository).save(any(ArticleEntity.class));
+    }
+
+    @Test
+    void createArticle_WithMissingTags_SavesNewTags() {
+        // Given
+        String email = "author@example.com";
+        UserEntity author = UserEntity.builder().username("author").email(email).build();
+        NewArticleRequest request = NewArticleRequest.builder()
+                .article(NewArticleRequest.ArticleData.builder()
+                        .title("New Article")
+                        .description("Description")
+                        .body("Body")
+                        .tagList(List.of("existingTag", "newTag"))
+                        .build())
+                .build();
+
+        TagEntity existingTag = TagEntity.builder().tag("existingTag").build();
+        TagEntity newTag = TagEntity.builder().tag("newTag").build();
+
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(author));
+        given(articleRepository.findByTitle("New Article")).willReturn(Optional.empty());
+        given(articleRepository.findBySlug("new-article")).willReturn(Optional.empty());
+        given(tagRepository.findByTagIn(anyCollection())).willReturn(new HashSet<>(List.of(existingTag)));
+        given(tagRepository.saveAll(anyCollection())).willReturn(List.of(newTag));
+        given(articleRepository.save(any(ArticleEntity.class))).willAnswer(inv -> inv.getArgument(0));
+        given(profileService.getProfile(eq("author"), any())).willReturn(
+                ProfileResponse.builder().profile(ProfileResponse.ProfileData.builder().username("author").build()).build()
+        );
+
+        // When
+        ArticleResponse result = articleService.createArticle(request, email);
+
+        // Then
+        assertThat(result.getArticle().getTagList()).containsExactlyInAnyOrder("existingTag", "newTag");
+        verify(tagRepository).saveAll(anyCollection());
         verify(articleRepository).save(any(ArticleEntity.class));
     }
 

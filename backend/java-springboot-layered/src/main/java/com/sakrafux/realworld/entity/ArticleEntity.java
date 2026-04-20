@@ -15,6 +15,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ArticleEntity extends BaseEntity {
 
     @Id
@@ -22,6 +23,7 @@ public class ArticleEntity extends BaseEntity {
     @SequenceGenerator(name = "article_id_gen", sequenceName = "seq_article_id", allocationSize = 1)
     private Long id;
 
+    @EqualsAndHashCode.Include
     @Column(unique = true, nullable = false, length = 100)
     private String slug;
 

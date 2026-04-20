@@ -8,9 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * Repository for CommentEntity.
- */
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Long>, JpaSpecificationExecutor<CommentEntity> {
     List<CommentEntity> findByArticleOrderByCreatedAtDesc(ArticleEntity article);

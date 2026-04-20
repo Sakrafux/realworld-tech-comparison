@@ -13,6 +13,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class UserEntity extends BaseEntity {
 
     @Id
@@ -20,9 +21,11 @@ public class UserEntity extends BaseEntity {
     @SequenceGenerator(name = "user_id_gen", sequenceName = "seq_user_id", allocationSize = 1)
     private Long id;
 
+    @EqualsAndHashCode.Include
     @Column(unique = true, nullable = false, length = 50)
     private String username;
 
+    @EqualsAndHashCode.Include
     @Column(unique = true, nullable = false, length = 100)
     private String email;
 

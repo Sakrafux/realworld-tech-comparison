@@ -10,11 +10,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class CommentEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_id_gen")
     @SequenceGenerator(name = "comment_id_gen", sequenceName = "seq_comment_id", allocationSize = 1)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(nullable = false, columnDefinition = "TEXT")
