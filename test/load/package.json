@@ -1,0 +1,12 @@
+{
+  "name": "load-test",
+  "version": "1.0.0",
+  "description": "Load and Performance Tests using k6",
+  "scripts": {
+    "test": "docker run --rm -i -e BASE_URL=http://host.docker.internal:8080/api grafana/k6 run - < src/happy-path.ts"
+  },
+  "devDependencies": {
+    "@types/k6": "^0.45.0",
+    "typescript": "^5.2.2"
+  }
+}
