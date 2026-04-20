@@ -79,6 +79,66 @@ describe('User API', () => {
 
             expect(response.status).toBe(200);
             expect(response.data.user.username).toBe(newUsername);
+            // Update our local reference for subsequent tests
+            testUser.username = newUsername;
+        });
+
+        it('should return 422 for duplicate email during update', async () => {
+            const anotherUser = generateUserData();
+            await apiClient.post('/users', { user: anotherUser });
+
+            try {
+                await apiClient.put('/user', 
+                    { user: { email: anotherUser.email } },
+                    { token: userToken }
+                );
+                expect.fail('Should have thrown 422 for duplicate email');
+            } catch (error: any) {
+                expect(error.status).toBe(422);
+                expect(error.data.errors.body).toContain('Email already exists');
+            }
+        });
+
+        it('should return 422 for duplicate username during update', async () => {
+            const anotherUser = generateUserData();
+            await apiClient.post('/users', { user: anotherUser });
+
+            try {
+                await apiClient.put('/user', 
+                    { user: { username: anotherUser.username } },
+                    { token: userToken }
+                );
+                expect.fail('Should have thrown 422 for duplicate username');
+            } catch (error: any) {
+                expect(error.status).toBe(422);
+                expect(error.data.errors.body).toContain('Username already exists');
+            }
+        });
+
+        it('should return 422 for invalid email during update', async () => {
+            try {
+                await apiClient.put('/user', 
+                    { user: { email: 'not-an-email' } },
+                    { token: userToken }
+                );
+                expect.fail('Should have thrown 422 for invalid email');
+            } catch (error: any) {
+                expect(error.status).toBe(422);
+                expect(error.data.errors.body.join(' ').toLowerCase()).toContain('email');
+            }
+        });
+
+        it('should return 422 for short password during update', async () => {
+            try {
+                await apiClient.put('/user', 
+                    { user: { password: 'short' } },
+                    { token: userToken }
+                );
+                expect.fail('Should have thrown 422 for short password');
+            } catch (error: any) {
+                expect(error.status).toBe(422);
+                expect(error.data.errors.body.join(' ').toLowerCase()).toContain('password');
+            }
         });
     });
 });
