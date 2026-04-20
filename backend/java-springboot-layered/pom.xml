@@ -50,6 +50,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 
 		<!-- ==================================================================== -->
 		<!-- Security / JSON Web Tokens (JWT)                                     -->
@@ -73,6 +77,16 @@
 			<version>${jwt.version}</version>
 			<scope>runtime</scope>
 		</dependency>
+
+        <!-- ==================================================================== -->
+        <!-- Monitoring                                                           -->
+        <!-- Add Prometheus metric endpoints                                      -->
+        <!-- ==================================================================== -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <version>${micrometer.version}</version>
+        </dependency>
 
 		<!-- ==================================================================== -->
 		<!-- Database Drivers                                                     -->

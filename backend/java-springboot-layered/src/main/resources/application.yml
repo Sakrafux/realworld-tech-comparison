@@ -20,6 +20,18 @@ spring:
     date-format: yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
     default-property-inclusion: NON_NULL
 
+management:
+  endpoints:
+    web:
+      exposure:
+        # Expose all endpoints (Use with caution in production!)
+        include: "*"
+        # Alternatively, only expose specific ones:
+        # include: "health,info,metrics,prometheus"
+  endpoint:
+    health:
+      show-details: always # Shows detailed database/disk health
+
 realworld:
   auth:
     header: Authorization
