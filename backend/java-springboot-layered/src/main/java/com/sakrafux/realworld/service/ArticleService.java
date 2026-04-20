@@ -152,36 +152,42 @@ public class ArticleService {
                 .author(author)
                 .build();
 
-        if (articleData.getTagList() != null && !articleData.getTagList().isEmpty()) {
-            Set<String> tagNames = new HashSet<>(articleData.getTagList());
-
-            // Bulk fetch all existing tags at once to avoid N+1 problem during article creation
-            Set<TagEntity> existingTags = tagRepository.findByTagIn(tagNames);
-
-            Set<String> existingTagNames = existingTags.stream()
-                    .map(TagEntity::getTag)
-                    .collect(Collectors.toSet());
-
-            // Determine which tags are missing from the database
-            List<TagEntity> missingTags = tagNames.stream()
-                    .filter(tagName -> !existingTagNames.contains(tagName))
-                    .map(tagName -> TagEntity.builder().tag(tagName).build())
-                    .toList();
-
-            // Bulk insert any new tags that don't exist yet
-            if (!missingTags.isEmpty()) {
-                // NOTE: Under high concurrency, this may lead to DataIntegrityViolationException due to the insertion
-                // of the same tags. This will cause a retry of the transaction.
-                List<TagEntity> newlySavedTags = tagRepository.saveAll(missingTags);
-                existingTags.addAll(newlySavedTags);
-            }
-
-            article.setTags(existingTags);
-        }
+        persistTags(articleData, article);
 
         article = articleRepository.save(article);
         return articleMapper.toResponse(article, getTagList(article), false, 0, 
                 profileService.getProfile(author.getUsername(), Optional.of(currentEmail)).getProfile());
+    }
+
+    private void persistTags(NewArticleRequest.ArticleData articleData, ArticleEntity article) {
+        if (articleData.getTagList() == null || articleData.getTagList().isEmpty()) {
+            return;
+        }
+
+        Set<String> tagNames = new HashSet<>(articleData.getTagList());
+
+        // Bulk fetch all existing tags at once to avoid N+1 problem during article creation
+        Set<TagEntity> existingTags = tagRepository.findByTagIn(tagNames);
+
+        Set<String> existingTagNames = existingTags.stream()
+                .map(TagEntity::getTag)
+                .collect(Collectors.toSet());
+
+        // Determine which tags are missing from the database
+        List<TagEntity> missingTags = tagNames.stream()
+                .filter(tagName -> !existingTagNames.contains(tagName))
+                .map(tagName -> TagEntity.builder().tag(tagName).build())
+                .toList();
+
+        // Bulk insert any new tags that don't exist yet
+        if (!missingTags.isEmpty()) {
+            // NOTE: Under high concurrency, this may lead to DataIntegrityViolationException due to the insertion
+            // of the same tags. This will cause a retry of the transaction.
+            List<TagEntity> newlySavedTags = tagRepository.saveAll(missingTags);
+            existingTags.addAll(newlySavedTags);
+        }
+
+        article.setTags(existingTags);
     }
 
     /**
