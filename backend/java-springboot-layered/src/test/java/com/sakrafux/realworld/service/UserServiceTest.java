@@ -66,7 +66,7 @@ class UserServiceTest {
         given(userRepository.findByEmail("test@example.com")).willReturn(Optional.empty());
         given(userRepository.findByUsername("testuser")).willReturn(Optional.empty());
         given(passwordEncoder.encode("password123")).willReturn("encodedPassword");
-        given(userRepository.save(any(UserEntity.class))).willReturn(user);
+        given(userRepository.save(any(UserEntity.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(jwtService.generateToken("test@example.com")).willReturn("testToken");
 
         // When

@@ -1,6 +1,5 @@
 package com.sakrafux.realworld.controller;
 
-import com.sakrafux.realworld.dto.request.NewUserRequest;
 import com.sakrafux.realworld.dto.request.UpdateUserRequest;
 import com.sakrafux.realworld.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +36,7 @@ class UserControllerIT {
 
     @Test
     void getCurrentUser_ValidToken_ReturnsOkWithUser() throws Exception {
-        String token = registerUserViaApi("testuser", "test@example.com", "password123");
+        String token = ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
 
         mockMvc.perform(get("/user")
                         .header("Authorization", "Token " + token))
@@ -54,7 +53,7 @@ class UserControllerIT {
 
     @Test
     void updateUser_ValidRequest_ReturnsOkWithUpdatedUser() throws Exception {
-        String token = registerUserViaApi("testuser", "test@example.com", "password123");
+        String token = ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
 
         UpdateUserRequest request = UpdateUserRequest.builder()
                 .user(UpdateUserRequest.UserData.builder()
@@ -74,8 +73,8 @@ class UserControllerIT {
 
     @Test
     void updateUser_DuplicateEmail_ReturnsUnprocessableEntity() throws Exception {
-        registerUserViaApi("user2", "user2@example.com", "password123");
-        String token = registerUserViaApi("testuser", "test@example.com", "password123");
+        ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "user2", "user2@example.com", "password123");
+        String token = ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
 
         UpdateUserRequest request = UpdateUserRequest.builder()
                 .user(UpdateUserRequest.UserData.builder()
@@ -89,22 +88,5 @@ class UserControllerIT {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.errors.body[0]").value("Email already exists"));
-    }
-
-    private String registerUserViaApi(String username, String email, String password) throws Exception {
-        NewUserRequest request = NewUserRequest.builder()
-                .user(NewUserRequest.UserData.builder()
-                        .username(username)
-                        .email(email)
-                        .password(password)
-                        .build())
-                .build();
-
-        String response = mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andReturn().getResponse().getContentAsString();
-
-        return objectMapper.readTree(response).get("user").get("token").asString();
     }
 }

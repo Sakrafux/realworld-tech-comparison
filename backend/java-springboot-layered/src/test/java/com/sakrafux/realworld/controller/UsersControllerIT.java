@@ -44,7 +44,7 @@ class UsersControllerIT {
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.user.username").value("testuser"))
                 .andExpect(jsonPath("$.user.email").value("test@example.com"))
                 .andExpect(jsonPath("$.user.token", notNullValue()));
@@ -52,7 +52,7 @@ class UsersControllerIT {
 
     @Test
     void registerUser_DuplicateEmail_ReturnsUnprocessableEntity() throws Exception {
-        registerUserViaApi("testuser", "test@example.com", "password123");
+        ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
 
         NewUserRequest request = NewUserRequest.builder()
                 .user(NewUserRequest.UserData.builder()
@@ -104,7 +104,7 @@ class UsersControllerIT {
 
     @Test
     void login_ValidCredentials_ReturnsOkWithUser() throws Exception {
-        registerUserViaApi("testuser", "test@example.com", "password123");
+        ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
 
         LoginUserRequest request = LoginUserRequest.builder()
                 .user(LoginUserRequest.UserData.builder()
@@ -116,13 +116,13 @@ class UsersControllerIT {
         mockMvc.perform(post("/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.user.token", notNullValue()));
     }
 
     @Test
     void login_WrongPassword_ReturnsUnauthorized() throws Exception {
-        registerUserViaApi("testuser", "test@example.com", "password123");
+        ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
 
         LoginUserRequest request = LoginUserRequest.builder()
                 .user(LoginUserRequest.UserData.builder()
@@ -162,16 +162,5 @@ class UsersControllerIT {
                         .password(password)
                         .build())
                 .build();
-    }
-
-    private String registerUserViaApi(String username, String email, String password) throws Exception {
-        NewUserRequest request = createNewUserRequest(username, email, password);
-
-        String response = mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andReturn().getResponse().getContentAsString();
-
-        return objectMapper.readTree(response).get("user").get("token").asString();
     }
 }
