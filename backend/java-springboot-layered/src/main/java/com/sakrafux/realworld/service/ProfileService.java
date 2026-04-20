@@ -36,9 +36,21 @@ public class ProfileService {
         UserEntity targetUser = userRepository.findByUsername(targetUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", targetUsername));
 
-        boolean following = currentEmail
-                .flatMap(userRepository::findByEmail)
-                .map(currentUser -> currentUser.getFollowing().contains(targetUser))
+        Optional<UserEntity> currentUser = currentEmail.flatMap(userRepository::findByEmail);
+        return getProfile(targetUser, currentUser);
+    }
+
+    /**
+     * Retrieves the profile of a target user, considering the following status relative to the current user.
+     *
+     * @param targetUser  the user whose profile is to be retrieved
+     * @param currentUser an Optional containing the currently authenticated user
+     * @return a ProfileResponse containing the user's profile information and following status
+     */
+    @Transactional(readOnly = true)
+    public ProfileResponse getProfile(UserEntity targetUser, Optional<UserEntity> currentUser) {
+        boolean following = currentUser
+                .map(user -> user.getFollowing().contains(targetUser))
                 .orElse(false);
 
         return profileMapper.toResponse(targetUser, following);
