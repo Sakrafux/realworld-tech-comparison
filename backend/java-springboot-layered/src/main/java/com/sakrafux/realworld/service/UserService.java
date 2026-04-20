@@ -4,8 +4,8 @@ import com.sakrafux.realworld.dto.request.UpdateUserRequest;
 import com.sakrafux.realworld.dto.response.UserResponse;
 import com.sakrafux.realworld.entity.UserEntity;
 import com.sakrafux.realworld.exception.InvalidCredentialsException;
+import com.sakrafux.realworld.exception.ResourceAlreadyExistsException;
 import com.sakrafux.realworld.exception.ResourceNotFoundException;
-import com.sakrafux.realworld.exception.UserAlreadyExistsException;
 import com.sakrafux.realworld.mapper.UserMapper;
 import com.sakrafux.realworld.repository.UserRepository;
 import com.sakrafux.realworld.security.JwtService;
@@ -33,17 +33,17 @@ public class UserService {
      *
      * @param request the registration details containing email, username, and password
      * @return a UserResponse containing user details and a valid JWT token
-     * @throws UserAlreadyExistsException if the provided email or username already exists
+     * @throws ResourceAlreadyExistsException if the provided email or username already exists
      */
     @Transactional
     public UserResponse registerUser(com.sakrafux.realworld.dto.request.NewUserRequest request) {
         var userData = request.getUser();
 
         if (userRepository.findByEmail(userData.getEmail()).isPresent()) {
-            throw new UserAlreadyExistsException("Email already exists");
+            throw new ResourceAlreadyExistsException("Email already exists");
         }
         if (userRepository.findByUsername(userData.getUsername()).isPresent()) {
-            throw new UserAlreadyExistsException("Username already exists");
+            throw new ResourceAlreadyExistsException("Username already exists");
         }
 
         UserEntity user = UserEntity.builder()
@@ -107,7 +107,7 @@ public class UserService {
      * @param request the update details containing new email, username, password, bio, or image
      * @return a UserResponse containing the updated user details and a new JWT token
      * @throws ResourceNotFoundException if the user cannot be found in the database
-     * @throws UserAlreadyExistsException if the new email or username is already taken by another user
+     * @throws ResourceAlreadyExistsException if the new email or username is already taken by another user
      */
     @Transactional
     public UserResponse updateUser(String currentEmail, UpdateUserRequest request) {
@@ -118,14 +118,14 @@ public class UserService {
 
         if (userData.getEmail() != null && !userData.getEmail().equals(user.getEmail())) {
             if (userRepository.findByEmail(userData.getEmail()).isPresent()) {
-                throw new UserAlreadyExistsException("Email already exists");
+                throw new ResourceAlreadyExistsException("Email already exists");
             }
             user.setEmail(userData.getEmail());
         }
 
         if (userData.getUsername() != null && !userData.getUsername().equals(user.getUsername())) {
             if (userRepository.findByUsername(userData.getUsername()).isPresent()) {
-                throw new UserAlreadyExistsException("Username already exists");
+                throw new ResourceAlreadyExistsException("Username already exists");
             }
             user.setUsername(userData.getUsername());
         }

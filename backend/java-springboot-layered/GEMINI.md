@@ -23,7 +23,7 @@ This file contains specific rules, architectural mandates, and coding convention
 *   **Global Exception Handler:** NEVER handle standard business exceptions inside controllers. Throw custom exceptions and let `GlobalExceptionHandler` translate them into appropriate HTTP responses.
 *   **Custom Exceptions:** Use domain-specific exceptions located in the `com.sakrafux.realworld.exception` package.
     *   `ResourceNotFoundException` -> 404 Not Found
-    *   `UserAlreadyExistsException` -> 422 Unprocessable Entity
+    *   `ResourceAlreadyExistsException` -> 422 Unprocessable Entity
     *   `InvalidCredentialsException` -> 401 Unauthorized
 *   **Validation:** Use `jakarta.validation` annotations (`@NotBlank`, `@Email`, `@Size`, etc.) on Request DTOs. `GlobalExceptionHandler` automatically maps `MethodArgumentNotValidException` to a 422 response with structured error messages.
 
@@ -39,3 +39,7 @@ This file contains specific rules, architectural mandates, and coding convention
 *   **MapStruct:** Use MapStruct for mapping between Entities and DTOs.
 *   **Constants:** Use constant notation (`UPPER_SNAKE_CASE`) only for `final` value variables (primitives, Strings, or value-like objects) that are **initialized directly** at the site of declaration. If a final variable is initialized via a constructor (explicitly or via Lombok), it MUST use standard `camelCase` naming. This applies to both private and public fields.
 *   **Documentation:** Always provide descriptive class-level and method-level JavaDocs for Controllers, Services, Exceptions, and Configuration classes. Ensure you include `@param`, `@return`, and `@throws` tags where applicable.
+
+## 6. Workflow Mandates
+
+*   **Surgical Updates:** When modifying existing files, ONLY change the affected areas using the `replace` tool. DO NOT overwrite entire files with `write_file` unless creating a new file from scratch. This preserves context and minimizes unnecessary changes.

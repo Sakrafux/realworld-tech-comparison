@@ -7,7 +7,7 @@ import com.sakrafux.realworld.dto.response.UserResponse;
 import com.sakrafux.realworld.entity.UserEntity;
 import com.sakrafux.realworld.exception.InvalidCredentialsException;
 import com.sakrafux.realworld.exception.ResourceNotFoundException;
-import com.sakrafux.realworld.exception.UserAlreadyExistsException;
+import com.sakrafux.realworld.exception.ResourceAlreadyExistsException;
 import com.sakrafux.realworld.mapper.UserMapper;
 import com.sakrafux.realworld.repository.UserRepository;
 import com.sakrafux.realworld.security.JwtService;
@@ -80,7 +80,7 @@ class UserServiceTest {
     }
 
     @Test
-    void registerUser_ExistingEmail_ThrowsUserAlreadyExistsException() {
+    void registerUser_ExistingEmail_ThrowsResourceAlreadyExistsException() {
         // Given
         NewUserRequest request = NewUserRequest.builder()
                 .user(NewUserRequest.UserData.builder()
@@ -92,12 +92,12 @@ class UserServiceTest {
 
         // When / Then
         assertThatThrownBy(() -> userService.registerUser(request))
-                .isInstanceOf(UserAlreadyExistsException.class)
+                .isInstanceOf(ResourceAlreadyExistsException.class)
                 .hasMessage("Email already exists");
     }
 
     @Test
-    void registerUser_ExistingUsername_ThrowsUserAlreadyExistsException() {
+    void registerUser_ExistingUsername_ThrowsResourceAlreadyExistsException() {
         // Given
         NewUserRequest request = NewUserRequest.builder()
                 .user(NewUserRequest.UserData.builder()
@@ -111,7 +111,7 @@ class UserServiceTest {
 
         // When / Then
         assertThatThrownBy(() -> userService.registerUser(request))
-                .isInstanceOf(UserAlreadyExistsException.class)
+                .isInstanceOf(ResourceAlreadyExistsException.class)
                 .hasMessage("Username already exists");
     }
 
@@ -241,7 +241,7 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUser_EmailAlreadyExists_ThrowsUserAlreadyExistsException() {
+    void updateUser_EmailAlreadyExists_ThrowsResourceAlreadyExistsException() {
         // Given
         String currentEmail = "test@example.com";
         String newEmail = "existing@example.com";
@@ -258,7 +258,7 @@ class UserServiceTest {
 
         // When / Then
         assertThatThrownBy(() -> userService.updateUser(currentEmail, request))
-                .isInstanceOf(UserAlreadyExistsException.class)
+                .isInstanceOf(ResourceAlreadyExistsException.class)
                 .hasMessage("Email already exists");
     }
 }

@@ -2,9 +2,9 @@ package com.sakrafux.realworld.controller;
 
 import com.sakrafux.realworld.dto.response.GenericErrorResponse;
 import com.sakrafux.realworld.exception.InvalidCredentialsException;
+import com.sakrafux.realworld.exception.ResourceAlreadyExistsException;
 import com.sakrafux.realworld.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.exception.UnauthorizedException;
-import com.sakrafux.realworld.exception.UserAlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,11 +48,11 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle UserAlreadyExistsException (422)
+     * Handle ResourceAlreadyExistsException (422)
      */
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<GenericErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
-        log.warn("User already exists: {}", ex.getMessage());
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<GenericErrorResponse> handleResourceAlreadyExistsException(ResourceAlreadyExistsException ex) {
+        log.warn("Resource already exists: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
                 .body(GenericErrorResponse.of(ex.getMessage()));
     }
