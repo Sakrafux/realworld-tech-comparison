@@ -1,6 +1,7 @@
 package com.sakrafux.realworld.service;
 
 import com.sakrafux.realworld.dto.request.NewArticleRequest;
+import com.sakrafux.realworld.dto.request.UpdateArticleRequest;
 import com.sakrafux.realworld.dto.response.ArticleResponse;
 import com.sakrafux.realworld.dto.response.MultipleArticlesResponse;
 import com.sakrafux.realworld.dto.response.ProfileResponse;
@@ -9,6 +10,7 @@ import com.sakrafux.realworld.entity.TagEntity;
 import com.sakrafux.realworld.entity.UserEntity;
 import com.sakrafux.realworld.exception.ResourceAlreadyExistsException;
 import com.sakrafux.realworld.exception.ResourceNotFoundException;
+import com.sakrafux.realworld.exception.UnauthorizedException;
 import com.sakrafux.realworld.mapper.ArticleMapper;
 import com.sakrafux.realworld.repository.ArticleRepository;
 import com.sakrafux.realworld.repository.TagRepository;
@@ -60,8 +62,6 @@ public class ArticleService {
             spec = spec.and((root, query, cb) -> cb.equal(root.join("tags").get("tag"), tag));
         }
         if (author != null) {
-            // No distinct needed here because "author" is a ManyToOne relationship.
-            // Joining a single entity does not multiply the result rows.
             spec = spec.and((root, query, cb) -> cb.equal(root.join("author").get("username"), author));
         }
         if (favorited != null) {
@@ -77,6 +77,35 @@ public class ArticleService {
 
         List<ArticleResponse.ArticleData> articles = articlePage.getContent().stream()
                 .map(article -> mapToArticleData(article, currentUser))
+                .collect(Collectors.toList());
+
+        return articleMapper.toMultipleResponse(articles, (int) articlePage.getTotalElements());
+    }
+
+    /**
+     * Retrieves the article feed for the current user.
+     * The feed contains articles from authors that the current user follows.
+     *
+     * @param limit        limit the number of results
+     * @param offset       offset for pagination
+     * @param currentEmail email of the authenticated user
+     * @return MultipleArticlesResponse containing the feed articles and total count
+     */
+    @Transactional(readOnly = true)
+    public MultipleArticlesResponse getFeed(int limit, int offset, String currentEmail) {
+        UserEntity user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+
+        Set<UserEntity> following = user.getFollowing();
+        if (following.isEmpty()) {
+            return articleMapper.toMultipleResponse(Collections.emptyList(), 0);
+        }
+
+        PageRequest pageRequest = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<ArticleEntity> articlePage = articleRepository.findByAuthorIn(following, pageRequest);
+
+        List<ArticleResponse.ArticleData> articles = articlePage.getContent().stream()
+                .map(article -> mapToArticleData(article, Optional.of(user)))
                 .collect(Collectors.toList());
 
         return articleMapper.toMultipleResponse(articles, (int) articlePage.getTotalElements());

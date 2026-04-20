@@ -67,6 +67,26 @@ class ArticlesControllerIT extends AbstractControllerIT {
     }
 
     @Test
+    void getArticlesFeed_ArticlesFromFollowedAuthors_ReturnsOkWithArticles() throws Exception {
+        String authorToken = registerUserViaApi("author", "author@example.com", "password123");
+        createArticleViaApi(authorToken, "Followed Article", "Desc", "Body", List.of());
+
+        String userToken = registerUserViaApi("user", "user@example.com", "password123");
+
+        // Follow author
+        mockMvc.perform(post("/profiles/author/follow")
+                        .header("Authorization", "Token " + userToken))
+                .andExpect(status().isOk());
+
+        // Get feed
+        mockMvc.perform(get("/articles/feed")
+                        .header("Authorization", "Token " + userToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.articles", hasSize(1)))
+                .andExpect(jsonPath("$.articles[0].title").value("Followed Article"));
+    }
+
+    @Test
     void favoriteArticle_ValidRequest_ReturnsOkWithFavoritedArticle() throws Exception {
         String authorToken = registerUserViaApi("author", "author@example.com", "password123");
         createArticleViaApi(authorToken, "Favorite Me", "Desc", "Body", List.of());

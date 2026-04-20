@@ -295,6 +295,49 @@ describe('Articles API', () => {
         });
     });
 
+    describe('GET /articles/feed', () => {
+        it('Standard Feed: should return articles from followed users', async () => {
+            const article = await createArticle(authorToken);
+            // Follow author
+            await apiClient.post(`/profiles/${authorUser.username}/follow`, undefined, { token: favoriterToken });
+
+            const response = await apiClient.get<any>('/articles/feed', { token: favoriterToken });
+            expect(response.status).toBe(200);
+            expect(response.data.articles.length).toBeGreaterThan(0);
+            expect(response.data.articles.some((a: any) => a.slug === article.slug)).toBe(true);
+        });
+
+        it('Empty Feed: should return 200 with empty array if no one is followed', async () => {
+            const newUserData = await createUserData();
+            const response = await apiClient.get<any>('/articles/feed', { token: newUserData.user.token });
+            expect(response.status).toBe(200);
+            expect(response.data.articles).toEqual([]);
+            expect(response.data.articlesCount).toBe(0);
+        });
+
+        it('Pagination: should apply limit and offset correctly to feed', async () => {
+            // Favoriter already follows author from previous test
+            await createArticle(authorToken);
+            await createArticle(authorToken);
+
+            const response = await apiClient.get<any>('/articles/feed', {
+                params: { limit: '1' },
+                token: favoriterToken
+            });
+            expect(response.status).toBe(200);
+            expect(response.data.articles.length).toBe(1);
+        });
+
+        it('Edge Case: Feed without Auth should return 401', async () => {
+            try {
+                await apiClient.get<any>('/articles/feed');
+                expect.fail('Should have thrown 401');
+            } catch (error: any) {
+                expect(error.status).toBe(401);
+            }
+        });
+    });
+
     describe('POST/DELETE /articles/{slug}/favorite', () => {
         let article: any;
 

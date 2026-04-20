@@ -142,6 +142,40 @@ class ArticleServiceTest {
     }
 
     @Test
+    void getFeed_FollowedAuthorsExist_ReturnsOkWithFeedArticles() {
+        // Given
+        String email = "user@example.com";
+        UserEntity author = UserEntity.builder().username("author").build();
+        UserEntity user = UserEntity.builder()
+                .username("user")
+                .email(email)
+                .following(new HashSet<>(List.of(author)))
+                .build();
+        ArticleEntity article = ArticleEntity.builder()
+                .title("Followed Title")
+                .slug("followed-slug")
+                .author(author)
+                .tags(new HashSet<>())
+                .favoritedBy(new HashSet<>())
+                .build();
+        Page<ArticleEntity> page = new PageImpl<>(List.of(article));
+
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+        given(articleRepository.findByAuthorIn(eq(user.getFollowing()), any(PageRequest.class))).willReturn(page);
+        given(profileService.getProfile(eq("author"), any())).willReturn(
+                ProfileResponse.builder().profile(ProfileResponse.ProfileData.builder().username("author").build()).build()
+        );
+
+        // When
+        MultipleArticlesResponse result = articleService.getFeed(20, 0, email);
+
+        // Then
+        assertThat(result.getArticles()).hasSize(1);
+        assertThat(result.getArticles().getFirst().getTitle()).isEqualTo("Followed Title");
+        verify(articleRepository).findByAuthorIn(eq(user.getFollowing()), any(PageRequest.class));
+    }
+
+    @Test
     void favoriteArticle_ValidArticleAndUser_SavesAndReturnsFavoritedArticle() {
         // Given
         String slug = "test-article";

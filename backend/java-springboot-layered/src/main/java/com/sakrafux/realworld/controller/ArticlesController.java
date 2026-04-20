@@ -46,6 +46,22 @@ public class ArticlesController {
     }
 
     /**
+     * Retrieves the article feed for the current user.
+     * Maps to: GET /api/articles/feed
+     * Auth required.
+     *
+     * @param limit  limit the number of results (default 20)
+     * @param offset offset for pagination (default 0)
+     * @return a response containing a list of articles and total count
+     */
+    @GetMapping("/feed")
+    public MultipleArticlesResponse getArticlesFeed(
+            @RequestParam(defaultValue = "20") @Min(1) int limit,
+            @RequestParam(defaultValue = "0") @Min(0) int offset) {
+        return articleService.getFeed(limit, offset, AuthUtil.getRequiredCurrentUserEmail());
+    }
+
+    /**
      * Creates a new article.
      * Maps to: POST /api/articles
      * Auth required.
