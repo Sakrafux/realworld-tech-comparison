@@ -13,7 +13,7 @@ import java.util.Optional;
 
 /**
  * Service class responsible for managing user profiles and the following relationship between users.
- * Acts as an intermediary between the ProfileController and UserRepository.
+ * Acts as an intermediary between the ProfilesController and UserRepository.
  */
 @Service
 @RequiredArgsConstructor
