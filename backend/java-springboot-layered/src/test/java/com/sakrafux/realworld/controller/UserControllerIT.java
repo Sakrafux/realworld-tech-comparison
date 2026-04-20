@@ -105,6 +105,6 @@ class UserControllerIT {
                         .content(objectMapper.writeValueAsString(request)))
                 .andReturn().getResponse().getContentAsString();
 
-        return objectMapper.readTree(response).get("user").get("token").asText();
+        return objectMapper.readTree(response).get("user").get("token").asString();
     }
 }

@@ -51,24 +51,6 @@ class UsersControllerIT {
     }
 
     @Test
-    void login_ValidCredentials_ReturnsOkWithUser() throws Exception {
-        registerUserViaApi("testuser", "test@example.com", "password123");
-
-        LoginUserRequest request = LoginUserRequest.builder()
-                .user(LoginUserRequest.UserData.builder()
-                        .email("test@example.com")
-                        .password("password123")
-                        .build())
-                .build();
-
-        mockMvc.perform(post("/users/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.user.token", notNullValue()));
-    }
-
-    @Test
     void registerUser_DuplicateEmail_ReturnsUnprocessableEntity() throws Exception {
         registerUserViaApi("testuser", "test@example.com", "password123");
 
@@ -85,24 +67,6 @@ class UsersControllerIT {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.errors.body[0]").value("Email already exists"));
-    }
-
-    @Test
-    void login_WrongPassword_ReturnsUnauthorized() throws Exception {
-        registerUserViaApi("testuser", "test@example.com", "password123");
-
-        LoginUserRequest request = LoginUserRequest.builder()
-                .user(LoginUserRequest.UserData.builder()
-                        .email("test@example.com")
-                        .password("wrongpassword")
-                        .build())
-                .build();
-
-        mockMvc.perform(post("/users/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.errors.body[0]").value("Invalid email or password"));
     }
 
     @Test
@@ -139,6 +103,42 @@ class UsersControllerIT {
     }
 
     @Test
+    void login_ValidCredentials_ReturnsOkWithUser() throws Exception {
+        registerUserViaApi("testuser", "test@example.com", "password123");
+
+        LoginUserRequest request = LoginUserRequest.builder()
+                .user(LoginUserRequest.UserData.builder()
+                        .email("test@example.com")
+                        .password("password123")
+                        .build())
+                .build();
+
+        mockMvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.user.token", notNullValue()));
+    }
+
+    @Test
+    void login_WrongPassword_ReturnsUnauthorized() throws Exception {
+        registerUserViaApi("testuser", "test@example.com", "password123");
+
+        LoginUserRequest request = LoginUserRequest.builder()
+                .user(LoginUserRequest.UserData.builder()
+                        .email("test@example.com")
+                        .password("wrongpassword")
+                        .build())
+                .build();
+
+        mockMvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errors.body[0]").value("Invalid email or password"));
+    }
+
+    @Test
     void login_BlankEmail_ReturnsUnprocessableEntity() throws Exception {
         LoginUserRequest request = LoginUserRequest.builder()
                 .user(LoginUserRequest.UserData.builder()
@@ -172,6 +172,6 @@ class UsersControllerIT {
                         .content(objectMapper.writeValueAsString(request)))
                 .andReturn().getResponse().getContentAsString();
 
-        return objectMapper.readTree(response).get("user").get("token").asText();
+        return objectMapper.readTree(response).get("user").get("token").asString();
     }
 }

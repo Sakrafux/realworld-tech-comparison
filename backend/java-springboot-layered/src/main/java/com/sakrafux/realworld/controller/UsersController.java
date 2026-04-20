@@ -6,9 +6,11 @@ import com.sakrafux.realworld.dto.response.UserResponse;
 import com.sakrafux.realworld.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -30,6 +32,7 @@ public class UsersController {
      * @return a response containing the newly created user's details and a JWT token
      */
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public UserResponse register(@Valid @RequestBody NewUserRequest request) {
         return userService.registerUser(request);
     }
