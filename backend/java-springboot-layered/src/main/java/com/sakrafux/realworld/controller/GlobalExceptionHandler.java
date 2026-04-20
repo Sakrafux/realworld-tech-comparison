@@ -3,6 +3,7 @@ package com.sakrafux.realworld.controller;
 import com.sakrafux.realworld.dto.response.GenericErrorResponse;
 import com.sakrafux.realworld.exception.InvalidCredentialsException;
 import com.sakrafux.realworld.exception.ResourceNotFoundException;
+import com.sakrafux.realworld.exception.UnauthorizedException;
 import com.sakrafux.realworld.exception.UserAlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -62,6 +63,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<GenericErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException ex) {
         log.warn("Invalid credentials");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(GenericErrorResponse.of(ex.getMessage()));
+    }
+
+    /**
+     * Handle UnauthorizedException (401)
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<GenericErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
+        log.warn("Unauthorized: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(GenericErrorResponse.of(ex.getMessage()));
     }
