@@ -16,10 +16,13 @@ import com.sakrafux.realworld.repository.ArticleRepository;
 import com.sakrafux.realworld.repository.TagRepository;
 import com.sakrafux.realworld.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,6 +123,11 @@ public class ArticleService {
      * @param currentEmail email of the authenticated author
      * @return ArticleResponse containing the created article details
      */
+    // Retryable is necessary to deal with concurrent creation of the same tags that
+    @Retryable(
+            retryFor = DataIntegrityViolationException.class,
+            backoff = @Backoff(delay = 50, multiplier = 2.0)
+    )
     @Transactional
     public ArticleResponse createArticle(NewArticleRequest request, String currentEmail) {
         UserEntity author = userRepository.findByEmail(currentEmail)
@@ -162,6 +170,8 @@ public class ArticleService {
 
             // Bulk insert any new tags that don't exist yet
             if (!missingTags.isEmpty()) {
+                // NOTE: Under high concurrency, this may lead to DataIntegrityViolationException due to the insertion
+                // of the same tags. This will cause a retry of the transaction.
                 List<TagEntity> newlySavedTags = tagRepository.saveAll(missingTags);
                 existingTags.addAll(newlySavedTags);
             }

@@ -2,6 +2,7 @@ package com.sakrafux.realworld.configuration;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.retry.annotation.EnableRetry;
 
 /**
  * Configuration class for Spring Data JPA.
@@ -11,5 +12,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
  */
 @Configuration
 @EnableJpaAuditing
+@EnableRetry
 public class JpaConfig {
 }
