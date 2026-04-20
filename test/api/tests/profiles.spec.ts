@@ -96,6 +96,15 @@ describe('Profiles API', () => {
                 expect(error.status).toBe(401);
             }
         });
+
+        it('should return 404 for following non-existent user', async () => {
+            try {
+                await apiClient.post('/profiles/non-existent-user/follow', {}, { token: followerToken });
+                expect.fail('Should have thrown 404');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
     });
 
     describe('DELETE /profiles/:username/follow', () => {
@@ -129,6 +138,15 @@ describe('Profiles API', () => {
                 expect.fail('Should have thrown 401');
             } catch (error: any) {
                 expect(error.status).toBe(401);
+            }
+        });
+
+        it('should return 404 for unfollowing non-existent user', async () => {
+            try {
+                await apiClient.delete('/profiles/non-existent-user/follow', { token: followerToken });
+                expect.fail('Should have thrown 404');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
             }
         });
     });

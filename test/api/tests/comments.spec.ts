@@ -47,6 +47,15 @@ describe('Comments API', () => {
                 expect(error.status).toBe(404);
             }
         });
+
+        it('Edge Case: Add Comment with missing body should return 422', async () => {
+            try {
+                await apiClient.post(`/articles/${article.slug}/comments`, { comment: {} }, { token: commenterToken });
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status).toBe(422);
+            }
+        });
     });
 
     describe('GET /articles/{slug}/comments', () => {
@@ -88,6 +97,33 @@ describe('Comments API', () => {
                 expect.fail('Should have failed');
             } catch (error: any) {
                 expect(error.status === 401 || error.status === 403).toBe(true);
+            }
+        });
+
+        it('Edge Case: Delete Non-Existent Comment should return 404', async () => {
+            try {
+                await apiClient.delete(`/articles/${article.slug}/comments/999999`, { token: commenterToken });
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
+
+        it('Edge Case: Delete Comment from Non-Existent Article should return 404', async () => {
+            try {
+                await apiClient.delete('/articles/non-existent/comments/1', { token: commenterToken });
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
+
+        it('Edge Case: Delete Comment without Auth should return 401', async () => {
+            try {
+                await apiClient.delete(`/articles/${article.slug}/comments/1`);
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status).toBe(401);
             }
         });
     });

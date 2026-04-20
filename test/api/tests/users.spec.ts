@@ -125,6 +125,20 @@ describe('Users API', () => {
             }
         });
 
+        it('should return 404 for non-existent user login', async () => {
+            try {
+                await apiClient.post('/users/login', {
+                    user: {
+                        email: 'nonexistent-login@example.com',
+                        password: 'password123'
+                    }
+                });
+                expect.fail('Should have thrown 404 for non-existent user');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
+
         it('should return 422 for invalid login payload', async () => {
             try {
                 await apiClient.post('/users/login', {

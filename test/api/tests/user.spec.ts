@@ -111,6 +111,15 @@ describe('User API', () => {
             }
         });
 
+        it('should return 401 without token during update', async () => {
+            try {
+                await apiClient.put('/user', { user: { bio: 'test' } });
+                expect.fail('Should have thrown 401 without token');
+            } catch (error: any) {
+                expect(error.status).toBe(401);
+            }
+        });
+
         it('should return 422 for invalid email during update', async () => {
             try {
                 await apiClient.put('/user',

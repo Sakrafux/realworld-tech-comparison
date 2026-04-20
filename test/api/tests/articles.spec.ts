@@ -331,6 +331,53 @@ describe('Articles API', () => {
             }
         });
 
+        it('Edge Case: Get Non-Existent Article should return 404', async () => {
+            try {
+                await apiClient.get('/articles/non-existent-article-slug');
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
+
+        it('Edge Case: Update Non-Existent Article should return 404', async () => {
+            try {
+                await apiClient.put('/articles/non-existent-article-slug', { article: { title: 'New' } }, { token: authorToken });
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
+
+        it('Edge Case: Update Article without Auth should return 401', async () => {
+            const tempArticle = await createArticle(authorToken);
+            try {
+                await apiClient.put(`/articles/${tempArticle.slug}`, { article: { title: 'New' } });
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status).toBe(401);
+            }
+        });
+
+        it('Edge Case: Delete Non-Existent Article should return 404', async () => {
+            try {
+                await apiClient.delete('/articles/non-existent-article-slug', { token: authorToken });
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
+
+        it('Edge Case: Delete Article without Auth should return 401', async () => {
+            const tempArticle = await createArticle(authorToken);
+            try {
+                await apiClient.delete(`/articles/${tempArticle.slug}`);
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status).toBe(401);
+            }
+        });
+
         it('Edge Case: Update Article as Non-Author should return 401/403', async () => {
             const tempArticle = await createArticle(authorToken);
             try {
@@ -445,6 +492,15 @@ describe('Articles API', () => {
         it('Edge Case: Favorite without Auth should return 401', async () => {
             try {
                 await apiClient.post(`/articles/${article.slug}/favorite`);
+                expect.fail('Should have thrown 401');
+            } catch (error: any) {
+                expect(error.status).toBe(401);
+            }
+        });
+
+        it('Edge Case: Unfavorite without Auth should return 401', async () => {
+            try {
+                await apiClient.delete(`/articles/${article.slug}/favorite`);
                 expect.fail('Should have thrown 401');
             } catch (error: any) {
                 expect(error.status).toBe(401);
