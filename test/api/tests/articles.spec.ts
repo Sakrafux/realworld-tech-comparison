@@ -295,6 +295,63 @@ describe('Articles API', () => {
         });
     });
 
+    describe('GET/PUT/DELETE /articles/{slug}', () => {
+        let article: any;
+
+        beforeAll(async () => {
+            article = await createArticle(authorToken);
+        });
+
+        it('Get Article: should return 200 with article', async () => {
+            const response = await apiClient.get<any>(`/articles/${article.slug}`);
+            expect(response.status).toBe(200);
+            expect(response.data.article.slug).toBe(article.slug);
+        });
+
+        it('Update Article: should return 200 with updated article', async () => {
+            const updatedData = {
+                article: { title: unique('Updated Title') }
+            };
+            const response = await apiClient.put<any>(`/articles/${article.slug}`, updatedData, { token: authorToken });
+            expect(response.status).toBe(200);
+            expect(response.data.article.title).toBe(updatedData.article.title);
+            // Update local slug for subsequent tests
+            article.slug = response.data.article.slug;
+        });
+
+        it('Delete Article: should return 200/204 and article should be gone', async () => {
+            const deleteResponse = await apiClient.delete(`/articles/${article.slug}`, { token: authorToken });
+            expect(deleteResponse.status === 200 || deleteResponse.status === 204).toBe(true);
+
+            try {
+                await apiClient.get(`/articles/${article.slug}`);
+                expect.fail('Should have returned 404');
+            } catch (error: any) {
+                expect(error.status).toBe(404);
+            }
+        });
+
+        it('Edge Case: Update Article as Non-Author should return 401/403', async () => {
+            const tempArticle = await createArticle(authorToken);
+            try {
+                await apiClient.put(`/articles/${tempArticle.slug}`, { article: { title: 'hacked' } }, { token: favoriterToken });
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status === 401 || error.status === 403).toBe(true);
+            }
+        });
+
+        it('Edge Case: Delete Article as Non-Author should return 401/403', async () => {
+            const tempArticle = await createArticle(authorToken);
+            try {
+                await apiClient.delete(`/articles/${tempArticle.slug}`, { token: favoriterToken });
+                expect.fail('Should have failed');
+            } catch (error: any) {
+                expect(error.status === 401 || error.status === 403).toBe(true);
+            }
+        });
+    });
+
     describe('GET /articles/feed', () => {
         it('Standard Feed: should return articles from followed users', async () => {
             const article = await createArticle(authorToken);

@@ -1,6 +1,7 @@
 package com.sakrafux.realworld.controller;
 
 import com.sakrafux.realworld.dto.request.NewArticleRequest;
+import com.sakrafux.realworld.dto.request.UpdateArticleRequest;
 import com.sakrafux.realworld.dto.response.ArticleResponse;
 import com.sakrafux.realworld.dto.response.MultipleArticlesResponse;
 import com.sakrafux.realworld.security.AuthUtil;
@@ -59,6 +60,47 @@ public class ArticlesController {
             @RequestParam(defaultValue = "20") @Min(1) int limit,
             @RequestParam(defaultValue = "0") @Min(0) int offset) {
         return articleService.getFeed(limit, offset, AuthUtil.getRequiredCurrentUserEmail());
+    }
+
+    /**
+     * Retrieves a single article.
+     * Maps to: GET /api/articles/{slug}
+     * Auth optional.
+     *
+     * @param slug the article slug
+     * @return the requested article
+     */
+    @GetMapping("/{slug}")
+    public ArticleResponse getArticle(@PathVariable String slug) {
+        return articleService.getArticle(slug, AuthUtil.getCurrentUserEmail());
+    }
+
+    /**
+     * Updates an article.
+     * Maps to: PUT /api/articles/{slug}
+     * Auth required.
+     *
+     * @param slug    the article slug
+     * @param request the article update details
+     * @return the updated article
+     */
+    @PutMapping("/{slug}")
+    public ArticleResponse updateArticle(
+            @PathVariable String slug,
+            @Valid @RequestBody UpdateArticleRequest request) {
+        return articleService.updateArticle(slug, request, AuthUtil.getRequiredCurrentUserEmail());
+    }
+
+    /**
+     * Deletes an article.
+     * Maps to: DELETE /api/articles/{slug}
+     * Auth required.
+     *
+     * @param slug the article slug
+     */
+    @DeleteMapping("/{slug}")
+    public void deleteArticle(@PathVariable String slug) {
+        articleService.deleteArticle(slug, AuthUtil.getRequiredCurrentUserEmail());
     }
 
     /**

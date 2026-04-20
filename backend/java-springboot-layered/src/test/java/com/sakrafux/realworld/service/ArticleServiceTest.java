@@ -1,6 +1,7 @@
 package com.sakrafux.realworld.service;
 
 import com.sakrafux.realworld.dto.request.NewArticleRequest;
+import com.sakrafux.realworld.dto.request.UpdateArticleRequest;
 import com.sakrafux.realworld.dto.response.ArticleResponse;
 import com.sakrafux.realworld.dto.response.MultipleArticlesResponse;
 import com.sakrafux.realworld.dto.response.ProfileResponse;
@@ -8,6 +9,7 @@ import com.sakrafux.realworld.entity.ArticleEntity;
 import com.sakrafux.realworld.entity.TagEntity;
 import com.sakrafux.realworld.entity.UserEntity;
 import com.sakrafux.realworld.exception.ResourceAlreadyExistsException;
+import com.sakrafux.realworld.exception.UnauthorizedException;
 import com.sakrafux.realworld.mapper.ArticleMapper;
 import com.sakrafux.realworld.repository.ArticleRepository;
 import com.sakrafux.realworld.repository.TagRepository;
@@ -24,7 +26,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -173,6 +174,97 @@ class ArticleServiceTest {
         assertThat(result.getArticles()).hasSize(1);
         assertThat(result.getArticles().getFirst().getTitle()).isEqualTo("Followed Title");
         verify(articleRepository).findByAuthorIn(eq(user.getFollowing()), any(PageRequest.class));
+    }
+
+    @Test
+    void getArticle_ValidSlug_ReturnsArticle() {
+        // Given
+        String slug = "slug";
+        ArticleEntity article = ArticleEntity.builder()
+                .slug(slug)
+                .author(UserEntity.builder().username("author").build())
+                .tags(new HashSet<>())
+                .favoritedBy(new HashSet<>())
+                .build();
+
+        given(articleRepository.findBySlug(slug)).willReturn(Optional.of(article));
+        given(profileService.getProfile(eq("author"), any())).willReturn(
+                ProfileResponse.builder().profile(ProfileResponse.ProfileData.builder().username("author").build()).build()
+        );
+
+        // When
+        ArticleResponse result = articleService.getArticle(slug, Optional.empty());
+
+        // Then
+        assertThat(result.getArticle().getSlug()).isEqualTo(slug);
+    }
+
+    @Test
+    void updateArticle_AuthorUpdatesTitle_SavesAndReturnsUpdatedArticle() {
+        // Given
+        String slug = "old-slug";
+        String email = "author@example.com";
+        UserEntity author = UserEntity.builder().username("author").email(email).build();
+        ArticleEntity article = ArticleEntity.builder()
+                .title("Old Title")
+                .slug(slug)
+                .author(author)
+                .tags(new HashSet<>())
+                .favoritedBy(new HashSet<>())
+                .build();
+        UpdateArticleRequest request = UpdateArticleRequest.builder()
+                .article(UpdateArticleRequest.ArticleData.builder().title("New Title").build())
+                .build();
+
+        given(articleRepository.findBySlug(slug)).willReturn(Optional.of(article));
+        given(articleRepository.findByTitle("New Title")).willReturn(Optional.empty());
+        given(articleRepository.save(any(ArticleEntity.class))).willAnswer(inv -> inv.getArgument(0));
+        given(profileService.getProfile(eq("author"), any())).willReturn(
+                ProfileResponse.builder().profile(ProfileResponse.ProfileData.builder().username("author").build()).build()
+        );
+
+        // When
+        ArticleResponse result = articleService.updateArticle(slug, request, email);
+
+        // Then
+        assertThat(result.getArticle().getTitle()).isEqualTo("New Title");
+        assertThat(result.getArticle().getSlug()).isEqualTo("new-title");
+        verify(articleRepository).save(article);
+    }
+
+    @Test
+    void updateArticle_NonAuthor_ThrowsUnauthorizedException() {
+        // Given
+        String slug = "slug";
+        String email = "not-author@example.com";
+        ArticleEntity article = ArticleEntity.builder()
+                .author(UserEntity.builder().email("author@example.com").build())
+                .build();
+        UpdateArticleRequest request = UpdateArticleRequest.builder().article(new UpdateArticleRequest.ArticleData()).build();
+
+        given(articleRepository.findBySlug(slug)).willReturn(Optional.of(article));
+
+        // When / Then
+        assertThatThrownBy(() -> articleService.updateArticle(slug, request, email))
+                .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    void deleteArticle_AuthorDeletes_CallsDelete() {
+        // Given
+        String slug = "slug";
+        String email = "author@example.com";
+        ArticleEntity article = ArticleEntity.builder()
+                .author(UserEntity.builder().email(email).build())
+                .build();
+
+        given(articleRepository.findBySlug(slug)).willReturn(Optional.of(article));
+
+        // When
+        articleService.deleteArticle(slug, email);
+
+        // Then
+        verify(articleRepository).delete(article);
     }
 
     @Test

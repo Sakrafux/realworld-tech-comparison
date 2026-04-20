@@ -163,6 +163,85 @@ public class ArticleService {
     }
 
     /**
+     * Retrieves a single article by its slug.
+     *
+     * @param slug         the article slug
+     * @param currentEmail optional email of the authenticated user
+     * @return ArticleResponse containing the article details
+     */
+    @Transactional(readOnly = true)
+    public ArticleResponse getArticle(String slug, Optional<String> currentEmail) {
+        ArticleEntity article = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
+
+        Optional<UserEntity> currentUser = currentEmail.flatMap(userRepository::findByEmail);
+        return articleMapper.toResponse(article, getTagList(article), 
+                currentUser.map(user -> article.getFavoritedBy().contains(user)).orElse(false),
+                article.getFavoritedBy().size(),
+                profileService.getProfile(article.getAuthor().getUsername(), currentEmail).getProfile());
+    }
+
+    /**
+     * Updates an existing article.
+     *
+     * @param slug         the slug of the article to update
+     * @param request      the update details
+     * @param currentEmail email of the authenticated author
+     * @return ArticleResponse containing the updated article details
+     */
+    @Transactional
+    public ArticleResponse updateArticle(String slug, UpdateArticleRequest request, String currentEmail) {
+        ArticleEntity article = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
+
+        if (!article.getAuthor().getEmail().equals(currentEmail)) {
+            throw new UnauthorizedException("You are not the author of this article");
+        }
+
+        var articleData = request.getArticle();
+
+        if (articleData.getTitle() != null && !articleData.getTitle().equals(article.getTitle())) {
+            if (articleRepository.findByTitle(articleData.getTitle()).isPresent()) {
+                throw new ResourceAlreadyExistsException("Title already exists");
+            }
+            article.setTitle(articleData.getTitle());
+            article.setSlug(toSlug(articleData.getTitle()));
+        }
+
+        if (articleData.getDescription() != null) {
+            article.setDescription(articleData.getDescription());
+        }
+
+        if (articleData.getBody() != null) {
+            article.setBody(articleData.getBody());
+        }
+
+        article = articleRepository.save(article);
+        return articleMapper.toResponse(article, getTagList(article),
+                article.getFavoritedBy().stream().anyMatch(u -> u.getEmail().equals(currentEmail)),
+                article.getFavoritedBy().size(),
+                profileService.getProfile(article.getAuthor().getUsername(), Optional.of(currentEmail)).getProfile());
+    }
+
+    /**
+     * Deletes an article by its slug.
+     *
+     * @param slug         the article slug
+     * @param currentEmail email of the authenticated author
+     */
+    @Transactional
+    public void deleteArticle(String slug, String currentEmail) {
+        ArticleEntity article = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
+
+        if (!article.getAuthor().getEmail().equals(currentEmail)) {
+            throw new UnauthorizedException("You are not the author of this article");
+        }
+
+        articleRepository.delete(article);
+    }
+
+    /**
      * Favorites an article for the current user.
      *
      * @param slug         the slug of the article to favorite
