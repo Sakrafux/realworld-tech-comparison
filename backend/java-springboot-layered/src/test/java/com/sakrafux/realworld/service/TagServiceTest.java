@@ -5,8 +5,10 @@ import com.sakrafux.realworld.mapper.TagMapper;
 import com.sakrafux.realworld.repository.TagRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -21,8 +23,8 @@ class TagServiceTest {
     @Mock
     private TagRepository tagRepository;
 
-    @Mock
-    private TagMapper tagMapper;
+    @Spy
+    private TagMapper tagMapper = Mappers.getMapper(TagMapper.class);
 
     @InjectMocks
     private TagService tagService;
@@ -31,17 +33,14 @@ class TagServiceTest {
     void getAllTags_TagsExist_ReturnsTagsResponse() {
         // Given
         List<String> tags = List.of("reactjs", "angularjs");
-        TagsResponse expectedResponse = TagsResponse.builder().tags(tags).build();
         
         given(tagRepository.findAllTagNames()).willReturn(tags);
-        given(tagMapper.toResponse(tags)).willReturn(expectedResponse);
 
         // When
         TagsResponse result = tagService.getAllTags();
 
         // Then
-        assertThat(result).isEqualTo(expectedResponse);
+        assertThat(result.getTags()).containsExactlyInAnyOrder("reactjs", "angularjs");
         verify(tagRepository).findAllTagNames();
-        verify(tagMapper).toResponse(tags);
     }
 }

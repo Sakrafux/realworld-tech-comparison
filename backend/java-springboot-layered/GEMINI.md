@@ -16,7 +16,7 @@ This file contains specific rules, architectural mandates, and coding convention
     *   *Example:* `registerUser_ValidUser_SavesAndReturnsUser`
     *   *Example:* `getTags_TagsExist_ReturnsOkWithTags`
 *   **Integration Tests:** API endpoints must be tested using `MockMvc` in classes suffixed with `IT` (e.g., `UserControllerIT`). Verify HTTP status codes and JSON payloads.
-*   **Unit Tests:** Service layer must be thoroughly unit-tested using Mockito, in classes suffixed with `Test` (e.g., `UserServiceTest`).
+*   **Unit Tests:** Service layer must be thoroughly unit-tested using Mockito, in classes suffixed with `Test` (e.g., `UserServiceTest`). Mappers MUST NOT be mocked; use the real implementation (via `Mappers.getMapper`) or a `@Spy` to ensure mapping logic is actually exercised.
 
 ## 3. Exception Handling & Validation
 
