@@ -1,17 +1,8 @@
 package com.sakrafux.realworld.controller;
 
 import com.sakrafux.realworld.dto.request.NewArticleRequest;
-import com.sakrafux.realworld.repository.ArticleRepository;
-import com.sakrafux.realworld.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -24,32 +15,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for {@link ArticlesController}.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-class ArticlesControllerIT {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ArticleRepository articleRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setUp() {
-        articleRepository.deleteAll();
-        userRepository.deleteAll();
-    }
+class ArticlesControllerIT extends AbstractControllerIT {
 
     @Test
     void createArticle_ValidRequest_ReturnsOkWithArticle() throws Exception {
-        String token = ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "author", "author@example.com", "password123");
+        String token = registerUserViaApi("author", "author@example.com", "password123");
 
         NewArticleRequest request = NewArticleRequest.builder()
                 .article(NewArticleRequest.ArticleData.builder()
@@ -64,7 +34,7 @@ class ArticlesControllerIT {
                         .header("Authorization", "Token " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.article.title").value("My Test Article"))
                 .andExpect(jsonPath("$.article.slug").value("my-test-article"))
                 .andExpect(jsonPath("$.article.tagList", hasSize(2)))
@@ -73,9 +43,9 @@ class ArticlesControllerIT {
 
     @Test
     void getArticles_NoFilters_ReturnsOkWithArticles() throws Exception {
-        String token = ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "author", "author@example.com", "password123");
-        ControllerTestUtils.createArticleViaApi(mockMvc, objectMapper, token, "Article 1", "Desc", "Body", List.of());
-        ControllerTestUtils.createArticleViaApi(mockMvc, objectMapper, token, "Article 2", "Desc", "Body", List.of());
+        String token = registerUserViaApi("author", "author@example.com", "password123");
+        createArticleViaApi(token, "Article 1", "Desc", "Body", List.of());
+        createArticleViaApi(token, "Article 2", "Desc", "Body", List.of());
 
         mockMvc.perform(get("/articles"))
                 .andExpect(status().isOk())
@@ -85,9 +55,9 @@ class ArticlesControllerIT {
 
     @Test
     void getArticles_FilterByTag_ReturnsOkWithFilteredArticles() throws Exception {
-        String token = ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "author", "author@example.com", "password123");
-        ControllerTestUtils.createArticleViaApi(mockMvc, objectMapper, token, "Java Article", "Desc", "Body", List.of("java"));
-        ControllerTestUtils.createArticleViaApi(mockMvc, objectMapper, token, "Spring Article", "Desc", "Body", List.of("spring"));
+        String token = registerUserViaApi("author", "author@example.com", "password123");
+        createArticleViaApi(token, "Java Article", "Desc", "Body", List.of("java"));
+        createArticleViaApi(token, "Spring Article", "Desc", "Body", List.of("spring"));
 
         mockMvc.perform(get("/articles").param("tag", "java"))
                 .andExpect(status().isOk())

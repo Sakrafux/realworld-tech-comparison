@@ -2,40 +2,18 @@ package com.sakrafux.realworld.controller;
 
 import com.sakrafux.realworld.dto.request.LoginUserRequest;
 import com.sakrafux.realworld.dto.request.NewUserRequest;
-import com.sakrafux.realworld.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-class UsersControllerIT {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setUp() {
-        userRepository.deleteAll();
-    }
+/**
+ * Integration tests for {@link UsersController}.
+ */
+class UsersControllerIT extends AbstractControllerIT {
 
     @Test
     void registerUser_ValidUser_ReturnsOkWithUser() throws Exception {
@@ -52,7 +30,7 @@ class UsersControllerIT {
 
     @Test
     void registerUser_DuplicateEmail_ReturnsUnprocessableEntity() throws Exception {
-        ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
+        registerUserViaApi("testuser", "test@example.com", "password123");
 
         NewUserRequest request = NewUserRequest.builder()
                 .user(NewUserRequest.UserData.builder()
@@ -104,7 +82,7 @@ class UsersControllerIT {
 
     @Test
     void login_ValidCredentials_ReturnsOkWithUser() throws Exception {
-        ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
+        registerUserViaApi("testuser", "test@example.com", "password123");
 
         LoginUserRequest request = LoginUserRequest.builder()
                 .user(LoginUserRequest.UserData.builder()
@@ -122,7 +100,7 @@ class UsersControllerIT {
 
     @Test
     void login_WrongPassword_ReturnsUnauthorized() throws Exception {
-        ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
+        registerUserViaApi("testuser", "test@example.com", "password123");
 
         LoginUserRequest request = LoginUserRequest.builder()
                 .user(LoginUserRequest.UserData.builder()

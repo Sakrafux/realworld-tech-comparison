@@ -1,42 +1,20 @@
 package com.sakrafux.realworld.controller;
 
 import com.sakrafux.realworld.dto.request.UpdateUserRequest;
-import com.sakrafux.realworld.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-class UserControllerIT {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setUp() {
-        userRepository.deleteAll();
-    }
+/**
+ * Integration tests for {@link UserController}.
+ */
+class UserControllerIT extends AbstractControllerIT {
 
     @Test
     void getCurrentUser_ValidToken_ReturnsOkWithUser() throws Exception {
-        String token = ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
+        String token = registerUserViaApi("testuser", "test@example.com", "password123");
 
         mockMvc.perform(get("/user")
                         .header("Authorization", "Token " + token))
@@ -53,7 +31,7 @@ class UserControllerIT {
 
     @Test
     void updateUser_ValidRequest_ReturnsOkWithUpdatedUser() throws Exception {
-        String token = ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
+        String token = registerUserViaApi("testuser", "test@example.com", "password123");
 
         UpdateUserRequest request = UpdateUserRequest.builder()
                 .user(UpdateUserRequest.UserData.builder()
@@ -73,8 +51,8 @@ class UserControllerIT {
 
     @Test
     void updateUser_DuplicateEmail_ReturnsUnprocessableEntity() throws Exception {
-        ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "user2", "user2@example.com", "password123");
-        String token = ControllerTestUtils.registerUserViaApi(mockMvc, objectMapper, "testuser", "test@example.com", "password123");
+        registerUserViaApi("user2", "user2@example.com", "password123");
+        String token = registerUserViaApi("testuser", "test@example.com", "password123");
 
         UpdateUserRequest request = UpdateUserRequest.builder()
                 .user(UpdateUserRequest.UserData.builder()
