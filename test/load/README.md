@@ -31,5 +31,17 @@ Runs the test and exports metrics to a Prometheus instance (configured for the `
 npm run test:metrics
 ```
 
+### Load Presets
+Both `test:local` and `test:metrics` can be executed with predefined load intensities:
+- **Light** (10 VUs, 30s): `npm run test:local:light` / `npm run test:metrics:light`
+- **Medium** (50 VUs, 1m): `npm run test:local:medium` / `npm run test:metrics:medium`
+- **Heavy** (200 VUs, 3m): `npm run test:local:heavy` / `npm run test:metrics:heavy`
+
+### Custom Values
+You can define custom Virtual Users (`vus`) and Durations on the fly by passing arguments through NPM:
+```bash
+npm run test:local -- --vus 75 --duration 2m
+```
+
 ## Monitoring
 Visualize results in real-time using the Prometheus/Grafana stack defined in the `deployment/` directory.
