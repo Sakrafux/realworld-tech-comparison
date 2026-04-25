@@ -60,6 +60,10 @@
             <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-opentelemetry</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
             <version>${spring-retry.version}</version>
@@ -87,16 +91,6 @@
 			<version>${jwt.version}</version>
 			<scope>runtime</scope>
 		</dependency>
-
-        <!-- ==================================================================== -->
-        <!-- Monitoring                                                           -->
-        <!-- Add Prometheus metric endpoints                                      -->
-        <!-- ==================================================================== -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>${micrometer.version}</version>
-        </dependency>
 
 		<!-- ==================================================================== -->
 		<!-- Database Drivers                                                     -->

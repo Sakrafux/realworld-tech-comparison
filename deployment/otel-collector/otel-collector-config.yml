@@ -1,0 +1,28 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317" # Explicitly listen on all interfaces to ensure connections are not refused
+      http:
+        endpoint: "0.0.0.0:4318" # Explicitly listen on all interfaces to ensure connections are not refused
+  docker_stats:
+    endpoint: "unix:///var/run/docker.sock"
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    send_timestamps: true
+    resource_to_telemetry_conversion:
+      enabled: true
+  debug:
+    verbosity: detailed
+
+processors:
+  batch:
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp, docker_stats]
+      processors: [batch]
+      exporters: [prometheus, debug]

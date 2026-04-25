@@ -47,9 +47,9 @@ public class RequestTimingFilter extends OncePerRequestFilter {
         } finally {
             long duration = System.currentTimeMillis() - startTime;
             int status = response.getStatus();
-            
+
             log.info("Finished Request: {} {} | Status: {} | Time: {}ms", method, path, status, duration);
-            
+
             // Clean up the MDC at the end of the request.
             // Since servlet containers reuse threads from a thread pool, failing to clear the MDC 
             // would cause the traceId to leak into subsequent, unrelated requests handled by the same thread.
