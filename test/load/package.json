@@ -4,7 +4,13 @@
   "description": "Load and Performance Tests using k6",
   "scripts": {
     "test:local": "docker compose run --rm k6-local",
-    "test:metrics": "docker compose run --rm k6-metrics"
+    "test:local:light": "npm run test:local -- --vus 10 --duration 30s",
+    "test:local:medium": "npm run test:local -- --vus 50 --duration 1m",
+    "test:local:heavy": "npm run test:local -- --vus 200 --duration 3m",
+    "test:metrics": "docker compose run --rm k6-metrics",
+    "test:metrics:light": "npm run test:metrics -- --vus 10 --duration 30s",
+    "test:metrics:medium": "npm run test:metrics -- --vus 50 --duration 1m",
+    "test:metrics:heavy": "npm run test:metrics -- --vus 200 --duration 3m"
   },
   "devDependencies": {
     "@types/k6": "^0.45.0",

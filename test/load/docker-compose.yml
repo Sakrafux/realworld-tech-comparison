@@ -9,7 +9,7 @@ services:
     working_dir: /test
     environment:
       - BASE_URL=http://host.docker.internal:8080/api
-    command: run src/load-test.ts
+    entrypoint: ["k6", "run", "src/load-test.ts"]
 
   k6-metrics:
     image: grafana/k6
@@ -22,7 +22,7 @@ services:
       - BASE_URL=http://backend:8080/api
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
       - K6_PROMETHEUS_RW_TREND_STATS=p(90),p(95),p(99),max,min,avg
-    command: run -o experimental-prometheus-rw --tag test_run=manual src/load-test.ts
+    entrypoint: ["k6", "run", "-o", "experimental-prometheus-rw", "--tag", "test_run=manual", "src/load-test.ts"]
 
 networks:
   realworld-network:
