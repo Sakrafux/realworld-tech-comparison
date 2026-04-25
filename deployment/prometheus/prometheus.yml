@@ -2,11 +2,13 @@ global:
   scrape_interval: 5s # Set the scrape interval to 5 seconds for more granular metrics during load tests
 
 scrape_configs:
+  # Scrape data indirectly via an Open Telemetry Collector
   - job_name: 'realworld-backend-via-otel'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['otel-collector:8889']
 
+  # Scrape own data
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']

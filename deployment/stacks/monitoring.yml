@@ -8,7 +8,7 @@ services:
     container_name: otel-collector
     volumes:
       - ../otel-collector/otel-collector-config.yml:/etc/otelcol/config.yaml
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Necessary for receiving docker stats
     ports:
       - "4317:4317" # OTLP gRPC receiver
       - "4318:4318" # OTLP http receiver
@@ -40,7 +40,7 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "4000:3000"
+      - "4000:3000" # 3000 is reserved for frontend applications, therefore expose 4000 instead
     volumes:
       - ../grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ../grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards

@@ -1,3 +1,4 @@
+# Incoming data sent to the collector
 receivers:
   otlp:
     protocols:
@@ -5,13 +6,16 @@ receivers:
         endpoint: "0.0.0.0:4317" # Explicitly listen on all interfaces to ensure connections are not refused
       http:
         endpoint: "0.0.0.0:4318" # Explicitly listen on all interfaces to ensure connections are not refused
+  # Enable capturing of docker stats from the underlying operating system; must be mounted into the container via volume
   docker_stats:
     endpoint: "unix:///var/run/docker.sock"
 
+# Outgoing data queried by other services (namely Prometheus)
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
     send_timestamps: true
+    # Necessary for some data otherwise omitted, e.g., `container_name` as a selection criteria
     resource_to_telemetry_conversion:
       enabled: true
   debug:

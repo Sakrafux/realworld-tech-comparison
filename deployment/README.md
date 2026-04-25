@@ -34,3 +34,7 @@ COMPOSE_PROFILES=java-springboot-layered,monitoring docker-compose up -d
 - `stacks/`: Specific `docker-compose` fragments using profiles.
 - `scripts/`: Helper scripts for seeding databases or cleaning up volumes.
 - `env/`: Pre-configured environment variables for different scenarios.
+
+## Monitoring via Grafana
+
+If a configuration is started with `--profile monitoring`, then Grafana is available on http://localhost:4000 with the pre-configured dashboard `Server Overview`.
