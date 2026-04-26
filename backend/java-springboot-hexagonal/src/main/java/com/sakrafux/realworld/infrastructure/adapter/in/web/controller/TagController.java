@@ -1,6 +1,8 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 
+import com.sakrafux.realworld.application.port.in.GetTagsQuery;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.TagsResponse;
+import com.sakrafux.realworld.infrastructure.adapter.in.web.mapper.TagWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TagController {
 
+    private final GetTagsQuery getTagsQuery;
+    private final TagWebMapper tagWebMapper;
+
     /**
      * Retrieves a list of all tags.
      * Maps to: GET /api/tags
@@ -23,6 +28,6 @@ public class TagController {
      */
     @GetMapping
     public TagsResponse getTags() {
-        throw new UnsupportedOperationException("TODO");
+        return tagWebMapper.toResponse(getTagsQuery.getTags());
     }
 }

@@ -14,9 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Application service for user-related use cases.
- */
 @Service
 @RequiredArgsConstructor
 public class UserService implements RegisterUserUseCase, LoginUseCase, GetCurrentUserUseCase, UpdateUserUseCase {
