@@ -1,6 +1,6 @@
 package com.sakrafux.realworld.application.service;
 
-import com.sakrafux.realworld.application.port.in.GetCurrentUserUseCase;
+import com.sakrafux.realworld.application.port.in.GetCurrentUserQuery;
 import com.sakrafux.realworld.application.port.in.LoginUseCase;
 import com.sakrafux.realworld.application.port.in.RegisterUserUseCase;
 import com.sakrafux.realworld.application.port.in.UpdateUserUseCase;
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements RegisterUserUseCase, LoginUseCase, GetCurrentUserUseCase, UpdateUserUseCase {
+public class UserService implements RegisterUserUseCase, LoginUseCase, GetCurrentUserQuery, UpdateUserUseCase {
 
     private final UserRepository userRepository;
     private final PasswordEncoderPort passwordEncoder;

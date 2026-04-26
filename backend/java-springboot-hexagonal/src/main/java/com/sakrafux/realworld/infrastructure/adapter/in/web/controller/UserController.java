@@ -1,6 +1,6 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 
-import com.sakrafux.realworld.application.port.in.GetCurrentUserUseCase;
+import com.sakrafux.realworld.application.port.in.GetCurrentUserQuery;
 import com.sakrafux.realworld.application.port.in.UpdateUserUseCase;
 import com.sakrafux.realworld.application.port.out.TokenProviderPort;
 import com.sakrafux.realworld.domain.model.User;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final GetCurrentUserUseCase getCurrentUserUseCase;
+    private final GetCurrentUserQuery getCurrentUserQuery;
     private final UpdateUserUseCase updateUserUseCase;
     private final TokenProviderPort tokenProviderPort;
     private final UserWebMapper userWebMapper;
@@ -35,7 +35,7 @@ public class UserController {
     @GetMapping
     public UserResponse getCurrentUser() {
         String email = AuthUtil.getRequiredCurrentUserEmail();
-        User user = getCurrentUserUseCase.getCurrentUser(email);
+        User user = getCurrentUserQuery.getCurrentUser(email);
         String token = tokenProviderPort.generateToken(user.getEmail());
         return userWebMapper.toResponse(user, token);
     }
