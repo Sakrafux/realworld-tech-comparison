@@ -9,7 +9,6 @@ vendor/
 # Build outputs
 dist/
 build/
-out/
 *.exe
 *.dll
 *.so
