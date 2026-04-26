@@ -1,12 +1,20 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 
+import com.sakrafux.realworld.application.port.in.comment.AddCommentUseCase;
+import com.sakrafux.realworld.application.port.in.comment.DeleteCommentUseCase;
+import com.sakrafux.realworld.application.port.in.comment.GetCommentsQuery;
+import com.sakrafux.realworld.domain.model.Comment;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.NewCommentRequest;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.CommentResponse;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.MultipleCommentsResponse;
+import com.sakrafux.realworld.infrastructure.adapter.in.web.mapper.CommentWebMapper;
+import com.sakrafux.realworld.infrastructure.security.AuthUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Controller for managing comments on articles.
@@ -18,6 +26,11 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class ArticlesCommentsController {
 
+    private final AddCommentUseCase addCommentUseCase;
+    private final GetCommentsQuery getCommentsQuery;
+    private final DeleteCommentUseCase deleteCommentUseCase;
+    private final CommentWebMapper commentWebMapper;
+
     /**
      * Retrieves all comments for an article.
      * Maps to: GET /api/articles/{slug}/comments
@@ -28,7 +41,8 @@ public class ArticlesCommentsController {
      */
     @GetMapping
     public MultipleCommentsResponse getComments(@PathVariable String slug) {
-        throw new UnsupportedOperationException("TODO");
+        List<Comment> comments = getCommentsQuery.getComments(slug, AuthUtil.getCurrentUserEmail());
+        return commentWebMapper.toMultipleResponse(comments);
     }
 
     /**
@@ -45,7 +59,9 @@ public class ArticlesCommentsController {
             @PathVariable String slug,
             @Valid @RequestBody NewCommentRequest request
     ) {
-        throw new UnsupportedOperationException("TODO");
+        String authorEmail = AuthUtil.getRequiredCurrentUserEmail();
+        Comment comment = addCommentUseCase.addComment(slug, request.getComment().getBody(), authorEmail);
+        return commentWebMapper.toResponse(comment);
     }
 
     /**
@@ -61,6 +77,7 @@ public class ArticlesCommentsController {
             @PathVariable String slug,
             @PathVariable Long id
     ) {
-        throw new UnsupportedOperationException("TODO");
+        String authorEmail = AuthUtil.getRequiredCurrentUserEmail();
+        deleteCommentUseCase.deleteComment(slug, id, authorEmail);
     }
 }
