@@ -73,6 +73,24 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
     }
 
     @Override
+    public void favorite(Long userId, Long articleId) {
+        articleJpaRepository.findById(articleId).ifPresent(article -> {
+            userJpaRepository.findById(userId).ifPresent(user -> {
+                article.getFavoritedBy().add(user);
+                articleJpaRepository.save(article);
+            });
+        });
+    }
+
+    @Override
+    public void unfavorite(Long userId, Long articleId) {
+        articleJpaRepository.findById(articleId).ifPresent(article -> {
+            article.getFavoritedBy().removeIf(user -> user.getId().equals(userId));
+            articleJpaRepository.save(article);
+        });
+    }
+
+    @Override
     public boolean isFavorited(Long userId, Long articleId) {
         return articleJpaRepository.isFavorited(userId, articleId);
     }

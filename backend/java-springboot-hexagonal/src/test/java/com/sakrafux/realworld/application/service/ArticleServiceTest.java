@@ -174,4 +174,44 @@ class ArticleServiceTest {
         assertThat(result.articles()).hasSize(1);
         assertThat(result.totalCount()).isEqualTo(1L);
     }
+
+    @Test
+    void favoriteArticle_validUser_callsRepositoryAndReturnsArticle() {
+        // Given
+        String slug = "slug";
+        String email = "user@example.com";
+        Article article = Article.builder().id(1L).slug(slug).author(Profile.builder().username("author").build()).build();
+        User user = User.builder().id(2L).email(email).build();
+
+        given(articleRepository.findBySlug(slug)).willReturn(Optional.of(article));
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+        given(getProfileQuery.getProfile(eq("author"), any())).willReturn(Profile.builder().username("author").build());
+
+        // When
+        Article result = articleService.favoriteArticle(slug, email);
+
+        // Then
+        assertThat(result).isNotNull();
+        verify(articleRepository).favorite(2L, 1L);
+    }
+
+    @Test
+    void unfavoriteArticle_validUser_callsRepositoryAndReturnsArticle() {
+        // Given
+        String slug = "slug";
+        String email = "user@example.com";
+        Article article = Article.builder().id(1L).slug(slug).author(Profile.builder().username("author").build()).build();
+        User user = User.builder().id(2L).email(email).build();
+
+        given(articleRepository.findBySlug(slug)).willReturn(Optional.of(article));
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+        given(getProfileQuery.getProfile(eq("author"), any())).willReturn(Profile.builder().username("author").build());
+
+        // When
+        Article result = articleService.unfavoriteArticle(slug, email);
+
+        // Then
+        assertThat(result).isNotNull();
+        verify(articleRepository).unfavorite(2L, 1L);
+    }
 }

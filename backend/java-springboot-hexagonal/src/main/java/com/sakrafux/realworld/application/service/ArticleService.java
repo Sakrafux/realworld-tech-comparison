@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCase, DeleteArticleUseCase, 
-        GetArticleQuery, GetArticlesQuery, GetFeedQuery {
+        GetArticleQuery, GetArticlesQuery, GetFeedQuery, FavoriteArticleUseCase, UnfavoriteArticleUseCase {
 
     private final ArticleRepository articleRepository;
     private final UserRepository userRepository;
@@ -166,6 +166,32 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
         });
 
         return new ArticleListResult(articles, count);
+    }
+
+    @Override
+    @Transactional
+    public Article favoriteArticle(String slug, String userEmail) {
+        Article article = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", userEmail));
+
+        articleRepository.favorite(user.getId(), article.getId());
+        
+        return getArticle(slug, Optional.of(userEmail));
+    }
+
+    @Override
+    @Transactional
+    public Article unfavoriteArticle(String slug, String userEmail) {
+        Article article = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", userEmail));
+
+        articleRepository.unfavorite(user.getId(), article.getId());
+        
+        return getArticle(slug, Optional.of(userEmail));
     }
 
     private String getUserNameByEmail(String email) {

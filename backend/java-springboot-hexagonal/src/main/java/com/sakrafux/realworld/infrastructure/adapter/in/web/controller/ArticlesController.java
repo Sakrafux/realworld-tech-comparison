@@ -1,5 +1,6 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 
+import com.sakrafux.realworld.application.port.in.article.*;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.NewArticleRequest;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.UpdateArticleRequest;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.ArticleResponse;
@@ -11,10 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.sakrafux.realworld.application.port.in.article.CreateArticleUseCase;
-import com.sakrafux.realworld.application.port.in.article.DeleteArticleUseCase;
-import com.sakrafux.realworld.application.port.in.article.GetArticleQuery;
-import com.sakrafux.realworld.application.port.in.article.UpdateArticleUseCase;
 import com.sakrafux.realworld.domain.model.Article;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.mapper.ArticleWebMapper;
 import com.sakrafux.realworld.infrastructure.security.AuthUtil;
@@ -33,8 +30,10 @@ public class ArticlesController {
     private final UpdateArticleUseCase updateArticleUseCase;
     private final DeleteArticleUseCase deleteArticleUseCase;
     private final GetArticleQuery getArticleQuery;
-    private final com.sakrafux.realworld.application.port.in.article.GetArticlesQuery getArticlesQuery;
-    private final com.sakrafux.realworld.application.port.in.article.GetFeedQuery getFeedQuery;
+    private final GetArticlesQuery getArticlesQuery;
+    private final GetFeedQuery getFeedQuery;
+    private final FavoriteArticleUseCase favoriteArticleUseCase;
+    private final UnfavoriteArticleUseCase unfavoriteArticleUseCase;
     private final ArticleWebMapper articleWebMapper;
 
     /**
@@ -156,7 +155,9 @@ public class ArticlesController {
      */
     @PostMapping("/{slug}/favorite")
     public ArticleResponse favoriteArticle(@PathVariable String slug) {
-        throw new UnsupportedOperationException("TODO");
+        String userEmail = AuthUtil.getRequiredCurrentUserEmail();
+        Article article = favoriteArticleUseCase.favoriteArticle(slug, userEmail);
+        return articleWebMapper.toResponse(article);
     }
 
     /**
@@ -169,6 +170,8 @@ public class ArticlesController {
      */
     @DeleteMapping("/{slug}/favorite")
     public ArticleResponse unfavoriteArticle(@PathVariable String slug) {
-        throw new UnsupportedOperationException("TODO");
+        String userEmail = AuthUtil.getRequiredCurrentUserEmail();
+        Article article = unfavoriteArticleUseCase.unfavoriteArticle(slug, userEmail);
+        return articleWebMapper.toResponse(article);
     }
 }

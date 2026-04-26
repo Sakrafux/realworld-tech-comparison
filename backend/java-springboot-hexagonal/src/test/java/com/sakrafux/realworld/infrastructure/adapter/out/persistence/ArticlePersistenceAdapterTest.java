@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -125,5 +126,49 @@ class ArticlePersistenceAdapterTest {
 
         // Then
         verify(articleJpaRepository).findByAuthorIn(any(), any(PageRequest.class));
+    }
+
+    @Test
+    void favorite_validIds_callsRepository() {
+        // Given
+        ArticleEntity article = ArticleEntity.builder().id(1L).favoritedBy(new HashSet<>()).build();
+        UserEntity user = UserEntity.builder().id(2L).build();
+        given(articleJpaRepository.findById(1L)).willReturn(Optional.of(article));
+        given(userJpaRepository.findById(2L)).willReturn(Optional.of(user));
+
+        // When
+        articlePersistenceAdapter.favorite(2L, 1L);
+
+        // Then
+        assertThat(article.getFavoritedBy()).contains(user);
+        verify(articleJpaRepository).save(article);
+    }
+
+    @Test
+    void unfavorite_validIds_callsRepository() {
+        // Given
+        UserEntity user = UserEntity.builder().id(2L).build();
+        ArticleEntity article = ArticleEntity.builder().id(1L).favoritedBy(new HashSet<>(List.of(user))).build();
+        given(articleJpaRepository.findById(1L)).willReturn(Optional.of(article));
+
+        // When
+        articlePersistenceAdapter.unfavorite(2L, 1L);
+
+        // Then
+        assertThat(article.getFavoritedBy()).isEmpty();
+        verify(articleJpaRepository).save(article);
+    }
+
+    @Test
+    void isFavorited_callsRepository() {
+        // Given
+        given(articleJpaRepository.isFavorited(2L, 1L)).willReturn(true);
+
+        // When
+        boolean result = articlePersistenceAdapter.isFavorited(2L, 1L);
+
+        // Then
+        assertThat(result).isTrue();
+        verify(articleJpaRepository).isFavorited(2L, 1L);
     }
 }

@@ -11,6 +11,9 @@ public interface ArticleRepository {
     Optional<Article> findBySlug(String slug);
     Optional<Article> findByTitle(String title);
     void delete(String slug);
+    
+    void favorite(Long userId, Long articleId);
+    void unfavorite(Long userId, Long articleId);
     boolean isFavorited(Long userId, Long articleId);
 
     List<Article> findFiltered(GetArticlesFilter filter);
