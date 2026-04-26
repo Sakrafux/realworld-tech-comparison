@@ -1,7 +1,13 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 
+import com.sakrafux.realworld.application.port.in.GetCurrentUserUseCase;
+import com.sakrafux.realworld.application.port.in.UpdateUserUseCase;
+import com.sakrafux.realworld.application.port.out.TokenProviderPort;
+import com.sakrafux.realworld.domain.model.User;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.UpdateUserRequest;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.UserResponse;
+import com.sakrafux.realworld.infrastructure.adapter.in.web.mapper.UserWebMapper;
+import com.sakrafux.realworld.infrastructure.security.AuthUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +21,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
 
+    private final GetCurrentUserUseCase getCurrentUserUseCase;
+    private final UpdateUserUseCase updateUserUseCase;
+    private final TokenProviderPort tokenProviderPort;
+    private final UserWebMapper userWebMapper;
+
     /**
      * Retrieves the profile of the currently authenticated user.
      * Maps to: GET /api/user
@@ -23,7 +34,10 @@ public class UserController {
      */
     @GetMapping
     public UserResponse getCurrentUser() {
-        throw new UnsupportedOperationException("TODO");
+        String email = AuthUtil.getRequiredCurrentUserEmail();
+        User user = getCurrentUserUseCase.getCurrentUser(email);
+        String token = tokenProviderPort.generateToken(user.getEmail());
+        return userWebMapper.toResponse(user, token);
     }
 
     /**
@@ -35,6 +49,9 @@ public class UserController {
      */
     @PutMapping
     public UserResponse updateUser(@Valid @RequestBody UpdateUserRequest request) {
-        throw new UnsupportedOperationException("TODO");
+        String currentEmail = AuthUtil.getRequiredCurrentUserEmail();
+        User user = updateUserUseCase.updateUser(userWebMapper.toUpdateCommand(request, currentEmail));
+        String token = tokenProviderPort.generateToken(user.getEmail());
+        return userWebMapper.toResponse(user, token);
     }
 }

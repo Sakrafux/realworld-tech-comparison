@@ -1,5 +1,6 @@
 package com.sakrafux.realworld.infrastructure.security;
 
+import com.sakrafux.realworld.application.port.out.TokenProviderPort;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -20,7 +21,7 @@ import java.util.function.Function;
  */
 @Service
 @Slf4j
-public class JwtService {
+public class JwtService implements TokenProviderPort {
 
     private final long expiration;
     private final SecretKey signingKey;
