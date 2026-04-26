@@ -7,12 +7,11 @@ import com.sakrafux.realworld.article.response.MultipleArticlesResponse;
 import com.sakrafux.realworld.profile.ProfileService;
 import com.sakrafux.realworld.profile.response.ProfileResponse;
 import com.sakrafux.realworld.tag.TagEntity;
-import com.sakrafux.realworld.user.UserEntity;
 import com.sakrafux.realworld.core.exception.ResourceAlreadyExistsException;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.core.exception.UnauthorizedException;
 import com.sakrafux.realworld.tag.TagRepository;
-import com.sakrafux.realworld.user.UserRepository;
+import com.sakrafux.realworld.user.UserIntegrationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -33,13 +32,13 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class ArticleService {
+public class ArticleService implements ArticleIntegrationService {
 
     private final ArticleRepository articleRepository;
     private final TagRepository tagRepository;
-    private final UserRepository userRepository;
     private final ArticleMapper articleMapper;
     private final ProfileService profileService;
+    private final UserIntegrationService userIntegrationService;
 
     /**
      * Retrieves a list of articles based on filtering criteria.
@@ -60,25 +59,34 @@ public class ArticleService {
         Specification<ArticleEntity> spec = Specification.where((root, query, cb) -> cb.conjunction());
 
         if (tag != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.join("tags").get("tag"), tag));
+            spec = spec.and((root, query, cb) -> cb.isMember(tag, root.get("tags")));
         }
         if (author != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.join("author").get("username"), author));
+            Optional<Long> authorId = userIntegrationService.findUserIdByUsername(author);
+            if (authorId.isPresent()) {
+                spec = spec.and((root, query, cb) -> cb.equal(root.get("authorId"), authorId.get()));
+            } else {
+                spec = spec.and((root, query, cb) -> cb.disjunction());
+            }
         }
         if (favorited != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.join("favoritedBy").get("username"), favorited));
+            Optional<Long> favoritedUserId = userIntegrationService.findUserIdByUsername(favorited);
+            if (favoritedUserId.isPresent()) {
+                spec = spec.and((root, query, cb) -> cb.isMember(favoritedUserId.get(), root.get("favoritedBy")));
+            } else {
+                spec = spec.and((root, query, cb) -> cb.disjunction());
+            }
         }
 
         PageRequest pageRequest = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        // Repository uses EntityGraph to fetch relationships in a single query (fixes N+1)
         Page<ArticleEntity> articlePage = articleRepository.findAll(spec, pageRequest);
 
         // Instead of fetching the current user inside the loop for every single article,
         // we fetch the user exactly once here and pass the UserEntity down to the mapper.
-        Optional<UserEntity> currentUser = currentEmail.flatMap(userRepository::findByEmail);
+        Optional<Long> currentUserId = currentEmail.flatMap(userIntegrationService::findUserIdByEmail);
 
         List<ArticleResponse.ArticleData> articles = articlePage.getContent().stream()
-                .map(article -> mapToArticleData(article, currentUser))
+                .map(article -> mapToArticleData(article, currentUserId))
                 .toList();
 
         return articleMapper.toMultipleResponse(articles, (int) articlePage.getTotalElements());
@@ -95,20 +103,19 @@ public class ArticleService {
      */
     @Transactional(readOnly = true)
     public MultipleArticlesResponse getFeed(int limit, int offset, String currentEmail) {
-        UserEntity user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
-
-        Set<UserEntity> following = user.getFollowing();
-        if (following.isEmpty()) {
+        Collection<Long> followingIds = userIntegrationService.findFollowingIdsByEmail(currentEmail);
+        if (followingIds.isEmpty()) {
             return articleMapper.toMultipleResponse(Collections.emptyList(), 0);
         }
 
         PageRequest pageRequest = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        // Repository uses EntityGraph to fetch relationships in a single query (fixes N+1)
-        Page<ArticleEntity> articlePage = articleRepository.findByAuthorIn(following, pageRequest);
+        Page<ArticleEntity> articlePage = articleRepository.findByAuthorIdIn(followingIds, pageRequest);
+
+        Long userId = userIntegrationService.findUserIdByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
         List<ArticleResponse.ArticleData> articles = articlePage.getContent().stream()
-                .map(article -> mapToArticleData(article, Optional.of(user)))
+                .map(article -> mapToArticleData(article, Optional.of(userId)))
                 .toList();
 
         return articleMapper.toMultipleResponse(articles, (int) articlePage.getTotalElements());
@@ -128,7 +135,7 @@ public class ArticleService {
     )
     @Transactional
     public ArticleResponse createArticle(NewArticleRequest request, String currentEmail) {
-        UserEntity author = userRepository.findByEmail(currentEmail)
+        Long authorId = userIntegrationService.findUserIdByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
         var articleData = request.getArticle();
@@ -147,14 +154,14 @@ public class ArticleService {
                 .slug(slug)
                 .description(articleData.getDescription())
                 .body(articleData.getBody())
-                .author(author)
+                .authorId(authorId)
                 .build();
 
         persistTags(articleData, article);
 
         article = articleRepository.save(article);
         return articleMapper.toResponse(article, getTagList(article), false, 0, 
-                profileService.getProfile(author.getUsername(), Optional.of(currentEmail)).getProfile());
+                profileService.getProfile(authorId, Optional.of(authorId)).getProfile());
     }
 
     private void persistTags(NewArticleRequest.ArticleData articleData, ArticleEntity article) {
@@ -185,7 +192,7 @@ public class ArticleService {
             existingTags.addAll(newlySavedTags);
         }
 
-        article.setTags(existingTags);
+        article.setTags(existingTags.stream().map(TagEntity::getTag).collect(Collectors.toSet()));
     }
 
     /**
@@ -200,11 +207,11 @@ public class ArticleService {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        Optional<UserEntity> currentUser = currentEmail.flatMap(userRepository::findByEmail);
-        return articleMapper.toResponse(article, getTagList(article), 
-                currentUser.map(user -> article.getFavoritedBy().contains(user)).orElse(false),
+        Optional<Long> currentUserId = currentEmail.flatMap(userIntegrationService::findUserIdByEmail);
+        return articleMapper.toResponse(article, getTagList(article),
+                currentUserId.map(userId -> article.getFavoritedBy().contains(userId)).orElse(false),
                 article.getFavoritedBy().size(),
-                profileService.getProfile(article.getAuthor().getUsername(), currentEmail).getProfile());
+                profileService.getProfile(article.getAuthorId(), currentUserId).getProfile());
     }
 
     /**
@@ -220,7 +227,10 @@ public class ArticleService {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        if (!article.getAuthor().getEmail().equals(currentEmail)) {
+        Long currentUserId = userIntegrationService.findUserIdByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+
+        if (!article.getAuthorId().equals(currentUserId)) {
             throw new UnauthorizedException("You are not the author of this article");
         }
 
@@ -250,9 +260,9 @@ public class ArticleService {
 
         article = articleRepository.save(article);
         return articleMapper.toResponse(article, getTagList(article),
-                article.getFavoritedBy().stream().anyMatch(u -> u.getEmail().equals(currentEmail)),
+                article.getFavoritedBy().contains(currentUserId),
                 article.getFavoritedBy().size(),
-                profileService.getProfile(article.getAuthor().getUsername(), Optional.of(currentEmail)).getProfile());
+                profileService.getProfile(article.getAuthorId(), Optional.of(currentUserId)).getProfile());
     }
 
     /**
@@ -266,7 +276,10 @@ public class ArticleService {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        if (!article.getAuthor().getEmail().equals(currentEmail)) {
+        Long currentUserId = userIntegrationService.findUserIdByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+
+        if (!article.getAuthorId().equals(currentUserId)) {
             throw new UnauthorizedException("You are not the author of this article");
         }
 
@@ -284,14 +297,14 @@ public class ArticleService {
     public ArticleResponse favoriteArticle(String slug, String currentEmail) {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
-        UserEntity user = userRepository.findByEmail(currentEmail)
+        Long userId = userIntegrationService.findUserIdByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
-        article.getFavoritedBy().add(user);
+        article.getFavoritedBy().add(userId);
         article = articleRepository.save(article);
 
         return articleMapper.toResponse(article, getTagList(article), true, article.getFavoritedBy().size(),
-                profileService.getProfile(article.getAuthor().getUsername(), Optional.of(currentEmail)).getProfile());
+                profileService.getProfile(article.getAuthorId(), Optional.of(userId)).getProfile());
     }
 
     /**
@@ -305,26 +318,31 @@ public class ArticleService {
     public ArticleResponse unfavoriteArticle(String slug, String currentEmail) {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
-        UserEntity user = userRepository.findByEmail(currentEmail)
+        Long userId = userIntegrationService.findUserIdByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
-        article.getFavoritedBy().remove(user);
+        article.getFavoritedBy().remove(userId);
         article = articleRepository.save(article);
 
         return articleMapper.toResponse(article, getTagList(article), false, article.getFavoritedBy().size(),
-                profileService.getProfile(article.getAuthor().getUsername(), Optional.of(currentEmail)).getProfile());
+                profileService.getProfile(article.getAuthorId(), Optional.of(userId)).getProfile());
     }
 
-    private ArticleResponse.ArticleData mapToArticleData(ArticleEntity article, Optional<UserEntity> currentUser) {
+    @Override
+    public Optional<Long> findArticleIdBySlug(String slug) {
+        return articleRepository.findBySlug(slug).map(ArticleEntity::getId);
+    }
+
+    private ArticleResponse.ArticleData mapToArticleData(ArticleEntity article, Optional<Long> currentUserId) {
         List<String> tagList = getTagList(article);
-        boolean favorited = currentUser
-                .map(user -> article.getFavoritedBy().contains(user))
+        boolean favorited = currentUserId
+                .map(userId -> article.getFavoritedBy().contains(userId))
                 .orElse(false);
         int favoritesCount = article.getFavoritedBy().size();
 
         ProfileResponse.ProfileData authorProfile = profileService.getProfile(
-                article.getAuthor().getUsername(),
-                currentUser.map(UserEntity::getEmail)
+                article.getAuthorId(),
+                currentUserId
         ).getProfile();
 
         return articleMapper.toArticleData(article, tagList, favorited, favoritesCount, authorProfile);
@@ -332,7 +350,6 @@ public class ArticleService {
 
     private List<String> getTagList(ArticleEntity article) {
         return article.getTags().stream()
-                .map(TagEntity::getTag)
                 .sorted()
                 .toList();
     }

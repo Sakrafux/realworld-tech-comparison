@@ -1,12 +1,8 @@
 package com.sakrafux.realworld.tag;
 
-import com.sakrafux.realworld.article.ArticleEntity;
 import com.sakrafux.realworld.core.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "tag")
@@ -26,8 +22,4 @@ public class TagEntity extends BaseEntity {
     @EqualsAndHashCode.Include
     @Column(unique = true, nullable = false, length = 20)
     private String tag;
-
-    @ManyToMany(mappedBy = "tags")
-    @Builder.Default
-    private Set<ArticleEntity> articles = new HashSet<>();
 }

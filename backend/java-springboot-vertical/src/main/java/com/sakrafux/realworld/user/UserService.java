@@ -9,9 +9,14 @@ import com.sakrafux.realworld.user.request.NewUserRequest;
 import com.sakrafux.realworld.user.request.UpdateUserRequest;
 import com.sakrafux.realworld.user.response.UserResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Service class responsible for handling core user authentication and profile management.
@@ -19,7 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class UserService {
+@Slf4j
+public class UserService implements UserIntegrationService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -144,5 +150,25 @@ public class UserService {
         user = userRepository.save(user);
         String token = jwtService.generateToken(user.getEmail());
         return userMapper.toResponse(user, token);
+    }
+
+    @Override
+    public Optional<Long> findUserIdByEmail(String email) {
+        log.info("here");
+        var res = userRepository.findByEmail(email).map(UserEntity::getId);
+        log.info(res.toString());
+        return res;
+    }
+
+    @Override
+    public Optional<Long> findUserIdByUsername(String username) {
+        return userRepository.findByUsername(username).map(UserEntity::getId);
+    }
+
+    @Override
+    public Collection<Long> findFollowingIdsByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(userEntity -> userEntity.getFollowing().stream().map(UserEntity::getId).toList())
+                .orElse(new ArrayList<>());
     }
 }

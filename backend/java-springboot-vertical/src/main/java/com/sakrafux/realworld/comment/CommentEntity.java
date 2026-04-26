@@ -1,8 +1,6 @@
 package com.sakrafux.realworld.comment;
 
-import com.sakrafux.realworld.article.ArticleEntity;
 import com.sakrafux.realworld.core.entity.BaseEntity;
-import com.sakrafux.realworld.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,11 +23,9 @@ public class CommentEntity extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_article", nullable = false)
-    private ArticleEntity article;
+    @Column(name = "article_id", nullable = false)
+    private Long articleId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_author", nullable = false)
-    private UserEntity author;
+    @Column(name = "author_id", nullable = false)
+    private Long authorId;
 }

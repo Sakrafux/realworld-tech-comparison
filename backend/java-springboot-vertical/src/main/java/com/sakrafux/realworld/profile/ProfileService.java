@@ -40,6 +40,18 @@ public class ProfileService {
     }
 
     /**
+     * Retrieves the profile of a user by their user ID.
+     */
+    @Transactional(readOnly = true)
+    public ProfileResponse getProfile(Long targetUserId, Optional<Long> currentUserId) {
+        UserEntity targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", targetUserId));
+
+        Optional<UserEntity> currentUser = currentUserId.flatMap(userRepository::findById);
+        return getProfile(targetUser, currentUser);
+    }
+
+    /**
      * Retrieves the profile of a target user, considering the following status relative to the current user.
      *
      * @param targetUser  the user whose profile is to be retrieved

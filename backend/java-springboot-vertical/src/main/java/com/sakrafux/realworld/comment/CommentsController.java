@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/articles/{slug}/comments")
 @RequiredArgsConstructor
 @Validated
-public class ArticlesCommentsController {
+public class CommentsController {
 
-    private final ArticleCommentService articleCommentService;
+    private final CommentService commentService;
 
     /**
      * Retrieves all comments for an article.
@@ -31,7 +31,7 @@ public class ArticlesCommentsController {
      */
     @GetMapping
     public MultipleCommentsResponse getComments(@PathVariable String slug) {
-        return articleCommentService.getComments(slug, AuthUtil.getCurrentUserEmail());
+        return commentService.getComments(slug, AuthUtil.getCurrentUserEmail());
     }
 
     /**
@@ -47,7 +47,7 @@ public class ArticlesCommentsController {
     public CommentResponse addComment(
             @PathVariable String slug,
             @Valid @RequestBody NewCommentRequest request) {
-        return articleCommentService.addComment(slug, request, AuthUtil.getRequiredCurrentUserEmail());
+        return commentService.addComment(slug, request, AuthUtil.getRequiredCurrentUserEmail());
     }
 
     /**
@@ -62,6 +62,6 @@ public class ArticlesCommentsController {
     public void deleteComment(
             @PathVariable String slug,
             @PathVariable Long id) {
-        articleCommentService.deleteComment(slug, id, AuthUtil.getRequiredCurrentUserEmail());
+        commentService.deleteComment(slug, id, AuthUtil.getRequiredCurrentUserEmail());
     }
 }

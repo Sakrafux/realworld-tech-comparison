@@ -6,7 +6,7 @@ This file contains specific rules, architectural mandates, and coding convention
 
 *   **Vertical Slice / Package-by-Feature Architecture:** Code MUST be organized by business domain/feature (e.g., `article`, `user`, `comment`, `tag`, `profile`) rather than by technical layer.
     *   **Feature Packages:** A single package MUST contain all the components required for that specific feature to work (Controller, Service, Repository, Entity, DTOs, and Mappers).
-    *   **Encapsulation:** Keep classes package-private (default visibility) whenever possible to hide internal implementation details of a feature. Typically, only the REST Controller or a specific public interface should be exposed outside the package.
+    *   **Encapsulation:** Keep classes public, but don't use them outside their package. Typically, only the REST Controller or a specific public interface should be exposed outside the package.
     *   **Cross-Cutting Concerns:** Code that spans multiple features or represents infrastructure (Security, Global Exceptions, Configurations, Base Entities) MUST reside in a `core` or `security` package.
 *   **Entities:** Extend `BaseEntity` (located in the `core` package) to inherit auditing fields (`createdAt`, `updatedAt`).
 

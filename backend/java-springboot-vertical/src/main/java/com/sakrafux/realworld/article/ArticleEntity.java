@@ -1,15 +1,10 @@
 package com.sakrafux.realworld.article;
 
-import com.sakrafux.realworld.comment.CommentEntity;
 import com.sakrafux.realworld.core.entity.BaseEntity;
-import com.sakrafux.realworld.tag.TagEntity;
-import com.sakrafux.realworld.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -40,29 +35,18 @@ public class ArticleEntity extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_author", nullable = false)
-    private UserEntity author;
+    @Column(name = "author_id", nullable = false)
+    private Long authorId;
 
-    @ManyToMany
-    @JoinTable(
-        name = "tag_is_article_to_tag",
-        joinColumns = @JoinColumn(name = "article_id"),
-        inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
+    @ElementCollection
+    @CollectionTable(name = "article_tags", joinColumns = @JoinColumn(name = "article_id"))
+    @Column(name = "tag_name")
     @Builder.Default
-    private Set<TagEntity> tags = new HashSet<>();
+    private Set<String> tags = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(
-        name = "favorite_is_article_to_user",
-        joinColumns = @JoinColumn(name = "article_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
+    @ElementCollection
+    @CollectionTable(name = "article_favorites", joinColumns = @JoinColumn(name = "article_id"))
+    @Column(name = "user_id")
     @Builder.Default
-    private Set<UserEntity> favoritedBy = new HashSet<>();
-
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<CommentEntity> comments = new ArrayList<>();
+    private Set<Long> favoritedBy = new HashSet<>();
 }

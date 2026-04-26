@@ -1,15 +1,13 @@
 package com.sakrafux.realworld.comment;
 
-import com.sakrafux.realworld.article.ArticleEntity;
+import com.sakrafux.realworld.article.ArticleIntegrationService;
 import com.sakrafux.realworld.comment.request.NewCommentRequest;
 import com.sakrafux.realworld.comment.response.CommentResponse;
 import com.sakrafux.realworld.comment.response.MultipleCommentsResponse;
 import com.sakrafux.realworld.profile.ProfileService;
-import com.sakrafux.realworld.user.UserEntity;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.core.exception.UnauthorizedException;
-import com.sakrafux.realworld.article.ArticleRepository;
-import com.sakrafux.realworld.user.UserRepository;
+import com.sakrafux.realworld.user.UserIntegrationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,13 +20,13 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class ArticleCommentService {
+public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final ArticleRepository articleRepository;
-    private final UserRepository userRepository;
     private final CommentMapper commentMapper;
     private final ProfileService profileService;
+    private final UserIntegrationService userIntegrationService;
+    private final ArticleIntegrationService articleIntegrationService;
 
     /**
      * Adds a comment to an article.
@@ -40,21 +38,21 @@ public class ArticleCommentService {
      */
     @Transactional
     public CommentResponse addComment(String slug, NewCommentRequest request, String currentEmail) {
-        ArticleEntity article = articleRepository.findBySlug(slug)
+        Long articleId = articleIntegrationService.findArticleIdBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
-        UserEntity author = userRepository.findByEmail(currentEmail)
+        Long authorId = userIntegrationService.findUserIdByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
         CommentEntity comment = CommentEntity.builder()
                 .body(request.getComment().getBody())
-                .article(article)
-                .author(author)
+                .articleId(articleId)
+                .authorId(authorId)
                 .build();
 
         comment = commentRepository.save(comment);
 
         return commentMapper.toResponse(comment, 
-                profileService.getProfile(author.getUsername(), Optional.of(currentEmail)).getProfile());
+                profileService.getProfile(authorId, Optional.of(authorId)).getProfile());
     }
 
     /**
@@ -66,18 +64,16 @@ public class ArticleCommentService {
      */
     @Transactional(readOnly = true)
     public MultipleCommentsResponse getComments(String slug, Optional<String> currentEmail) {
-        ArticleEntity article = articleRepository.findBySlug(slug)
+        Long articleId = articleIntegrationService.findArticleIdBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        List<CommentEntity> comments = commentRepository.findByArticleOrderByCreatedAtDesc(article);
+        List<CommentEntity> comments = commentRepository.findByArticleIdOrderByCreatedAtDesc(articleId);
 
-        Optional<UserEntity> currentUser = currentEmail.flatMap(userRepository::findByEmail);
+        Optional<Long> currentUserId = currentEmail.flatMap(userIntegrationService::findUserIdByEmail);
 
-        // NOTE: Ideally, we would load all comment author profiles in a single batch to avoid N+1 issues.
-        // For the current scale and requirements, this iterative approach is acceptable.
         List<CommentResponse.CommentData> commentDataList = comments.stream()
                 .map(comment -> commentMapper.toCommentData(comment,
-                        profileService.getProfile(comment.getAuthor(), currentUser).getProfile()))
+                        profileService.getProfile(comment.getAuthorId(), currentUserId).getProfile()))
                 .toList();
 
         return commentMapper.toMultipleResponse(commentDataList);
@@ -94,13 +90,16 @@ public class ArticleCommentService {
     public void deleteComment(String slug, Long commentId, String currentEmail) {
         // RealWorld spec says "slug" is part of the path, but the ID is unique.
         // We check if the article exists first.
-        articleRepository.findBySlug(slug)
+        articleIntegrationService.findArticleIdBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
         CommentEntity comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment", "id", commentId));
 
-        if (!comment.getAuthor().getEmail().equals(currentEmail)) {
+        Long currentUserId = userIntegrationService.findUserIdByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+
+        if (!comment.getAuthorId().equals(currentUserId)) {
             throw new UnauthorizedException("You are not the author of this comment");
         }
 
