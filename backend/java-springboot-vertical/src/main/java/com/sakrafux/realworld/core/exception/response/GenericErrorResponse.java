@@ -1,4 +1,4 @@
-package com.sakrafux.realworld.dto.response;
+package com.sakrafux.realworld.core.exception.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

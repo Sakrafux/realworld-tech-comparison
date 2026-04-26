@@ -1,0 +1,21 @@
+package com.sakrafux.realworld.tag;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+@Repository
+public interface TagRepository extends JpaRepository<TagEntity, Long> {
+
+    @Query("SELECT t.tag FROM TagEntity t")
+    List<String> findAllTagNames();
+
+    Optional<TagEntity> findByTag(String tag);
+
+    Set<TagEntity> findByTagIn(Collection<String> tags);
+}

@@ -1,16 +1,13 @@
-package com.sakrafux.realworld.service;
+package com.sakrafux.realworld.user;
 
-import com.sakrafux.realworld.dto.request.LoginUserRequest;
-import com.sakrafux.realworld.dto.request.NewUserRequest;
-import com.sakrafux.realworld.dto.request.UpdateUserRequest;
-import com.sakrafux.realworld.dto.response.UserResponse;
-import com.sakrafux.realworld.entity.UserEntity;
-import com.sakrafux.realworld.exception.InvalidCredentialsException;
-import com.sakrafux.realworld.exception.ResourceAlreadyExistsException;
-import com.sakrafux.realworld.exception.ResourceNotFoundException;
-import com.sakrafux.realworld.mapper.UserMapper;
-import com.sakrafux.realworld.repository.UserRepository;
+import com.sakrafux.realworld.core.exception.InvalidCredentialsException;
+import com.sakrafux.realworld.core.exception.ResourceAlreadyExistsException;
+import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.security.JwtService;
+import com.sakrafux.realworld.user.request.LoginUserRequest;
+import com.sakrafux.realworld.user.request.NewUserRequest;
+import com.sakrafux.realworld.user.request.UpdateUserRequest;
+import com.sakrafux.realworld.user.response.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
