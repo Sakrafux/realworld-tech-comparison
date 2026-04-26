@@ -16,6 +16,7 @@ name: realworld-tech-comparison
 include:
   - path: stacks/monitoring.yml
   - path: stacks/java-springboot-layered.yml
+  - path: stacks/java-springboot-vertical.yml
 
 networks:
   realworld-network:
