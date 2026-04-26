@@ -8,6 +8,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -30,4 +32,7 @@ public interface ArticleJpaRepository extends JpaRepository<ArticleEntity, Long>
     @Override
     @EntityGraph(attributePaths = {"author", "tags", "favoritedBy"})
     Page<ArticleEntity> findAll(Specification<ArticleEntity> spec, Pageable pageable);
+
+    @Query("SELECT COUNT(a) > 0 FROM ArticleEntity a JOIN a.favoritedBy u WHERE a.id = :articleId AND u.id = :userId")
+    boolean isFavorited(@Param("userId") Long userId, @Param("articleId") Long articleId);
 }

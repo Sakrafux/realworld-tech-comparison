@@ -3,13 +3,19 @@ package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.NewArticleRequest;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.UpdateArticleRequest;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.ArticleResponse;
-import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.MultipleArticlesResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import com.sakrafux.realworld.application.port.in.article.CreateArticleUseCase;
+import com.sakrafux.realworld.application.port.in.article.DeleteArticleUseCase;
+import com.sakrafux.realworld.application.port.in.article.GetArticleQuery;
+import com.sakrafux.realworld.application.port.in.article.UpdateArticleUseCase;
+import com.sakrafux.realworld.domain.model.Article;
+import com.sakrafux.realworld.infrastructure.adapter.in.web.mapper.ArticleWebMapper;
+import com.sakrafux.realworld.infrastructure.security.AuthUtil;
 
 /**
  * REST Controller for managing articles.
@@ -21,44 +27,11 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class ArticlesController {
 
-    /**
-     * Retrieves a list of articles globally.
-     * Maps to: GET /api/articles
-     *
-     * @param tag       filter by tag
-     * @param author    filter by author username
-     * @param favorited filter by username who favorited the article
-     * @param limit     limit the number of results (default 20)
-     * @param offset    offset for pagination (default 0)
-     * @return a response containing a list of articles and total count
-     */
-    @GetMapping
-    public MultipleArticlesResponse getArticles(
-            @RequestParam(required = false) String tag,
-            @RequestParam(required = false) String author,
-            @RequestParam(required = false) String favorited,
-            @RequestParam(defaultValue = "20") @Min(1) int limit,
-            @RequestParam(defaultValue = "0") @Min(0) int offset
-    ) {
-        throw new UnsupportedOperationException("TODO");
-    }
-
-    /**
-     * Retrieves the article feed for the current user.
-     * Maps to: GET /api/articles/feed
-     * Auth required.
-     *
-     * @param limit  limit the number of results (default 20)
-     * @param offset offset for pagination (default 0)
-     * @return a response containing a list of articles and total count
-     */
-    @GetMapping("/feed")
-    public MultipleArticlesResponse getArticlesFeed(
-            @RequestParam(defaultValue = "20") @Min(1) int limit,
-            @RequestParam(defaultValue = "0") @Min(0) int offset
-    ) {
-        throw new UnsupportedOperationException("TODO");
-    }
+    private final CreateArticleUseCase createArticleUseCase;
+    private final UpdateArticleUseCase updateArticleUseCase;
+    private final DeleteArticleUseCase deleteArticleUseCase;
+    private final GetArticleQuery getArticleQuery;
+    private final ArticleWebMapper articleWebMapper;
 
     /**
      * Retrieves a single article.
@@ -70,7 +43,8 @@ public class ArticlesController {
      */
     @GetMapping("/{slug}")
     public ArticleResponse getArticle(@PathVariable String slug) {
-        throw new UnsupportedOperationException("TODO");
+        Article article = getArticleQuery.getArticle(slug, AuthUtil.getCurrentUserEmail());
+        return articleWebMapper.toResponse(article);
     }
 
     /**
@@ -87,7 +61,9 @@ public class ArticlesController {
             @PathVariable String slug,
             @Valid @RequestBody UpdateArticleRequest request
     ) {
-        throw new UnsupportedOperationException("TODO");
+        String authorEmail = AuthUtil.getRequiredCurrentUserEmail();
+        Article article = updateArticleUseCase.updateArticle(articleWebMapper.toUpdateCommand(request, slug, authorEmail));
+        return articleWebMapper.toResponse(article);
     }
 
     /**
@@ -99,7 +75,8 @@ public class ArticlesController {
      */
     @DeleteMapping("/{slug}")
     public void deleteArticle(@PathVariable String slug) {
-        throw new UnsupportedOperationException("TODO");
+        String authorEmail = AuthUtil.getRequiredCurrentUserEmail();
+        deleteArticleUseCase.deleteArticle(slug, authorEmail);
     }
 
     /**
@@ -113,7 +90,9 @@ public class ArticlesController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ArticleResponse createArticle(@Valid @RequestBody NewArticleRequest request) {
-        throw new UnsupportedOperationException("TODO");
+        String authorEmail = AuthUtil.getRequiredCurrentUserEmail();
+        Article article = createArticleUseCase.createArticle(articleWebMapper.toCreateCommand(request, authorEmail));
+        return articleWebMapper.toResponse(article);
     }
 
     /**
