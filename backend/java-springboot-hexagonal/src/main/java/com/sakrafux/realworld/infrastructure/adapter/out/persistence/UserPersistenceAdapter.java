@@ -1,6 +1,7 @@
 package com.sakrafux.realworld.infrastructure.adapter.out.persistence;
 
 import com.sakrafux.realworld.application.port.out.UserRepository;
+import com.sakrafux.realworld.domain.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.domain.model.User;
 import com.sakrafux.realworld.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.sakrafux.realworld.infrastructure.adapter.out.persistence.mapper.UserPersistenceMapper;
@@ -32,7 +33,7 @@ public class UserPersistenceAdapter implements UserRepository {
         UserEntity entity;
         if (user.getId() != null) {
             entity = userJpaRepository.findById(user.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found for update"));
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", user.getId()));
             userMapper.updateEntityFromDomain(user, entity);
         } else {
             entity = userMapper.toEntity(user);

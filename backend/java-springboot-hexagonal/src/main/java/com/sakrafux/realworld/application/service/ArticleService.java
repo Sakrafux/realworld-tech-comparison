@@ -1,9 +1,6 @@
 package com.sakrafux.realworld.application.service;
 
-import com.sakrafux.realworld.application.port.in.article.CreateArticleUseCase;
-import com.sakrafux.realworld.application.port.in.article.DeleteArticleUseCase;
-import com.sakrafux.realworld.application.port.in.article.GetArticleQuery;
-import com.sakrafux.realworld.application.port.in.article.UpdateArticleUseCase;
+import com.sakrafux.realworld.application.port.in.article.*;
 import com.sakrafux.realworld.application.port.in.profile.GetProfileQuery;
 import com.sakrafux.realworld.application.port.out.ArticleRepository;
 import com.sakrafux.realworld.application.port.out.TagRepository;
@@ -26,7 +23,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCase, DeleteArticleUseCase, GetArticleQuery {
+public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCase, DeleteArticleUseCase, 
+        GetArticleQuery, GetArticlesQuery, GetFeedQuery {
 
     private final ArticleRepository articleRepository;
     private final UserRepository userRepository;
@@ -136,6 +134,38 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
         });
 
         return article;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ArticleListResult getArticles(GetArticlesFilter filter) {
+        List<Article> articles = articleRepository.findFiltered(filter);
+        long count = articleRepository.countFiltered(filter);
+        
+        articles.forEach(article -> {
+            article.setAuthor(getProfileQuery.getProfile(article.getAuthor().getUsername(), filter.observerEmail()));
+            filter.observerEmail().flatMap(userRepository::findByEmail).ifPresent(observer -> {
+                article.setFavorited(articleRepository.isFavorited(observer.getId(), article.getId()));
+            });
+        });
+
+        return new ArticleListResult(articles, count);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ArticleListResult getFeed(int limit, int offset, String observerEmail) {
+        List<Article> articles = articleRepository.findFeed(observerEmail, limit, offset);
+        long count = articleRepository.countFeed(observerEmail);
+
+        articles.forEach(article -> {
+            article.setAuthor(getProfileQuery.getProfile(article.getAuthor().getUsername(), Optional.of(observerEmail)));
+            userRepository.findByEmail(observerEmail).ifPresent(observer -> {
+                article.setFavorited(articleRepository.isFavorited(observer.getId(), article.getId()));
+            });
+        });
+
+        return new ArticleListResult(articles, count);
     }
 
     private String getUserNameByEmail(String email) {

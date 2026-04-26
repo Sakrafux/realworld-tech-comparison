@@ -1,5 +1,6 @@
 package com.sakrafux.realworld.infrastructure.adapter.out.persistence;
 
+import com.sakrafux.realworld.application.port.in.article.GetArticlesQuery.GetArticlesFilter;
 import com.sakrafux.realworld.domain.model.Article;
 import com.sakrafux.realworld.domain.model.Profile;
 import com.sakrafux.realworld.infrastructure.adapter.out.persistence.entity.ArticleEntity;
@@ -13,7 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -89,5 +95,35 @@ class ArticlePersistenceAdapterTest {
 
         // Then
         verify(articleJpaRepository).delete(entity);
+    }
+
+    @Test
+    void findFiltered_validFilter_callsRepository() {
+        // Given
+        GetArticlesFilter filter = GetArticlesFilter.builder().limit(20).offset(0).build();
+        Page<ArticleEntity> page = new PageImpl<>(List.of(new ArticleEntity()));
+        given(articleJpaRepository.findAll(any(Specification.class), any(PageRequest.class))).willReturn(page);
+
+        // When
+        articlePersistenceAdapter.findFiltered(filter);
+
+        // Then
+        verify(articleJpaRepository).findAll(any(Specification.class), any(PageRequest.class));
+    }
+
+    @Test
+    void findFeed_validObserver_callsRepository() {
+        // Given
+        String email = "observer@example.com";
+        UserEntity observer = UserEntity.builder().id(1L).following(Set.of(new UserEntity())).build();
+        Page<ArticleEntity> page = new PageImpl<>(List.of(new ArticleEntity()));
+        given(userJpaRepository.findByEmail(email)).willReturn(Optional.of(observer));
+        given(articleJpaRepository.findByAuthorIn(any(), any(PageRequest.class))).willReturn(page);
+
+        // When
+        articlePersistenceAdapter.findFeed(email, 20, 0);
+
+        // Then
+        verify(articleJpaRepository).findByAuthorIn(any(), any(PageRequest.class));
     }
 }

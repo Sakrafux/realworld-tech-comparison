@@ -1,6 +1,8 @@
 package com.sakrafux.realworld.application.service;
 
+import com.sakrafux.realworld.application.port.in.article.ArticleListResult;
 import com.sakrafux.realworld.application.port.in.article.CreateArticleUseCase.CreateArticleCommand;
+import com.sakrafux.realworld.application.port.in.article.GetArticlesQuery;
 import com.sakrafux.realworld.application.port.in.article.UpdateArticleUseCase.UpdateArticleCommand;
 import com.sakrafux.realworld.application.port.in.profile.GetProfileQuery;
 import com.sakrafux.realworld.application.port.out.ArticleRepository;
@@ -135,5 +137,41 @@ class ArticleServiceTest {
 
         // Then
         verify(articleRepository).delete(slug);
+    }
+
+    @Test
+    void getArticles_validFilter_returnsArticleList() {
+        // Given
+        GetArticlesQuery.GetArticlesFilter filter = new GetArticlesQuery.GetArticlesFilter(
+                null, null, null, 20, 0, Optional.empty());
+        Article article = Article.builder().author(Profile.builder().username("author").build()).build();
+        given(articleRepository.findFiltered(filter)).willReturn(List.of(article));
+        given(articleRepository.countFiltered(filter)).willReturn(1L);
+        given(getProfileQuery.getProfile(eq("author"), any())).willReturn(Profile.builder().username("author").build());
+
+        // When
+        ArticleListResult result = articleService.getArticles(filter);
+
+        // Then
+        assertThat(result.articles()).hasSize(1);
+        assertThat(result.totalCount()).isEqualTo(1L);
+    }
+
+    @Test
+    void getFeed_validObserver_returnsArticleList() {
+        // Given
+        String email = "observer@example.com";
+        Article article = Article.builder().author(Profile.builder().username("author").build()).build();
+        given(articleRepository.findFeed(email, 20, 0)).willReturn(List.of(article));
+        given(articleRepository.countFeed(email)).willReturn(1L);
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(User.builder().id(1L).build()));
+        given(getProfileQuery.getProfile(eq("author"), any())).willReturn(Profile.builder().username("author").build());
+
+        // When
+        ArticleListResult result = articleService.getFeed(20, 0, email);
+
+        // Then
+        assertThat(result.articles()).hasSize(1);
+        assertThat(result.totalCount()).isEqualTo(1L);
     }
 }

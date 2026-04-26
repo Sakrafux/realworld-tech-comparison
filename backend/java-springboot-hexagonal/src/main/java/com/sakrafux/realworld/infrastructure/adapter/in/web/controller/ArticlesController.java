@@ -3,7 +3,9 @@ package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.NewArticleRequest;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.UpdateArticleRequest;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.ArticleResponse;
+import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.MultipleArticlesResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -31,7 +33,56 @@ public class ArticlesController {
     private final UpdateArticleUseCase updateArticleUseCase;
     private final DeleteArticleUseCase deleteArticleUseCase;
     private final GetArticleQuery getArticleQuery;
+    private final com.sakrafux.realworld.application.port.in.article.GetArticlesQuery getArticlesQuery;
+    private final com.sakrafux.realworld.application.port.in.article.GetFeedQuery getFeedQuery;
     private final ArticleWebMapper articleWebMapper;
+
+    /**
+     * Retrieves a list of articles globally.
+     * Maps to: GET /api/articles
+     *
+     * @param tag       filter by tag
+     * @param author    filter by author username
+     * @param favorited filter by username who favorited the article
+     * @param limit     limit the number of results (default 20)
+     * @param offset    offset for pagination (default 0)
+     * @return a response containing a list of articles and total count
+     */
+    @GetMapping
+    public MultipleArticlesResponse getArticles(
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String favorited,
+            @RequestParam(defaultValue = "20") @Min(1) int limit,
+            @RequestParam(defaultValue = "0") @Min(0) int offset
+    ) {
+        var filter = articleWebMapper.toFilter(tag, author, favorited, limit, offset, AuthUtil.getCurrentUserEmail());
+        var result = getArticlesQuery.getArticles(filter);
+        return articleWebMapper.toMultipleResponse(result);
+    }
+
+    /**
+     * Retrieves the article feed for the current user.
+     * Maps to: GET /api/articles/feed
+     * Auth required.
+     *
+     * @param limit  limit the number of results (default 20)
+     * @param offset offset for pagination (default 0)
+     * @return a response containing a list of articles and total count
+     */
+    @GetMapping("/feed")
+    public MultipleArticlesResponse getArticlesFeed(
+            @RequestParam(defaultValue = "20") @Min(1) int limit,
+            @RequestParam(defaultValue = "0") @Min(0) int offset
+    ) {
+        String observerEmail = AuthUtil.getRequiredCurrentUserEmail();
+        var result = getFeedQuery.getFeed(limit, offset, observerEmail);
+        
+        return MultipleArticlesResponse.builder()
+                .articles(result.articles().stream().map(articleWebMapper::toResponse).map(ArticleResponse::getArticle).toList())
+                .articlesCount((int) result.totalCount())
+                .build();
+    }
 
     /**
      * Retrieves a single article.

@@ -9,6 +9,12 @@ import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.Article
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import com.sakrafux.realworld.application.port.in.article.GetArticlesQuery.GetArticlesFilter;
+import com.sakrafux.realworld.application.port.in.article.ArticleListResult;
+import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.MultipleArticlesResponse;
+
+import java.util.Optional;
+
 @Mapper(uses = {ProfileWebMapper.class})
 public interface ArticleWebMapper {
 
@@ -26,6 +32,21 @@ public interface ArticleWebMapper {
     @Mapping(target = "body", source = "request.article.body")
     UpdateArticleCommand toUpdateCommand(UpdateArticleRequest request, String slug, String authorEmail);
 
+    default GetArticlesFilter toFilter(String tag, String author, String favorited, int limit, int offset, Optional<String> observerEmail) {
+        return GetArticlesFilter.builder()
+                .tag(tag)
+                .author(author)
+                .favorited(favorited)
+                .limit(limit)
+                .offset(offset)
+                .observerEmail(observerEmail)
+                .build();
+    }
+
     @Mapping(target = "article", source = "domain")
     ArticleResponse toResponse(Article domain);
+
+    @Mapping(target = "articles", source = "result.articles")
+    @Mapping(target = "articlesCount", source = "result.totalCount")
+    MultipleArticlesResponse toMultipleResponse(ArticleListResult result);
 }
