@@ -1,4 +1,4 @@
-package com.sakrafux.realworld.infrastructure.security;
+package com.sakrafux.realworld.domain.exception;
 
 /**
  * Exception thrown when a requested operation requires authentication, but no

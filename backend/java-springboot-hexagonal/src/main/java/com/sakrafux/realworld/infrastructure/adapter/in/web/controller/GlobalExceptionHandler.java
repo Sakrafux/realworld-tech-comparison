@@ -4,7 +4,7 @@ import com.sakrafux.realworld.domain.exception.InvalidCredentialsException;
 import com.sakrafux.realworld.domain.exception.ResourceAlreadyExistsException;
 import com.sakrafux.realworld.domain.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.GenericErrorResponse;
-import com.sakrafux.realworld.infrastructure.security.UnauthorizedException;
+import com.sakrafux.realworld.domain.exception.UnauthorizedException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

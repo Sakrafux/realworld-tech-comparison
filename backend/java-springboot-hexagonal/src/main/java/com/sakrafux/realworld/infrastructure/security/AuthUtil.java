@@ -1,5 +1,6 @@
 package com.sakrafux.realworld.infrastructure.security;
 
+import com.sakrafux.realworld.domain.exception.UnauthorizedException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.Authentication;

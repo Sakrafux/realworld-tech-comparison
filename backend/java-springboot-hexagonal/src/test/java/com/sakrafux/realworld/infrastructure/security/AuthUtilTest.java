@@ -1,5 +1,6 @@
 package com.sakrafux.realworld.infrastructure.security;
 
+import com.sakrafux.realworld.domain.exception.UnauthorizedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
