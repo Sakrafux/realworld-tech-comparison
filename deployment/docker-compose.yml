@@ -17,6 +17,7 @@ include:
   - path: stacks/monitoring.yml
   - path: stacks/java-springboot-layered.yml
   - path: stacks/java-springboot-vertical.yml
+  - path: stacks/java-springboot-hexagonal.yml
 
 networks:
   realworld-network:
