@@ -1,9 +1,9 @@
 package com.sakrafux.realworld.application.service;
 
-import com.sakrafux.realworld.application.port.in.GetCurrentUserQuery;
-import com.sakrafux.realworld.application.port.in.LoginUseCase;
-import com.sakrafux.realworld.application.port.in.RegisterUserUseCase;
-import com.sakrafux.realworld.application.port.in.UpdateUserUseCase;
+import com.sakrafux.realworld.application.port.in.user.GetCurrentUserQuery;
+import com.sakrafux.realworld.application.port.in.user.LoginUseCase;
+import com.sakrafux.realworld.application.port.in.user.RegisterUserUseCase;
+import com.sakrafux.realworld.application.port.in.user.UpdateUserUseCase;
 import com.sakrafux.realworld.application.port.out.PasswordEncoderPort;
 import com.sakrafux.realworld.application.port.out.UserRepository;
 import com.sakrafux.realworld.domain.exception.InvalidCredentialsException;

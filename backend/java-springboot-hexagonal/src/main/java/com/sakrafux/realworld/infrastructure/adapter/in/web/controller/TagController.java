@@ -1,6 +1,6 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 
-import com.sakrafux.realworld.application.port.in.GetTagsQuery;
+import com.sakrafux.realworld.application.port.in.tag.GetTagsQuery;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.TagsResponse;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.mapper.TagWebMapper;
 import lombok.RequiredArgsConstructor;

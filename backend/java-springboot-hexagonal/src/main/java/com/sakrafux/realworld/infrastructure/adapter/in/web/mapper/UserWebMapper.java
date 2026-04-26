@@ -1,8 +1,8 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.mapper;
 
-import com.sakrafux.realworld.application.port.in.LoginUseCase.LoginCommand;
-import com.sakrafux.realworld.application.port.in.RegisterUserUseCase.RegisterUserCommand;
-import com.sakrafux.realworld.application.port.in.UpdateUserUseCase.UpdateUserCommand;
+import com.sakrafux.realworld.application.port.in.user.LoginUseCase.LoginCommand;
+import com.sakrafux.realworld.application.port.in.user.RegisterUserUseCase.RegisterUserCommand;
+import com.sakrafux.realworld.application.port.in.user.UpdateUserUseCase.UpdateUserCommand;
 import com.sakrafux.realworld.domain.model.User;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.LoginUserRequest;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.NewUserRequest;

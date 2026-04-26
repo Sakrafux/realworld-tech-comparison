@@ -1,6 +1,6 @@
 package com.sakrafux.realworld.application.service;
 
-import com.sakrafux.realworld.application.port.in.RegisterUserUseCase.RegisterUserCommand;
+import com.sakrafux.realworld.application.port.in.user.RegisterUserUseCase.RegisterUserCommand;
 import com.sakrafux.realworld.application.port.out.PasswordEncoderPort;
 import com.sakrafux.realworld.application.port.out.UserRepository;
 import com.sakrafux.realworld.domain.exception.ResourceAlreadyExistsException;

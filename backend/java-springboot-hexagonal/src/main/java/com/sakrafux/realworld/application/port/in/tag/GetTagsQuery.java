@@ -1,4 +1,4 @@
-package com.sakrafux.realworld.application.port.in;
+package com.sakrafux.realworld.application.port.in.tag;
 
 import com.sakrafux.realworld.domain.model.Tag;
 

@@ -1,7 +1,7 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 
-import com.sakrafux.realworld.application.port.in.LoginUseCase;
-import com.sakrafux.realworld.application.port.in.RegisterUserUseCase;
+import com.sakrafux.realworld.application.port.in.user.LoginUseCase;
+import com.sakrafux.realworld.application.port.in.user.RegisterUserUseCase;
 import com.sakrafux.realworld.application.port.out.TokenProviderPort;
 import com.sakrafux.realworld.domain.model.User;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.LoginUserRequest;

@@ -1,4 +1,4 @@
-package com.sakrafux.realworld.application.port.in;
+package com.sakrafux.realworld.application.port.in.profile;
 
 import com.sakrafux.realworld.domain.model.Profile;
 

@@ -1,8 +1,8 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 
-import com.sakrafux.realworld.application.port.in.FollowUserUseCase;
-import com.sakrafux.realworld.application.port.in.GetProfileQuery;
-import com.sakrafux.realworld.application.port.in.UnfollowUserUseCase;
+import com.sakrafux.realworld.application.port.in.profile.FollowUserUseCase;
+import com.sakrafux.realworld.application.port.in.profile.GetProfileQuery;
+import com.sakrafux.realworld.application.port.in.profile.UnfollowUserUseCase;
 import com.sakrafux.realworld.domain.model.Profile;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.response.ProfileResponse;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.mapper.ProfileWebMapper;

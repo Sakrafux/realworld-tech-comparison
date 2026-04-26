@@ -1,7 +1,7 @@
 package com.sakrafux.realworld.infrastructure.adapter.in.web.controller;
 
-import com.sakrafux.realworld.application.port.in.GetCurrentUserQuery;
-import com.sakrafux.realworld.application.port.in.UpdateUserUseCase;
+import com.sakrafux.realworld.application.port.in.user.GetCurrentUserQuery;
+import com.sakrafux.realworld.application.port.in.user.UpdateUserUseCase;
 import com.sakrafux.realworld.application.port.out.TokenProviderPort;
 import com.sakrafux.realworld.domain.model.User;
 import com.sakrafux.realworld.infrastructure.adapter.in.web.dto.request.UpdateUserRequest;
