@@ -3,6 +3,7 @@ package com.sakrafux.realworld.user.application.service;
 import com.sakrafux.realworld.user.application.port.in.FollowUserUseCase;
 import com.sakrafux.realworld.user.application.port.in.GetProfileQuery;
 import com.sakrafux.realworld.user.application.port.in.UnfollowUserUseCase;
+import com.sakrafux.realworld.user.application.port.api.AuthorProvider;
 import com.sakrafux.realworld.user.application.port.out.FollowRelationshipPort;
 import com.sakrafux.realworld.user.application.port.out.UserRepository;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
@@ -16,10 +17,16 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ProfileService implements GetProfileQuery, FollowUserUseCase, UnfollowUserUseCase {
+public class ProfileService implements GetProfileQuery, FollowUserUseCase, UnfollowUserUseCase, AuthorProvider {
 
     private final UserRepository userRepository;
     private final FollowRelationshipPort followRelationshipPort;
+
+    @Override
+    @Transactional(readOnly = true)
+    public AuthorResponse getAuthor(String username, Optional<String> observerEmail) {
+        return mapToAuthorResponse(getProfile(username, observerEmail));
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -71,6 +78,15 @@ public class ProfileService implements GetProfileQuery, FollowUserUseCase, Unfol
                 .bio(user.getBio())
                 .image(user.getImage())
                 .following(following)
+                .build();
+    }
+
+    private AuthorResponse mapToAuthorResponse(Profile profile) {
+        return AuthorResponse.builder()
+                .username(profile.getUsername())
+                .bio(profile.getBio())
+                .image(profile.getImage())
+                .following(profile.isFollowing())
                 .build();
     }
 }

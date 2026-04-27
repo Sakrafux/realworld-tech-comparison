@@ -1,6 +1,5 @@
 package com.sakrafux.realworld.article.domain;
 
-import com.sakrafux.realworld.user.domain.Profile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,5 +19,5 @@ public class Comment {
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
     private String body;
-    private Profile author;
+    private Author author;
 }

@@ -3,12 +3,13 @@ package com.sakrafux.realworld.article.application.service;
 import com.sakrafux.realworld.article.application.port.in.AddCommentUseCase;
 import com.sakrafux.realworld.article.application.port.in.DeleteCommentUseCase;
 import com.sakrafux.realworld.article.application.port.in.GetCommentsQuery;
+import com.sakrafux.realworld.user.application.port.api.AuthorProvider;
 import com.sakrafux.realworld.user.application.port.api.UserInternalApi;
-import com.sakrafux.realworld.user.application.port.in.GetProfileQuery;
 import com.sakrafux.realworld.article.application.port.out.ArticleRepository;
 import com.sakrafux.realworld.article.application.port.out.CommentRepository;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.core.exception.UnauthorizedException;
+import com.sakrafux.realworld.article.domain.Author;
 import com.sakrafux.realworld.article.domain.Comment;
 import com.sakrafux.realworld.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class CommentService implements AddCommentUseCase, GetCommentsQuery, Dele
     private final CommentRepository commentRepository;
     private final ArticleRepository articleRepository;
     private final UserInternalApi userInternalApi;
-    private final GetProfileQuery getProfileQuery;
+    private final AuthorProvider authorProvider;
 
     @Override
     @Transactional
@@ -33,12 +34,13 @@ public class CommentService implements AddCommentUseCase, GetCommentsQuery, Dele
         articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        User author = userInternalApi.getUserByEmail(authorEmail)
+        String username = userInternalApi.getUserByEmail(authorEmail)
+                .map(User::getUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", authorEmail));
 
         Comment comment = Comment.builder()
                 .body(body)
-                .author(getProfileQuery.getProfile(author.getUsername(), Optional.of(authorEmail)))
+                .author(mapToAuthor(authorProvider.getAuthor(username, Optional.of(authorEmail))))
                 .build();
 
         return commentRepository.save(comment, slug);
@@ -52,7 +54,7 @@ public class CommentService implements AddCommentUseCase, GetCommentsQuery, Dele
 
         List<Comment> comments = commentRepository.findByArticleSlug(slug);
         comments.forEach(comment ->
-                comment.setAuthor(getProfileQuery.getProfile(comment.getAuthor().getUsername(), observerEmail))
+                comment.setAuthor(mapToAuthor(authorProvider.getAuthor(comment.getAuthor().getUsername(), observerEmail)))
         );
 
         return comments;
@@ -67,13 +69,23 @@ public class CommentService implements AddCommentUseCase, GetCommentsQuery, Dele
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment", "id", id));
 
-        User author = userInternalApi.getUserByEmail(authorEmail)
+        String currentUsername = userInternalApi.getUserByEmail(authorEmail)
+                .map(User::getUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", authorEmail));
 
-        if (!comment.getAuthor().getUsername().equals(author.getUsername())) {
+        if (!comment.getAuthor().getUsername().equals(currentUsername)) {
             throw new UnauthorizedException("You are not the author of this comment");
         }
 
         commentRepository.delete(id);
+    }
+
+    private Author mapToAuthor(AuthorProvider.AuthorResponse response) {
+        return Author.builder()
+                .username(response.username())
+                .bio(response.bio())
+                .image(response.image())
+                .following(response.following())
+                .build();
     }
 }

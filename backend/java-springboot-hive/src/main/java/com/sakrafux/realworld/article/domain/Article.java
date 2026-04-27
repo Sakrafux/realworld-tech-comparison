@@ -1,6 +1,5 @@
 package com.sakrafux.realworld.article.domain;
 
-import com.sakrafux.realworld.user.domain.Profile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +26,7 @@ public class Article {
     private ZonedDateTime updatedAt;
     private boolean favorited;
     private int favoritesCount;
-    private Profile author;
+    private Author author;
 
     public void update(String title, String slug, String description, String body) {
         if (title != null) {
