@@ -18,6 +18,7 @@ include:
   - path: stacks/java-springboot-layered.yml
   - path: stacks/java-springboot-vertical.yml
   - path: stacks/java-springboot-hexagonal.yml
+  - path: stacks/java-springboot-hive.yml
 
 networks:
   realworld-network:
