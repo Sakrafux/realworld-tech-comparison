@@ -1,6 +1,7 @@
 package com.sakrafux.realworld.user.infrastructure.persistence.adapter;
 
 import com.sakrafux.realworld.user.application.port.out.UserRepository;
+import com.sakrafux.realworld.user.application.port.api.UserInternalPersistenceApi;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.user.domain.User;
 import com.sakrafux.realworld.user.infrastructure.persistence.entity.UserEntity;
@@ -10,13 +11,32 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
-public class UserPersistenceAdapter implements UserRepository {
+public class UserPersistenceAdapter implements UserRepository, UserInternalPersistenceApi {
 
     private final UserJpaRepository userJpaRepository;
     private final UserPersistenceMapper userMapper;
+
+    @Override
+    public Optional<UserEntity> findEntityByUsername(String username) {
+        return userJpaRepository.findByUsername(username);
+    }
+
+    @Override
+    public Optional<UserEntity> findEntityById(Long id) {
+        return userJpaRepository.findById(id);
+    }
+
+    @Override
+    public Set<UserEntity> getFollowingEntities(String email) {
+        return userJpaRepository.findByEmail(email)
+                .map(UserEntity::getFollowing)
+                .orElse(Collections.emptySet());
+    }
 
     @Override
     public Optional<User> findByEmail(String email) {

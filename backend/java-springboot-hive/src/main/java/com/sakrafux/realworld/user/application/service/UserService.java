@@ -4,6 +4,7 @@ import com.sakrafux.realworld.user.application.port.in.GetCurrentUserQuery;
 import com.sakrafux.realworld.user.application.port.in.LoginUseCase;
 import com.sakrafux.realworld.user.application.port.in.RegisterUserUseCase;
 import com.sakrafux.realworld.user.application.port.in.UpdateUserUseCase;
+import com.sakrafux.realworld.user.application.port.api.UserInternalApi;
 import com.sakrafux.realworld.user.application.port.out.PasswordEncoderPort;
 import com.sakrafux.realworld.user.application.port.out.UserRepository;
 import com.sakrafux.realworld.core.exception.InvalidCredentialsException;
@@ -14,12 +15,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
-public class UserService implements RegisterUserUseCase, LoginUseCase, GetCurrentUserQuery, UpdateUserUseCase {
+public class UserService implements RegisterUserUseCase, LoginUseCase, GetCurrentUserQuery, UpdateUserUseCase, UserInternalApi {
 
     private final UserRepository userRepository;
     private final PasswordEncoderPort passwordEncoder;
+
+    @Override
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 
     @Override
     @Transactional

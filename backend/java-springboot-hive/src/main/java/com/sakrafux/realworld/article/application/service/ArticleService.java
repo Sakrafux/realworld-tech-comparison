@@ -4,7 +4,7 @@ import com.sakrafux.realworld.article.application.port.in.*;
 import com.sakrafux.realworld.user.application.port.in.GetProfileQuery;
 import com.sakrafux.realworld.article.application.port.out.ArticleRepository;
 import com.sakrafux.realworld.article.application.port.out.TagRepository;
-import com.sakrafux.realworld.user.application.port.out.UserRepository;
+import com.sakrafux.realworld.user.application.port.api.UserInternalApi;
 import com.sakrafux.realworld.core.exception.ResourceAlreadyExistsException;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.core.exception.UnauthorizedException;
@@ -30,7 +30,7 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
         GetArticleQuery, GetArticlesQuery, GetFeedQuery, FavoriteArticleUseCase, UnfavoriteArticleUseCase {
 
     private final ArticleRepository articleRepository;
-    private final UserRepository userRepository;
+    private final UserInternalApi userInternalApi;
     private final TagRepository tagRepository;
     private final GetProfileQuery getProfileQuery;
 
@@ -41,7 +41,7 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
     )
     @Transactional
     public Article createArticle(CreateArticleCommand command) {
-        User author = userRepository.findByEmail(command.authorEmail())
+        User author = userInternalApi.getUserByEmail(command.authorEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", command.authorEmail()));
 
         if (articleRepository.findByTitle(command.title()).isPresent()) {
@@ -132,7 +132,7 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
         // Refresh author profile with observer context
         article.setAuthor(getProfileQuery.getProfile(article.getAuthor().getUsername(), observerEmail));
         
-        observerEmail.flatMap(userRepository::findByEmail).ifPresent(observer -> {
+        observerEmail.flatMap(userInternalApi::getUserByEmail).ifPresent(observer -> {
             article.setFavorited(articleRepository.isFavorited(observer.getId(), article.getId()));
         });
 
@@ -147,7 +147,7 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
         
         articles.forEach(article -> {
             article.setAuthor(getProfileQuery.getProfile(article.getAuthor().getUsername(), filter.observerEmail()));
-            filter.observerEmail().flatMap(userRepository::findByEmail).ifPresent(observer -> {
+            filter.observerEmail().flatMap(userInternalApi::getUserByEmail).ifPresent(observer -> {
                 article.setFavorited(articleRepository.isFavorited(observer.getId(), article.getId()));
             });
         });
@@ -163,7 +163,7 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
 
         articles.forEach(article -> {
             article.setAuthor(getProfileQuery.getProfile(article.getAuthor().getUsername(), Optional.of(observerEmail)));
-            userRepository.findByEmail(observerEmail).ifPresent(observer -> {
+            userInternalApi.getUserByEmail(observerEmail).ifPresent(observer -> {
                 article.setFavorited(articleRepository.isFavorited(observer.getId(), article.getId()));
             });
         });
@@ -176,7 +176,7 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
     public Article favoriteArticle(String slug, String userEmail) {
         Article article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
-        User user = userRepository.findByEmail(userEmail)
+        User user = userInternalApi.getUserByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", userEmail));
 
         articleRepository.favorite(user.getId(), article.getId());
@@ -189,7 +189,7 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
     public Article unfavoriteArticle(String slug, String userEmail) {
         Article article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
-        User user = userRepository.findByEmail(userEmail)
+        User user = userInternalApi.getUserByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", userEmail));
 
         articleRepository.unfavorite(user.getId(), article.getId());
@@ -198,7 +198,7 @@ public class ArticleService implements CreateArticleUseCase, UpdateArticleUseCas
     }
 
     private String getUserNameByEmail(String email) {
-        return userRepository.findByEmail(email)
+        return userInternalApi.getUserByEmail(email)
                 .map(User::getUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
     }

@@ -2,6 +2,7 @@ package com.sakrafux.realworld.article.infrastructure.persistence.adapter;
 
 import com.sakrafux.realworld.article.application.port.in.GetArticlesQuery.GetArticlesFilter;
 import com.sakrafux.realworld.article.application.port.out.ArticleRepository;
+import com.sakrafux.realworld.user.application.port.api.UserInternalPersistenceApi;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.article.domain.Article;
 import com.sakrafux.realworld.article.infrastructure.persistence.entity.ArticleEntity;
@@ -10,7 +11,6 @@ import com.sakrafux.realworld.user.infrastructure.persistence.entity.UserEntity;
 import com.sakrafux.realworld.article.infrastructure.persistence.mapper.ArticlePersistenceMapper;
 import com.sakrafux.realworld.article.infrastructure.persistence.repository.ArticleJpaRepository;
 import com.sakrafux.realworld.article.infrastructure.persistence.repository.TagJpaRepository;
-import com.sakrafux.realworld.user.infrastructure.persistence.repository.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -26,7 +26,7 @@ import java.util.Set;
 public class ArticlePersistenceAdapter implements ArticleRepository {
 
     private final ArticleJpaRepository articleJpaRepository;
-    private final UserJpaRepository userJpaRepository;
+    private final UserInternalPersistenceApi userInternalPersistenceApi;
     private final TagJpaRepository tagJpaRepository;
     private final ArticlePersistenceMapper articleMapper;
 
@@ -49,7 +49,7 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
 
         // Handle author
         if (article.getAuthor() != null) {
-            userJpaRepository.findByUsername(article.getAuthor().getUsername())
+            userInternalPersistenceApi.findEntityByUsername(article.getAuthor().getUsername())
                     .ifPresent(entity::setAuthor);
         }
 
@@ -75,7 +75,7 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
     @Override
     public void favorite(Long userId, Long articleId) {
         articleJpaRepository.findById(articleId).ifPresent(article -> {
-            userJpaRepository.findById(userId).ifPresent(user -> {
+            userInternalPersistenceApi.findEntityById(userId).ifPresent(user -> {
                 article.getFavoritedBy().add(user);
                 articleJpaRepository.save(article);
             });
@@ -110,10 +110,7 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
 
     @Override
     public List<Article> findFeed(String observerEmail, int limit, int offset) {
-        UserEntity user = userJpaRepository.findByEmail(observerEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", observerEmail));
-        
-        Set<UserEntity> following = user.getFollowing();
+        Set<UserEntity> following = userInternalPersistenceApi.getFollowingEntities(observerEmail);
         if (following.isEmpty()) return List.of();
 
         PageRequest pageRequest = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -124,10 +121,7 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
 
     @Override
     public long countFeed(String observerEmail) {
-        UserEntity user = userJpaRepository.findByEmail(observerEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", observerEmail));
-        
-        Set<UserEntity> following = user.getFollowing();
+        Set<UserEntity> following = userInternalPersistenceApi.getFollowingEntities(observerEmail);
         if (following.isEmpty()) return 0;
 
         return articleJpaRepository.count((root, query, cb) -> root.get("author").in(following));

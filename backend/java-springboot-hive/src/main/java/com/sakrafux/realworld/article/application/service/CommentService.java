@@ -3,10 +3,10 @@ package com.sakrafux.realworld.article.application.service;
 import com.sakrafux.realworld.article.application.port.in.AddCommentUseCase;
 import com.sakrafux.realworld.article.application.port.in.DeleteCommentUseCase;
 import com.sakrafux.realworld.article.application.port.in.GetCommentsQuery;
+import com.sakrafux.realworld.user.application.port.api.UserInternalApi;
 import com.sakrafux.realworld.user.application.port.in.GetProfileQuery;
 import com.sakrafux.realworld.article.application.port.out.ArticleRepository;
 import com.sakrafux.realworld.article.application.port.out.CommentRepository;
-import com.sakrafux.realworld.user.application.port.out.UserRepository;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.core.exception.UnauthorizedException;
 import com.sakrafux.realworld.article.domain.Comment;
@@ -24,7 +24,7 @@ public class CommentService implements AddCommentUseCase, GetCommentsQuery, Dele
 
     private final CommentRepository commentRepository;
     private final ArticleRepository articleRepository;
-    private final UserRepository userRepository;
+    private final UserInternalApi userInternalApi;
     private final GetProfileQuery getProfileQuery;
 
     @Override
@@ -33,7 +33,7 @@ public class CommentService implements AddCommentUseCase, GetCommentsQuery, Dele
         articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        User author = userRepository.findByEmail(authorEmail)
+        User author = userInternalApi.getUserByEmail(authorEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", authorEmail));
 
         Comment comment = Comment.builder()
@@ -67,7 +67,7 @@ public class CommentService implements AddCommentUseCase, GetCommentsQuery, Dele
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment", "id", id));
 
-        User author = userRepository.findByEmail(authorEmail)
+        User author = userInternalApi.getUserByEmail(authorEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", authorEmail));
 
         if (!comment.getAuthor().getUsername().equals(author.getUsername())) {
