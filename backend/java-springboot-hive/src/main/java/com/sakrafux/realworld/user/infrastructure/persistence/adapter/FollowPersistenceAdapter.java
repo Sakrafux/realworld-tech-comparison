@@ -2,14 +2,28 @@ package com.sakrafux.realworld.user.infrastructure.persistence.adapter;
 
 import com.sakrafux.realworld.user.application.port.out.FollowRelationshipPort;
 import com.sakrafux.realworld.user.infrastructure.persistence.repository.UserJpaRepository;
+import com.sakrafux.realworld.user.infrastructure.persistence.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
 public class FollowPersistenceAdapter implements FollowRelationshipPort {
 
     private final UserJpaRepository userJpaRepository;
+
+    @Override
+    public Set<Long> getFollowingIds(Long followerId) {
+        return userJpaRepository.findById(followerId)
+                .map(follower -> follower.getFollowing().stream()
+                        .map(UserEntity::getId)
+                        .collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
+    }
 
     @Override
     public boolean isFollowing(Long followerId, Long followeeId) {

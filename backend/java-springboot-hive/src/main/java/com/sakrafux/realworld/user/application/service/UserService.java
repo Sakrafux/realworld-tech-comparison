@@ -5,6 +5,7 @@ import com.sakrafux.realworld.user.application.port.in.LoginUseCase;
 import com.sakrafux.realworld.user.application.port.in.RegisterUserUseCase;
 import com.sakrafux.realworld.user.application.port.in.UpdateUserUseCase;
 import com.sakrafux.realworld.user.application.port.api.UserInternalApi;
+import com.sakrafux.realworld.user.application.port.out.FollowRelationshipPort;
 import com.sakrafux.realworld.user.application.port.out.PasswordEncoderPort;
 import com.sakrafux.realworld.user.application.port.out.UserRepository;
 import com.sakrafux.realworld.core.exception.InvalidCredentialsException;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -23,10 +25,36 @@ public class UserService implements RegisterUserUseCase, LoginUseCase, GetCurren
 
     private final UserRepository userRepository;
     private final PasswordEncoderPort passwordEncoder;
+    private final FollowRelationshipPort followRelationshipPort;
+
+    @Override
+    public Set<Long> getFollowingIds(Long userId) {
+        return followRelationshipPort.getFollowingIds(userId);
+    }
 
     @Override
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    @Override
+    public Optional<User> getUserById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return userRepository.findByUsername(username).isPresent();
     }
 
     @Override

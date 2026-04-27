@@ -1,7 +1,6 @@
 package com.sakrafux.realworld.article.infrastructure.persistence.entity;
 
 import com.sakrafux.realworld.core.persistence.BaseEntity;
-import com.sakrafux.realworld.user.infrastructure.persistence.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,9 +37,8 @@ public class ArticleEntity extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_author", nullable = false)
-    private UserEntity author;
+    @Column(name = "fk_author", nullable = false)
+    private Long authorId;
 
     @ManyToMany
     @JoinTable(
@@ -51,14 +49,14 @@ public class ArticleEntity extends BaseEntity {
     @Builder.Default
     private Set<TagEntity> tags = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(
+    @ElementCollection
+    @CollectionTable(
         name = "favorite_is_article_to_user",
-        joinColumns = @JoinColumn(name = "article_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
+        joinColumns = @JoinColumn(name = "article_id")
     )
+    @Column(name = "user_id")
     @Builder.Default
-    private Set<UserEntity> favoritedBy = new HashSet<>();
+    private Set<Long> favoritedByUserIds = new HashSet<>();
 
     @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

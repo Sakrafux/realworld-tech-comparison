@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class Author {
+    private Long id;
     private String username;
     private String bio;
     private String image;

@@ -2,12 +2,11 @@ package com.sakrafux.realworld.article.infrastructure.persistence.adapter;
 
 import com.sakrafux.realworld.article.application.port.in.GetArticlesQuery.GetArticlesFilter;
 import com.sakrafux.realworld.article.application.port.out.ArticleRepository;
-import com.sakrafux.realworld.user.application.port.api.UserInternalPersistenceApi;
+import com.sakrafux.realworld.user.application.port.api.UserInternalApi;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.article.domain.Article;
 import com.sakrafux.realworld.article.infrastructure.persistence.entity.ArticleEntity;
 import com.sakrafux.realworld.article.infrastructure.persistence.entity.TagEntity;
-import com.sakrafux.realworld.user.infrastructure.persistence.entity.UserEntity;
 import com.sakrafux.realworld.article.infrastructure.persistence.mapper.ArticlePersistenceMapper;
 import com.sakrafux.realworld.article.infrastructure.persistence.repository.ArticleJpaRepository;
 import com.sakrafux.realworld.article.infrastructure.persistence.repository.TagJpaRepository;
@@ -26,7 +25,7 @@ import java.util.Set;
 public class ArticlePersistenceAdapter implements ArticleRepository {
 
     private final ArticleJpaRepository articleJpaRepository;
-    private final UserInternalPersistenceApi userInternalPersistenceApi;
+    private final UserInternalApi userInternalApi;
     private final TagJpaRepository tagJpaRepository;
     private final ArticlePersistenceMapper articleMapper;
 
@@ -48,23 +47,24 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
         }
 
         // Handle author
+        ArticleEntity finalEntity = entity;
         if (article.getAuthor() != null) {
-            userInternalPersistenceApi.findEntityByUsername(article.getAuthor().getUsername())
-                    .ifPresent(entity::setAuthor);
+            userInternalApi.getUserByUsername(article.getAuthor().getUsername())
+                    .ifPresent(user -> finalEntity.setAuthorId(user.getId()));
         }
 
-        entity = articleJpaRepository.save(entity);
-        return articleMapper.toDomain(entity);
+        entity = articleJpaRepository.save(finalEntity);
+        return hydrate(entity);
     }
 
     @Override
     public Optional<Article> findBySlug(String slug) {
-        return articleJpaRepository.findBySlug(slug).map(articleMapper::toDomain);
+        return articleJpaRepository.findBySlug(slug).map(this::hydrate);
     }
 
     @Override
     public Optional<Article> findByTitle(String title) {
-        return articleJpaRepository.findByTitle(title).map(articleMapper::toDomain);
+        return articleJpaRepository.findByTitle(title).map(this::hydrate);
     }
 
     @Override
@@ -75,17 +75,15 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
     @Override
     public void favorite(Long userId, Long articleId) {
         articleJpaRepository.findById(articleId).ifPresent(article -> {
-            userInternalPersistenceApi.findEntityById(userId).ifPresent(user -> {
-                article.getFavoritedBy().add(user);
-                articleJpaRepository.save(article);
-            });
+            article.getFavoritedByUserIds().add(userId);
+            articleJpaRepository.save(article);
         });
     }
 
     @Override
     public void unfavorite(Long userId, Long articleId) {
         articleJpaRepository.findById(articleId).ifPresent(article -> {
-            article.getFavoritedBy().removeIf(user -> user.getId().equals(userId));
+            article.getFavoritedByUserIds().remove(userId);
             articleJpaRepository.save(article);
         });
     }
@@ -99,7 +97,7 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
     public List<Article> findFiltered(GetArticlesFilter filter) {
         PageRequest pageRequest = PageRequest.of(filter.offset() / filter.limit(), filter.limit(), Sort.by(Sort.Direction.DESC, "createdAt"));
         return articleJpaRepository.findAll(createSpecification(filter), pageRequest).getContent().stream()
-                .map(articleMapper::toDomain)
+                .map(this::hydrate)
                 .toList();
     }
 
@@ -110,21 +108,42 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
 
     @Override
     public List<Article> findFeed(String observerEmail, int limit, int offset) {
-        Set<UserEntity> following = userInternalPersistenceApi.getFollowingEntities(observerEmail);
-        if (following.isEmpty()) return List.of();
+        Long observerId = userInternalApi.getUserByEmail(observerEmail)
+                .map(com.sakrafux.realworld.user.domain.User::getId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", observerEmail));
+        
+        // This is tricky because we need the IDs of people the observer follows.
+        // We'll need another InternalApi method for that or use IDs.
+        // Let's assume we can get followed IDs.
+        Set<Long> followingIds = userInternalApi.getUserByEmail(observerEmail)
+                .map(user -> userInternalApi.getFollowingIds(user.getId())) // Need to add this
+                .orElse(Set.of());
+
+        if (followingIds.isEmpty()) return List.of();
 
         PageRequest pageRequest = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return articleJpaRepository.findByAuthorIn(following, pageRequest).getContent().stream()
-                .map(articleMapper::toDomain)
+        return articleJpaRepository.findByAuthorIdIn(followingIds, pageRequest).getContent().stream()
+                .map(this::hydrate)
                 .toList();
     }
 
     @Override
     public long countFeed(String observerEmail) {
-        Set<UserEntity> following = userInternalPersistenceApi.getFollowingEntities(observerEmail);
-        if (following.isEmpty()) return 0;
+        Set<Long> followingIds = userInternalApi.getUserByEmail(observerEmail)
+                .map(user -> userInternalApi.getFollowingIds(user.getId()))
+                .orElse(Set.of());
 
-        return articleJpaRepository.count((root, query, cb) -> root.get("author").in(following));
+        if (followingIds.isEmpty()) return 0;
+
+        return articleJpaRepository.count((root, query, cb) -> root.get("authorId").in(followingIds));
+    }
+
+    private Article hydrate(ArticleEntity entity) {
+        Article article = articleMapper.toDomain(entity);
+        // Hydrate author username
+        userInternalApi.getUserById(entity.getAuthorId())
+                .ifPresent(user -> article.getAuthor().setUsername(user.getUsername()));
+        return article;
     }
 
     private Specification<ArticleEntity> createSpecification(GetArticlesFilter filter) {
@@ -134,10 +153,16 @@ public class ArticlePersistenceAdapter implements ArticleRepository {
                 spec = spec.and((r, q, c) -> c.equal(r.join("tags").get("tag"), filter.tag()));
             }
             if (filter.author() != null) {
-                spec = spec.and((r, q, c) -> c.equal(r.join("author").get("username"), filter.author()));
+                Long authorId = userInternalApi.getUserByUsername(filter.author())
+                        .map(com.sakrafux.realworld.user.domain.User::getId)
+                        .orElse(-1L);
+                spec = spec.and((r, q, c) -> c.equal(r.get("authorId"), authorId));
             }
             if (filter.favorited() != null) {
-                spec = spec.and((r, q, c) -> c.equal(r.join("favoritedBy").get("username"), filter.favorited()));
+                Long favoritedById = userInternalApi.getUserByUsername(filter.favorited())
+                        .map(com.sakrafux.realworld.user.domain.User::getId)
+                        .orElse(-1L);
+                spec = spec.and((r, q, c) -> c.isMember(favoritedById, r.get("favoritedByUserIds")));
             }
             return spec.toPredicate(root, query, cb);
         };
