@@ -8,6 +8,7 @@ This implementation follows a **Vertical Slice Architecture** (Package-by-Featur
 
 - **Feature-Centric**: Each package (e.g., `article`, `user`, `comment`) contains all the components required for that specific feature, including Controllers, Services, Repositories, Entities, and DTOs.
 - **High Cohesion**: Business logic, data access, and API definitions for a single domain are kept together, making features easier to find and modify in isolation.
+- **Internal Simplicity**: Because the slices are extremely granular (one slice per domain concept), there is **no internal sub-layering**. Controllers, services, and repositories live side-by-side in the same package for maximum visibility and minimum boilerplate.
 - **Cross-Cutting Concerns**: Infrastructure and shared utilities (Security, Global Exceptions, Configurations, Base Entities) reside in specialized `core` or `security` packages.
 
 ## Tech Stack
@@ -20,24 +21,49 @@ This implementation follows a **Vertical Slice Architecture** (Package-by-Featur
 - **Monitoring**: Spring Boot Actuator with Micrometer & Prometheus integration
 - **Security**: Stateless JWT Authentication
 
-## Directory Structure
+## Directory Structure (Current: Granular Slices)
+
+In this approach, slices are kept as small as possible to minimize complexity within a single package.
 
 ```text
 src/
 └── main/
     ├── java/
     │   └── com.sakrafux.realworld/
-    │       ├── article/      # Article management (Controller, Service, Repository, Entity)
-    │       ├── comment/      # Comment management
+    │       ├── article/      # All article-related code (no sub-packages)
+    │       ├── comment/      # All comment-related code
+    │       ├── profile/      # All profile-related code
+    │       ├── tag/          # All tag-related code
+    │       ├── user/         # All user-related code
     │       ├── core/         # Shared infrastructure
-    │       │   ├── configuration/
-    │       │   ├── entity/
-    │       │   └── exception/
-    │       ├── profile/      # User profiles and follow logic
-    │       ├── security/     # JWT parsing and authentication filters
-    │       ├── tag/          # Tag management
-    │       └── user/         # User authentication and settings
+    │       └── security/     # Auth logic
     └── resources/            # application.yml
+```
+
+## Alternative Approach: Feature-Based Layering
+
+For larger projects, vertical slices can be grouped into broader business domains. In this scenario, each domain slice would internally follow a **Layered Architecture** to maintain order as the number of classes grows.
+
+```text
+src/
+└── main/
+    ├── java/
+    │   └── com.sakrafux.realworld/
+    │       ├── article/              # --- ARTICLE DOMAIN ---
+    │       │   ├── controller/       # Controllers & DTOs for Article, Comment, Tag
+    │       │   ├── service/          # Business logic
+    │       │   ├── repository/       # Repositories
+    │       │   └── entity/           # JPA Entities
+    │       │
+    │       ├── user/                 # --- USER DOMAIN ---
+    │       │   ├── controller/       # Controllers & DTOs for User & Profile
+    │       │   ├── service/          
+    │       │   ├── repository/       
+    │       │   └── entity/           
+    │       │
+    │       ├── core/                 # Shared logic
+    │       └── security/             
+    └── resources/            
 ```
 
 ## Testing

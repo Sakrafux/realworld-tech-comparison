@@ -2,6 +2,8 @@
 
 This directory contains various backend implementations of the [RealWorld API specification](https://docs.realworld.show/specs/backend-specs/introduction/), showcasing different programming languages, frameworks, and architectural patterns.
 
+**[**Spring Boot (Layered)**](./java-springboot-layered/README.md) is the most deliberate implementation**, featuring the most comprehensive documentation and test coverage; it serves as the reference for other implementations.
+
 ## Available Implementations
 
 ### Java
