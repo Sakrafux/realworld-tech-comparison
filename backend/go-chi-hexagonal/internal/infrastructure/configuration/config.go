@@ -10,6 +10,7 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
+	Type     string
 	Host     string
 	Port     string
 	User     string
@@ -30,6 +31,7 @@ func LoadConfig() *Config {
 			Port: getEnv("SERVER_PORT", "8080"),
 		},
 		Database: DatabaseConfig{
+			Type:     getEnv("DB_TYPE", "sqlite"),
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
 			User:     getEnv("DB_USER", "postgres"),
