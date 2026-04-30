@@ -21,6 +21,7 @@ type tagsResponse struct {
 	Tags []string `json:"tags"`
 }
 
+// GetTags returns all tags as a JSON response.
 func (h *TagHandler) GetTags(w http.ResponseWriter, r *http.Request) {
 	tags, err := h.tagService.GetTags(r.Context())
 	if err != nil {

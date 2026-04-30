@@ -18,6 +18,7 @@ func NewPostgresTagRepository(db *sqlx.DB) port.TagRepository {
 	}
 }
 
+// FindAll retrieves all tags from the database.
 func (r *tagRepository) FindAll(ctx context.Context) ([]domain.Tag, error) {
 	var tagNames []string
 	query := `SELECT tag FROM tag`

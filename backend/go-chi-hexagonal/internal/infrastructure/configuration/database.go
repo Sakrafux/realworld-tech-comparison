@@ -13,6 +13,8 @@ import (
 //go:embed sqlite_ddl.sql
 var sqliteSchema string
 
+// NewDatabase creates a new SQL database connection based on the provided configuration.
+// It supports both "postgres" and "sqlite" (in-memory) drivers.
 func NewDatabase(cfg DatabaseConfig) (*sqlx.DB, error) {
 	var driver, dsn string
 
@@ -32,6 +34,7 @@ func NewDatabase(cfg DatabaseConfig) (*sqlx.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
+	// The sqlite database is empty and must be initialized
 	if cfg.Type == "sqlite" {
 		slog.Info("Initializing SQLite schema")
 		if _, err := db.Exec(sqliteSchema); err != nil {

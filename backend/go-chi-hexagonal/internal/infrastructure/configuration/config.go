@@ -24,12 +24,14 @@ type WebConfig struct {
 	CorsAllowedOrigins []string
 }
 
+// Config is the root configuration object for the application.
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Web      WebConfig
 }
 
+// LoadConfig reads application configuration from environment variables with sensible defaults.
 func LoadConfig() *Config {
 	slog.Info("Loading configuration")
 	return &Config{

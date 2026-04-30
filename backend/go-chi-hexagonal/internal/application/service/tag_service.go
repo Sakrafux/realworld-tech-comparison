@@ -17,6 +17,7 @@ func NewTagService(tagRepo port.TagRepository) port.TagService {
 	}
 }
 
+// GetTags retrieves all tags by delegating to the repository.
 func (s *tagService) GetTags(ctx context.Context) ([]domain.Tag, error) {
 	return s.tagRepo.FindAll(ctx)
 }
