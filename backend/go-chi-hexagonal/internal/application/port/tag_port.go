@@ -3,7 +3,7 @@ package port
 import (
 	"context"
 
-	"github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
 )
 
 // TagService defines the inbound port for tag-related use cases.

@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
-	"github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
 )
 
 type tagService struct {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
 )
 
 type TagHandler struct {

@@ -1,4 +1,4 @@
-module github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal
+module github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal
 
 go 1.26.2
 

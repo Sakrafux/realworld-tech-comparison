@@ -4,11 +4,11 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httplog/v2"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 )
 
 func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler) *chi.Mux {

@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/service"
-	"github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
-	"github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/persistence"
-	"github.com/Sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/web"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/service"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/persistence"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/web"
 	"github.com/stretchr/testify/assert"
 )
 
