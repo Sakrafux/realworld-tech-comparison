@@ -38,5 +38,31 @@ This structure groups code by its **technical role** in the application. It crea
 └── README.md
 ```
 
+## Most Detailed Directory Structure
+
+```text
+.
+├── cmd/
+│   └── realworld/          # Main entry point (main.go) - Wires dependencies
+├── internal/
+│   ├── application/        # Use Cases and Port definitions
+│   │   ├── port/           # Inbound and Outbound Port interfaces
+│   │   │   ├── in/
+│   │   │   └── out/
+│   │   └── service/        # Implementation of the business logic (Use Cases)
+│   ├── domain/             # Business entities and core rules
+│   │   └── model/          # Domain models (User, Article)
+│   └── infrastructure/     # Adapters (External world)
+│       ├── adapter/        # Technical implementation of ports
+│       │   ├── in/
+│       │   │   └── web/    # Driving Adapters (HTTP handlers)
+│       │   └── out/
+│       │       └── persistence/ # Driven Adapters (Databases)
+│       ├── configuration/  # Setup and dependency injection
+│       └── security/       # JWT and security concerns
+├── go.mod
+└── README.md
+```
+
 ## Why this works for Go
 Go's **implicit interfaces** make this very powerful. The `application` package defines the `UserRepository` it needs, and the `infrastructure/persistence` package satisfies it without ever having to import the application package.
