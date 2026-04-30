@@ -25,7 +25,7 @@ func main() {
 	tagService := service.NewTagService(tagRepo)
 	tagHandler := web.NewTagHandler(tagService)
 
-	router := web.NewRouter(tagHandler)
+	router := web.NewRouter(cfg.Web, tagHandler)
 
 	slog.Info("Starting server on port " + cfg.Server.Port)
 	if err := http.ListenAndServe(":"+cfg.Server.Port, router); err != nil {

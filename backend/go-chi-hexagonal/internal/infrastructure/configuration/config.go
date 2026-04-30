@@ -3,6 +3,7 @@ package configuration
 import (
 	"log/slog"
 	"os"
+	"strings"
 )
 
 type ServerConfig struct {
@@ -19,9 +20,14 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
+type WebConfig struct {
+	CorsAllowedOrigins []string
+}
+
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
+	Web      WebConfig
 }
 
 func LoadConfig() *Config {
@@ -39,12 +45,22 @@ func LoadConfig() *Config {
 			Name:     getEnv("DB_NAME", "realworld"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
+		Web: WebConfig{
+			CorsAllowedOrigins: getEnvArray("CORS_ALLOWED_ORIGINS", []string{"*"}),
+		},
 	}
 }
 
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
+	}
+	return fallback
+}
+
+func getEnvArray(key string, fallback []string) []string {
+	if value, ok := os.LookupEnv(key); ok {
+		return strings.Split(value, ",")
 	}
 	return fallback
 }
