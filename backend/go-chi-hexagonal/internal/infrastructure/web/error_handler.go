@@ -3,8 +3,10 @@ package web
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
 )
 
@@ -30,13 +32,26 @@ func RespondWithError(w http.ResponseWriter, err error) {
 		return
 	}
 
+	if validationErrors, ok := errors.AsType[validator.ValidationErrors](err); ok {
+		msgs := make([]string, len(validationErrors))
+		for i, ve := range validationErrors {
+			msgs[i] = fmt.Sprintf("%s %s", ve.Field(), ve.Tag())
+		}
+		respondMultiple(w, http.StatusUnprocessableEntity, msgs)
+		return
+	}
+
 	// Fallback for non-AppErrors
 	respond(w, http.StatusInternalServerError, err.Error())
 }
 
 func respond(w http.ResponseWriter, code int, message string) {
+	respondMultiple(w, code, []string{message})
+}
+
+func respondMultiple(w http.ResponseWriter, code int, messages []string) {
 	var resp genericErrorResponse
-	resp.Errors.Body = []string{message}
+	resp.Errors.Body = messages
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)

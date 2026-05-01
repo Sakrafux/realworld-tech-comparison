@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
 )
@@ -11,12 +12,14 @@ import (
 type UserHandler struct {
 	userService    port.UserService
 	tokenGenerator port.TokenGenerator
+	validate       *validator.Validate
 }
 
 func NewUserHandler(userService port.UserService, tokenGenerator port.TokenGenerator) *UserHandler {
 	return &UserHandler{
 		userService:    userService,
 		tokenGenerator: tokenGenerator,
+		validate:       validator.New(),
 	}
 }
 
@@ -38,23 +41,28 @@ type genericErrorResponse struct {
 
 type loginRequest struct {
 	User struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	} `json:"user"`
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required"`
+	} `json:"user" validate:"required"`
 }
 
 type registrationRequest struct {
 	User struct {
-		Username string `json:"username"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	} `json:"user"`
+		Username string `json:"username" validate:"required,max=50"`
+		Email    string `json:"email" validate:"required,email,max=100"`
+		Password string `json:"password" validate:"required,min=8,max=60"`
+	} `json:"user" validate:"required"`
 }
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req registrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondWithError(w, domain.NewUnprocessableEntityError("invalid request body"))
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		RespondWithError(w, err)
 		return
 	}
 
@@ -81,6 +89,11 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req loginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		RespondWithError(w, domain.NewUnprocessableEntityError("invalid request body"))
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		RespondWithError(w, err)
 		return
 	}
 

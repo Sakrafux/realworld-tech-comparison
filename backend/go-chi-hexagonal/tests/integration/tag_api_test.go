@@ -9,6 +9,7 @@ import (
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/service"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/persistence"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/security"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/web"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,11 +27,17 @@ func TestTagsAPI_Integration(t *testing.T) {
 		CorsAllowedOrigins: []string{"*"},
 	}
 
-	// Wire up the real stack (Vertical Slice)
+	passwordHasher := security.NewBcryptHasher()
+	tokenGenerator := security.NewJWTGenerator("test-secret")
+	userRepo := persistence.NewPostgresUserRepository(db)
+	userService := service.NewUserService(userRepo, passwordHasher)
+	userHandler := web.NewUserHandler(userService, tokenGenerator)
+
 	tagRepo := persistence.NewPostgresTagRepository(db)
 	tagSvc := service.NewTagService(tagRepo)
 	tagHandler := web.NewTagHandler(tagSvc)
-	router := web.NewRouter(webCfg, tagHandler)
+
+	router := web.NewRouter(webCfg, tagHandler, userHandler)
 
 	// 2. SEED: Insert real data into the DB
 	_, err = db.Exec(`INSERT INTO tag (tag) VALUES ('golang'), ('hexagonal'), ('realworld')`)
