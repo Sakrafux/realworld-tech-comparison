@@ -8,6 +8,7 @@ import (
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/service"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/persistence"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/security"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/web"
 )
 
@@ -25,7 +26,13 @@ func main() {
 	tagService := service.NewTagService(tagRepo)
 	tagHandler := web.NewTagHandler(tagService)
 
-	router := web.NewRouter(cfg.Web, tagHandler)
+	passwordHasher := security.NewBcryptHasher()
+	tokenGenerator := security.NewJWTGenerator(cfg.Security.JWTSecret)
+	userRepo := persistence.NewPostgresUserRepository(db)
+	userService := service.NewUserService(userRepo, passwordHasher)
+	userHandler := web.NewUserHandler(userService, tokenGenerator)
+
+	router := web.NewRouter(cfg.Web, tagHandler, userHandler)
 
 	slog.Info("Starting server on port " + cfg.Server.Port)
 	if err := http.ListenAndServe(":"+cfg.Server.Port, router); err != nil {

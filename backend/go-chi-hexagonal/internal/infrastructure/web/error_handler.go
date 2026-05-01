@@ -1,0 +1,44 @@
+package web
+
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
+)
+
+// RespondWithError maps domain errors to HTTP responses.
+func RespondWithError(w http.ResponseWriter, err error) {
+	if appErr, ok := errors.AsType[domain.AppError](err); ok {
+		switch appErr.Type {
+		case domain.TypeNotFound:
+			respond(w, http.StatusNotFound, appErr.Message)
+		case domain.TypeAlreadyExists:
+			respond(w, http.StatusUnprocessableEntity, appErr.Message)
+		case domain.TypeInvalidCredentials:
+			respond(w, http.StatusUnauthorized, appErr.Message)
+		case domain.TypeUnauthorized:
+			respond(w, http.StatusUnauthorized, appErr.Message)
+		case domain.TypeUnprocessable:
+			respond(w, http.StatusUnprocessableEntity, appErr.Message)
+		case domain.TypeInternal:
+			respond(w, http.StatusInternalServerError, appErr.Message)
+		default:
+			respond(w, http.StatusInternalServerError, "An unexpected error occurred")
+		}
+		return
+	}
+
+	// Fallback for non-AppErrors
+	respond(w, http.StatusInternalServerError, err.Error())
+}
+
+func respond(w http.ResponseWriter, code int, message string) {
+	var resp genericErrorResponse
+	resp.Errors.Body = []string{message}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(resp)
+}

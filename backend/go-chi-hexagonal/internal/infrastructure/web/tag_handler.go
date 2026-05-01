@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
 )
 
 type TagHandler struct {
@@ -25,7 +26,7 @@ type tagsResponse struct {
 func (h *TagHandler) GetTags(w http.ResponseWriter, r *http.Request) {
 	tags, err := h.tagService.GetTags(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		RespondWithError(w, domain.NewInternalError(err.Error()))
 		return
 	}
 

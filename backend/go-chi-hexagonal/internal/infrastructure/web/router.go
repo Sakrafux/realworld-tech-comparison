@@ -11,13 +11,15 @@ import (
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 )
 
-func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler) *chi.Mux {
+func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler *UserHandler) *chi.Mux {
 	r := chi.NewRouter()
 
 	registerMiddleware(r, cfg)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/tags", tagHandler.GetTags)
+		r.Post("/users", userHandler.Register)
+		r.Post("/users/login", userHandler.Login)
 	})
 
 	return r

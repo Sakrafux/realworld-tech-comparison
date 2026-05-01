@@ -24,11 +24,16 @@ type WebConfig struct {
 	CorsAllowedOrigins []string
 }
 
+type SecurityConfig struct {
+	JWTSecret string
+}
+
 // Config is the root configuration object for the application.
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Web      WebConfig
+	Security SecurityConfig
 }
 
 // LoadConfig reads application configuration from environment variables with sensible defaults.
@@ -49,6 +54,9 @@ func LoadConfig() *Config {
 		},
 		Web: WebConfig{
 			CorsAllowedOrigins: getEnvArray("CORS_ALLOWED_ORIGINS", []string{"*"}),
+		},
+		Security: SecurityConfig{
+			JWTSecret: getEnv("JWT_SECRET", "super-secret-key"),
 		},
 	}
 }
