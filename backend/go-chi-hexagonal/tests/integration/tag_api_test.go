@@ -6,38 +6,23 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/service"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
-	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/persistence"
-	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/security"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/web"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTagsAPI_Integration(t *testing.T) {
-	// 1. SETUP: Real dependencies with in-memory SQLite
-	dbCfg := configuration.DatabaseConfig{
-		Type: "sqlite",
+	// 1. SETUP: Use the real bootstrapping logic
+	cfg := &configuration.Config{
+		Database: configuration.DatabaseConfig{Type: "sqlite"},
+		Web:      configuration.WebConfig{CorsAllowedOrigins: []string{"*"}},
+		Security: configuration.SecurityConfig{JWTSecret: "test-secret"},
 	}
-	db, err := configuration.NewDatabase(dbCfg)
+	db, err := configuration.NewDatabase(cfg.Database)
 	assert.NoError(t, err)
 	defer db.Close()
 
-	webCfg := configuration.WebConfig{
-		CorsAllowedOrigins: []string{"*"},
-	}
-
-	passwordHasher := security.NewBcryptHasher()
-	tokenGenerator := security.NewJWTGenerator("test-secret")
-	userRepo := persistence.NewPostgresUserRepository(db)
-	userService := service.NewUserService(userRepo, passwordHasher)
-	userHandler := web.NewUserHandler(userService, tokenGenerator)
-
-	tagRepo := persistence.NewPostgresTagRepository(db)
-	tagSvc := service.NewTagService(tagRepo)
-	tagHandler := web.NewTagHandler(tagSvc)
-
-	router := web.NewRouter(webCfg, tagHandler, userHandler)
+	router := web.NewApp(cfg, db)
 
 	// 2. SEED: Insert real data into the DB
 	_, err = db.Exec(`INSERT INTO tag (tag) VALUES ('golang'), ('hexagonal'), ('realworld')`)

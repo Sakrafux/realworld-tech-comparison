@@ -7,34 +7,23 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/service"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
-	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/persistence"
-	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/security"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/web"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUserAPI_Integration(t *testing.T) {
-	// 1. SETUP
-	dbCfg := configuration.DatabaseConfig{Type: "sqlite"}
-	db, err := configuration.NewDatabase(dbCfg)
+	// 1. SETUP: Use the real bootstrapping logic
+	cfg := &configuration.Config{
+		Database: configuration.DatabaseConfig{Type: "sqlite"},
+		Web:      configuration.WebConfig{CorsAllowedOrigins: []string{"*"}},
+		Security: configuration.SecurityConfig{JWTSecret: "test-secret"},
+	}
+	db, err := configuration.NewDatabase(cfg.Database)
 	assert.NoError(t, err)
 	defer db.Close()
 
-	webCfg := configuration.WebConfig{CorsAllowedOrigins: []string{"*"}}
-
-	passwordHasher := security.NewBcryptHasher()
-	tokenGenerator := security.NewJWTGenerator("test-secret")
-	userRepo := persistence.NewPostgresUserRepository(db)
-	userService := service.NewUserService(userRepo, passwordHasher)
-	userHandler := web.NewUserHandler(userService, tokenGenerator)
-
-	tagRepo := persistence.NewPostgresTagRepository(db)
-	tagSvc := service.NewTagService(tagRepo)
-	tagHandler := web.NewTagHandler(tagSvc)
-
-	router := web.NewRouter(webCfg, tagHandler, userHandler)
+	router := web.NewApp(cfg, db)
 
 	t.Run("Register success", func(t *testing.T) {
 		regReq := map[string]interface{}{
@@ -122,5 +111,28 @@ func TestUserAPI_Integration(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+
+	t.Run("Register failure - validation error", func(t *testing.T) {
+		regReq := map[string]interface{}{
+			"user": map[string]string{
+				"username": "u", // Too short
+				"email":    "not-an-email",
+				"password": "123", // Too short
+			},
+		}
+		body, _ := json.Marshal(regReq)
+		req := httptest.NewRequest("POST", "/api/users", bytes.NewBuffer(body))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+		var resp struct {
+			Errors struct {
+				Body []string `json:"body"`
+			} `json:"errors"`
+		}
+		json.NewDecoder(w.Body).Decode(&resp)
+		assert.Len(t, resp.Errors.Body, 3)
 	})
 }

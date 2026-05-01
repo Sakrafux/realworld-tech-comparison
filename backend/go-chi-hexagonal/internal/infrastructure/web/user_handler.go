@@ -3,6 +3,8 @@ package web
 import (
 	"encoding/json"
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
@@ -16,10 +18,21 @@ type UserHandler struct {
 }
 
 func NewUserHandler(userService port.UserService, tokenGenerator port.TokenGenerator) *UserHandler {
+	v := validator.New()
+
+	// Register function to use JSON tag names in validation errors
+	v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
 	return &UserHandler{
 		userService:    userService,
 		tokenGenerator: tokenGenerator,
-		validate:       validator.New(),
+		validate:       v,
 	}
 }
 
@@ -48,7 +61,7 @@ type loginRequest struct {
 
 type registrationRequest struct {
 	User struct {
-		Username string `json:"username" validate:"required,max=50"`
+		Username string `json:"username" validate:"required,min=3,max=50"`
 		Email    string `json:"email" validate:"required,email,max=100"`
 		Password string `json:"password" validate:"required,min=8,max=60"`
 	} `json:"user" validate:"required"`
