@@ -10,6 +10,7 @@ const (
 	TypeAlreadyExists      ErrorType = "ALREADY_EXISTS"
 	TypeInvalidCredentials ErrorType = "INVALID_CREDENTIALS"
 	TypeUnauthorized       ErrorType = "UNAUTHORIZED"
+	TypeConflict           ErrorType = "CONFLICT"
 	TypeInternal           ErrorType = "INTERNAL"
 	TypeUnprocessable      ErrorType = "UNPROCESSABLE"
 )
@@ -40,6 +41,10 @@ func NewInvalidCredentialsError(message string) error {
 
 func NewUnauthorizedError(message string) error {
 	return AppError{Type: TypeUnauthorized, Message: message}
+}
+
+func NewConflictError(message string) error {
+	return AppError{Type: TypeConflict, Message: message}
 }
 
 func NewUnprocessableEntityError(message string) error {
