@@ -51,6 +51,6 @@ func NewInternalError(message string) error {
 }
 
 // NewResourceNotFound is a specific helper like the Java counterpart.
-func NewResourceNotFound(resource, field string, value interface{}) error {
+func NewResourceNotFound(resource, field string, value any) error {
 	return NewNotFoundError(fmt.Sprintf("%s not found with %s: '%v'", resource, field, value))
 }

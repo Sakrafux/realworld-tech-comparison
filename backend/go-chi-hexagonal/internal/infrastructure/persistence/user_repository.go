@@ -58,7 +58,7 @@ func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
 		image = sql.NullString{String: *user.Image, Valid: true}
 	}
 
-	arg := map[string]interface{}{
+	arg := map[string]any{
 		"username": user.Username,
 		"email":    user.Email,
 		"password": user.Password,
@@ -129,7 +129,7 @@ func (r *userRepository) Update(ctx context.Context, user *domain.User) error {
 		image = sql.NullString{String: *user.Image, Valid: true}
 	}
 
-	arg := map[string]interface{}{
+	arg := map[string]any{
 		"id":       user.ID,
 		"username": user.Username,
 		"email":    user.Email,

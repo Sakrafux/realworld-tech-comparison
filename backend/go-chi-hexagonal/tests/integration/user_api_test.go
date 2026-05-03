@@ -26,7 +26,7 @@ func TestUserAPI_Integration(t *testing.T) {
 	router := web.NewApp(cfg, db)
 
 	t.Run("Register success", func(t *testing.T) {
-		regReq := map[string]interface{}{
+		regReq := map[string]any{
 			"user": map[string]string{
 				"username": "testuser",
 				"email":    "test@example.com",
@@ -55,7 +55,7 @@ func TestUserAPI_Integration(t *testing.T) {
 	})
 
 	t.Run("Login success", func(t *testing.T) {
-		loginReq := map[string]interface{}{
+		loginReq := map[string]any{
 			"user": map[string]string{
 				"email":    "test@example.com",
 				"password": "password123",
@@ -83,7 +83,7 @@ func TestUserAPI_Integration(t *testing.T) {
 	})
 
 	t.Run("Login failure - wrong password", func(t *testing.T) {
-		loginReq := map[string]interface{}{
+		loginReq := map[string]any{
 			"user": map[string]string{
 				"email":    "test@example.com",
 				"password": "wrongpassword",
@@ -98,7 +98,7 @@ func TestUserAPI_Integration(t *testing.T) {
 	})
 
 	t.Run("Register failure - existing email", func(t *testing.T) {
-		regReq := map[string]interface{}{
+		regReq := map[string]any{
 			"user": map[string]string{
 				"username": "newuser",
 				"email":    "test@example.com",
@@ -114,7 +114,7 @@ func TestUserAPI_Integration(t *testing.T) {
 	})
 
 	t.Run("Register failure - validation error", func(t *testing.T) {
-		regReq := map[string]interface{}{
+		regReq := map[string]any{
 			"user": map[string]string{
 				"username": "u", // Too short
 				"email":    "not-an-email",
@@ -150,7 +150,7 @@ func TestUserCurrentAPI_Integration(t *testing.T) {
 	router := web.NewApp(cfg, db)
 
 	// 1. Register a user to get a token
-	regReq := map[string]interface{}{
+	regReq := map[string]any{
 		"user": map[string]string{
 			"username": "testuser",
 			"email":    "test@example.com",
@@ -194,7 +194,7 @@ func TestUserCurrentAPI_Integration(t *testing.T) {
 	})
 
 	t.Run("Update current user success", func(t *testing.T) {
-		updateReq := map[string]interface{}{
+		updateReq := map[string]any{
 			"user": map[string]string{
 				"bio":   "New bio",
 				"image": "http://image.com/img.png",
@@ -231,7 +231,7 @@ func TestUserCurrentAPI_Integration(t *testing.T) {
 	})
 
 	t.Run("Update current user email and username success", func(t *testing.T) {
-		updateReq := map[string]interface{}{
+		updateReq := map[string]any{
 			"user": map[string]string{
 				"username": "newusername",
 				"email":    "new@example.com",

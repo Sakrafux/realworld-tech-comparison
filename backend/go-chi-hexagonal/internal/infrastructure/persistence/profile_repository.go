@@ -44,7 +44,7 @@ func (s *profileSchema) toDomain() *domain.Profile {
 func (r *profileRepository) GetProfileByUsername(ctx context.Context, username string, observerID *int64) (*domain.Profile, error) {
 	var schema profileSchema
 	var query string
-	var args []interface{}
+	var args []any
 
 	if observerID != nil {
 		query = `
@@ -54,14 +54,14 @@ func (r *profileRepository) GetProfileByUsername(ctx context.Context, username s
 			LEFT JOIN follow_is_user_to_user f ON u.id = f.followed_user_id AND f.following_user_id = $2
 			WHERE u.username = $1
 		`
-		args = []interface{}{username, *observerID}
+		args = []any{username, *observerID}
 	} else {
 		query = `
 			SELECT username, bio, image, 0 as following
 			FROM app_user
 			WHERE username = $1
 		`
-		args = []interface{}{username}
+		args = []any{username}
 	}
 
 	err := r.db.GetContext(ctx, &schema, query, args...)

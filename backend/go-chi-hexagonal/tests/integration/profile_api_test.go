@@ -107,7 +107,7 @@ func TestProfileAPI_Integration(t *testing.T) {
 }
 
 func registerUser(t *testing.T, router http.Handler, username, email string) string {
-	regReq := map[string]interface{}{
+	regReq := map[string]any{
 		"user": map[string]string{
 			"username": username,
 			"email":    email,

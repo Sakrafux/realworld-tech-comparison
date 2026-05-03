@@ -38,7 +38,7 @@ func (g *jwtGenerator) Generate(user *domain.User) (string, error) {
 }
 
 func (g *jwtGenerator) Parse(tokenString string) (int64, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &claims{}, func(token *jwt.Token) (any, error) {
 		return g.secretKey, nil
 	})
 
