@@ -10,7 +10,6 @@ const (
 	TypeAlreadyExists      ErrorType = "ALREADY_EXISTS"
 	TypeInvalidCredentials ErrorType = "INVALID_CREDENTIALS"
 	TypeUnauthorized       ErrorType = "UNAUTHORIZED"
-	TypeConflict           ErrorType = "CONFLICT"
 	TypeInternal           ErrorType = "INTERNAL"
 	TypeUnprocessable      ErrorType = "UNPROCESSABLE"
 )

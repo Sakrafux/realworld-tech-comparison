@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { apiClient } from '../utils/apiClient';
-import { generateUserData, unique, createUserData } from '../utils/testUtils';
+import { unique, createUserData } from '../utils/testUtils';
 
 interface UserResponse {
     user: {

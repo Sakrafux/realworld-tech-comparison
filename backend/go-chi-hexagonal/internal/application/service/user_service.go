@@ -27,7 +27,7 @@ func (s *userService) Register(ctx context.Context, cmd port.RegisterCommand) (*
 		return nil, domain.NewInternalError(err.Error())
 	}
 	if existingUser != nil {
-		return nil, domain.NewResourceAlreadyExists("User", "email", cmd.Email)
+		return nil, domain.NewAlreadyExistsError("Email already exists")
 	}
 
 	// Check if user already exists by username
@@ -36,7 +36,7 @@ func (s *userService) Register(ctx context.Context, cmd port.RegisterCommand) (*
 		return nil, domain.NewInternalError(err.Error())
 	}
 	if existingUser != nil {
-		return nil, domain.NewResourceAlreadyExists("User", "username", cmd.Username)
+		return nil, domain.NewAlreadyExistsError("Username already exists")
 	}
 
 	// Hash password
@@ -66,11 +66,11 @@ func (s *userService) Login(ctx context.Context, cmd port.LoginCommand) (*domain
 		return nil, domain.NewInternalError(err.Error())
 	}
 	if user == nil {
-		return nil, domain.NewInvalidCredentialsError("invalid email or password")
+		return nil, domain.NewNotFoundError("User not found")
 	}
 
 	if err := s.passwordHasher.Compare(user.Password, cmd.Password); err != nil {
-		return nil, domain.NewInvalidCredentialsError("invalid email or password")
+		return nil, domain.NewInvalidCredentialsError("Invalid email or password")
 	}
 
 	return user, nil
@@ -94,6 +94,28 @@ func (s *userService) UpdateUser(ctx context.Context, cmd port.UpdateUserCommand
 	}
 	if user == nil {
 		return nil, domain.NewResourceNotFound("User", "id", cmd.ID)
+	}
+
+	// Check for duplicate email if it's being updated
+	if cmd.Email != nil && *cmd.Email != user.Email {
+		existingUser, err := s.userRepo.FindByEmail(ctx, *cmd.Email)
+		if err != nil {
+			return nil, domain.NewInternalError(err.Error())
+		}
+		if existingUser != nil {
+			return nil, domain.NewAlreadyExistsError("Email already exists")
+		}
+	}
+
+	// Check for duplicate username if it's being updated
+	if cmd.Username != nil && *cmd.Username != user.Username {
+		existingUser, err := s.userRepo.FindByUsername(ctx, *cmd.Username)
+		if err != nil {
+			return nil, domain.NewInternalError(err.Error())
+		}
+		if existingUser != nil {
+			return nil, domain.NewAlreadyExistsError("Username already exists")
+		}
 	}
 
 	var hashedPassword *string

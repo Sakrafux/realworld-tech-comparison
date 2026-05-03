@@ -42,6 +42,7 @@ func TestUserService_Register(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Equal(t, domain.TypeAlreadyExists, err.(domain.AppError).Type)
+		assert.Equal(t, "Email already exists", err.Error())
 	})
 }
 
@@ -65,7 +66,7 @@ func TestUserService_Login(t *testing.T) {
 		hasher.AssertExpectations(t)
 	})
 
-	t.Run("invalid credentials", func(t *testing.T) {
+	t.Run("user not found", func(t *testing.T) {
 		repo := new(testmocks.MockUserRepository)
 		svc := NewUserService(repo, nil)
 		cmd := port.LoginCommand{Email: "test@test.com", Password: "wrong"}
@@ -74,7 +75,23 @@ func TestUserService_Login(t *testing.T) {
 		_, err := svc.Login(ctx, cmd)
 
 		assert.Error(t, err)
+		assert.Equal(t, domain.TypeNotFound, err.(domain.AppError).Type)
+	})
+
+	t.Run("invalid credentials", func(t *testing.T) {
+		repo := new(testmocks.MockUserRepository)
+		hasher := new(testmocks.MockPasswordHasher)
+		svc := NewUserService(repo, hasher)
+		cmd := port.LoginCommand{Email: "test@test.com", Password: "wrong"}
+		user := &domain.User{Email: cmd.Email, Password: "hashed"}
+		repo.On("FindByEmail", ctx, cmd.Email).Return(user, nil)
+		hasher.On("Compare", user.Password, cmd.Password).Return(domain.NewInvalidCredentialsError("Invalid email or password"))
+
+		_, err := svc.Login(ctx, cmd)
+
+		assert.Error(t, err)
 		assert.Equal(t, domain.TypeInvalidCredentials, err.(domain.AppError).Type)
+		assert.Equal(t, "Invalid email or password", err.Error())
 	})
 }
 
@@ -126,6 +143,8 @@ func TestUserService_UpdateUser(t *testing.T) {
 		newHash := "newhash"
 
 		hasher.On("Hash", newPassword).Return(newHash, nil)
+		repo.On("FindByEmail", ctx, newEmail).Return(nil, nil)
+		repo.On("FindByUsername", ctx, newUsername).Return(nil, nil)
 		repo.On("Update", ctx, mock.MatchedBy(func(u *domain.User) bool {
 			return u.Username == newUsername && u.Email == newEmail && u.Bio == newBio && *u.Image == newImage && u.Password == newHash
 		})).Return(nil)
