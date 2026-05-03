@@ -67,6 +67,16 @@ type registrationRequest struct {
 	} `json:"user" validate:"required"`
 }
 
+type updateUserRequest struct {
+	User struct {
+		Username *string `json:"username" validate:"omitempty,min=3,max=50"`
+		Email    *string `json:"email" validate:"omitempty,email,max=100"`
+		Password *string `json:"password" validate:"omitempty,min=8,max=60"`
+		Bio      *string `json:"bio"`
+		Image    *string `json:"image"`
+	} `json:"user" validate:"required"`
+}
+
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req registrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -89,13 +99,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.tokenGenerator.Generate(user)
-	if err != nil {
-		RespondWithError(w, domain.NewInternalError("failed to generate token"))
-		return
-	}
-
-	h.respondWithUser(w, http.StatusCreated, user, token)
+	h.respondWithUser(w, http.StatusCreated, user)
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -119,16 +123,66 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.respondWithUser(w, http.StatusOK, user)
+}
+
+func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
+	userID, ok := GetUserIDFromContext(r.Context())
+	if !ok {
+		RespondWithError(w, domain.NewUnauthorizedError("user not found in context"))
+		return
+	}
+
+	user, err := h.userService.GetUser(r.Context(), port.GetUserQuery{ID: userID})
+	if err != nil {
+		RespondWithError(w, err)
+		return
+	}
+
+	h.respondWithUser(w, http.StatusOK, user)
+}
+
+func (h *UserHandler) UpdateCurrentUser(w http.ResponseWriter, r *http.Request) {
+	userID, ok := GetUserIDFromContext(r.Context())
+	if !ok {
+		RespondWithError(w, domain.NewUnauthorizedError("user not found in context"))
+		return
+	}
+
+	var req updateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		RespondWithError(w, domain.NewUnprocessableEntityError("invalid request body"))
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		RespondWithError(w, err)
+		return
+	}
+
+	user, err := h.userService.UpdateUser(r.Context(), port.UpdateUserCommand{
+		ID:       userID,
+		Username: req.User.Username,
+		Email:    req.User.Email,
+		Password: req.User.Password,
+		Bio:      req.User.Bio,
+		Image:    req.User.Image,
+	})
+	if err != nil {
+		RespondWithError(w, err)
+		return
+	}
+
+	h.respondWithUser(w, http.StatusOK, user)
+}
+
+func (h *UserHandler) respondWithUser(w http.ResponseWriter, code int, user *domain.User) {
 	token, err := h.tokenGenerator.Generate(user)
 	if err != nil {
 		RespondWithError(w, domain.NewInternalError("failed to generate token"))
 		return
 	}
 
-	h.respondWithUser(w, http.StatusOK, user, token)
-}
-
-func (h *UserHandler) respondWithUser(w http.ResponseWriter, code int, user *domain.User, token string) {
 	var resp userResponse
 	resp.User.Email = user.Email
 	resp.User.Token = token

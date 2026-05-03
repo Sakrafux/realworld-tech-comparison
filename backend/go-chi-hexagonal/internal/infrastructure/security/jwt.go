@@ -36,3 +36,19 @@ func (g *jwtGenerator) Generate(user *domain.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(g.secretKey)
 }
+
+func (g *jwtGenerator) Parse(tokenString string) (int64, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &claims{}, func(token *jwt.Token) (interface{}, error) {
+		return g.secretKey, nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	if claims, ok := token.Claims.(*claims); ok && token.Valid {
+		return claims.UserID, nil
+	}
+
+	return 0, jwt.ErrSignatureInvalid
+}

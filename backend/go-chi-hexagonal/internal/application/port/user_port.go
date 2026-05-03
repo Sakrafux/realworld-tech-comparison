@@ -53,7 +53,8 @@ type PasswordHasher interface {
 	Compare(hashedPassword, password string) error
 }
 
-// TokenGenerator defines the outbound port for generating authentication tokens.
+// TokenGenerator defines the outbound port for generating and parsing authentication tokens.
 type TokenGenerator interface {
 	Generate(user *domain.User) (string, error)
+	Parse(token string) (int64, error)
 }

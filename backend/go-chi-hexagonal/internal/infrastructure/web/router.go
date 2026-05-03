@@ -20,6 +20,12 @@ func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler 
 		r.Get("/tags", tagHandler.GetTags)
 		r.Post("/users", userHandler.Register)
 		r.Post("/users/login", userHandler.Login)
+
+		r.Group(func(r chi.Router) {
+			r.Use(AuthMiddleware(userHandler.tokenGenerator))
+			r.Get("/user", userHandler.GetCurrentUser)
+			r.Put("/user", userHandler.UpdateCurrentUser)
+		})
 	})
 
 	return r
