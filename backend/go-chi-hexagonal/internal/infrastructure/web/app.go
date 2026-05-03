@@ -24,5 +24,10 @@ func NewApp(cfg *configuration.Config, db *sqlx.DB) *chi.Mux {
 	userService := service.NewUserService(userRepo, passwordHasher)
 	userHandler := NewUserHandler(userService, tokenGenerator)
 
-	return NewRouter(cfg.Web, tagHandler, userHandler)
+	// Profiles
+	profileRepo := persistence.NewPostgresProfileRepository(db)
+	profileService := service.NewProfileService(profileRepo, userRepo)
+	profileHandler := NewProfileHandler(profileService)
+
+	return NewRouter(cfg.Web, tagHandler, userHandler, profileHandler)
 }

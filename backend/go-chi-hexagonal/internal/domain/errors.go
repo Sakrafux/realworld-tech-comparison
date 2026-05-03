@@ -54,8 +54,3 @@ func NewInternalError(message string) error {
 func NewResourceNotFound(resource, field string, value interface{}) error {
 	return NewNotFoundError(fmt.Sprintf("%s not found with %s: '%v'", resource, field, value))
 }
-
-// NewResourceAlreadyExists is another specific helper.
-func NewResourceAlreadyExists(resource, field string, value interface{}) error {
-	return NewAlreadyExistsError(fmt.Sprintf("%s already exists with %s: '%v'", resource, field, value))
-}

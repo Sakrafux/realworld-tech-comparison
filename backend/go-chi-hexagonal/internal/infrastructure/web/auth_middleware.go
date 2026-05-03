@@ -13,6 +13,7 @@ type contextKey string
 
 const userIDKey contextKey = "user_id"
 
+// AuthMiddleware attempts to authenticate the user and returns with error if no token or an invalid token is provided.
 func AuthMiddleware(tokenGenerator port.TokenGenerator) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +33,35 @@ func AuthMiddleware(tokenGenerator port.TokenGenerator) func(http.Handler) http.
 			userID, err := tokenGenerator.Parse(token)
 			if err != nil {
 				RespondWithError(w, domain.NewUnauthorizedError("invalid or expired token"))
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), userIDKey, userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// OptionalAuthMiddleware attempts to authenticate the user but proceeds even if no token or an invalid token is provided.
+func OptionalAuthMiddleware(tokenGenerator port.TokenGenerator) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			parts := strings.Split(authHeader, " ")
+			if len(parts) != 2 || parts[0] != "Token" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			token := parts[1]
+			userID, err := tokenGenerator.Parse(token)
+			if err != nil {
+				next.ServeHTTP(w, r)
 				return
 			}
 
