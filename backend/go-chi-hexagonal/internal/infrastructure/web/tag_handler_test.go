@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -9,27 +8,15 @@ import (
 	"testing"
 
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/tests/testmocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// Mock for TagService
-type MockTagService struct {
-	mock.Mock
-}
-
-func (m *MockTagService) GetTags(ctx context.Context) ([]domain.Tag, error) {
-	args := m.Called(ctx)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]domain.Tag), args.Error(1)
-}
-
 func TestTagHandler_GetTags(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		tags := []domain.Tag{{Name: "reactjs"}, {Name: "angularjs"}}
-		svc := new(MockTagService)
+		svc := new(testmocks.MockTagService)
 		h := NewTagHandler(svc)
 
 		svc.On("GetTags", mock.Anything).Return(tags, nil)
@@ -50,7 +37,7 @@ func TestTagHandler_GetTags(t *testing.T) {
 	})
 
 	t.Run("error", func(t *testing.T) {
-		svc := new(MockTagService)
+		svc := new(testmocks.MockTagService)
 		h := NewTagHandler(svc)
 
 		svc.On("GetTags", mock.Anything).Return(nil, errors.New("service error"))
