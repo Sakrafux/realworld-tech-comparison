@@ -66,3 +66,11 @@ This structure groups code by its **technical role** in the application. It crea
 
 ## Why this works for Go
 Go's **implicit interfaces** make this very powerful. The `application` package defines the `UserRepository` it needs, and the `infrastructure/persistence` package satisfies it without ever having to import the application package.
+
+## SQLite Performance & Testing Caveats
+For local development and unit/integration tests, this project supports an in-memory SQLite database. To ensure data consistency across the connection pool in SQLite's in-memory mode, `MaxOpenConns` is restricted to `1`. 
+
+**Note on Performance:**
+- This single-connection restriction impacts performance and concurrency. 
+- **Load Testing:** Do NOT use the local SQLite setup for load tests or performance comparisons. 
+- **Environment Parity:** For meaningful performance benchmarks or production-like testing, use the provided Docker setup with a **PostgreSQL** database. This ensures a realistic multi-connection environment comparable to other implementations.

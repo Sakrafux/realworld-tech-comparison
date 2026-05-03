@@ -137,3 +137,53 @@ func (m *MockTokenGenerator) Parse(token string) (int64, error) {
 	args := m.Called(token)
 	return args.Get(0).(int64), args.Error(1)
 }
+
+type MockProfileService struct {
+	mock.Mock
+}
+
+func (m *MockProfileService) GetProfile(ctx context.Context, query port.GetProfileQuery) (*domain.Profile, error) {
+	args := m.Called(ctx, query)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Profile), args.Error(1)
+}
+
+func (m *MockProfileService) FollowUser(ctx context.Context, cmd port.FollowUserCommand) (*domain.Profile, error) {
+	args := m.Called(ctx, cmd)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Profile), args.Error(1)
+}
+
+func (m *MockProfileService) UnfollowUser(ctx context.Context, cmd port.UnfollowUserCommand) (*domain.Profile, error) {
+	args := m.Called(ctx, cmd)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Profile), args.Error(1)
+}
+
+type MockProfileRepository struct {
+	mock.Mock
+}
+
+func (m *MockProfileRepository) GetProfileByUsername(ctx context.Context, username string, observerID *int64) (*domain.Profile, error) {
+	args := m.Called(ctx, username, observerID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Profile), args.Error(1)
+}
+
+func (m *MockProfileRepository) Follow(ctx context.Context, followerID, followedID int64) error {
+	args := m.Called(ctx, followerID, followedID)
+	return args.Error(0)
+}
+
+func (m *MockProfileRepository) Unfollow(ctx context.Context, followerID, followedID int64) error {
+	args := m.Called(ctx, followerID, followedID)
+	return args.Error(0)
+}

@@ -36,6 +36,10 @@ func NewDatabase(cfg DatabaseConfig) (*sqlx.DB, error) {
 
 	// The sqlite database is empty and must be initialized
 	if cfg.Type == "sqlite" {
+		// Ensure only one connection is used for in-memory sqlite to maintain state, because each :memory: connection
+		// is a separate database. This means requests could fail as they query an empty database.
+		db.SetMaxOpenConns(1)
+
 		slog.Info("Initializing SQLite schema")
 		if _, err := db.Exec(sqliteSchema); err != nil {
 			return nil, fmt.Errorf("failed to initialize sqlite schema: %w", err)
