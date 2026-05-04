@@ -31,7 +31,7 @@ func (s *articleService) CreateArticle(ctx context.Context, cmd port.CreateArtic
 	}
 
 	// Check if article with same title already exists
-	existingArticle, err := s.articleRepo.GetByTitle(ctx, cmd.Title)
+	existingArticle, err := s.articleRepo.GetByTitle(ctx, cmd.Title, nil)
 	if err != nil {
 		return nil, domain.NewInternalError(err.Error())
 	}
@@ -42,7 +42,7 @@ func (s *articleService) CreateArticle(ctx context.Context, cmd port.CreateArtic
 	slug := slugify(cmd.Title)
 
 	// Check if article with same slug already exists
-	existingArticle, err = s.articleRepo.GetBySlug(ctx, slug)
+	existingArticle, err = s.articleRepo.GetBySlug(ctx, slug, nil)
 	if err != nil {
 		return nil, domain.NewInternalError(err.Error())
 	}
@@ -70,6 +70,18 @@ func (s *articleService) CreateArticle(ctx context.Context, cmd port.CreateArtic
 
 	if err := s.articleRepo.Create(ctx, article, author.ID); err != nil {
 		return nil, domain.NewInternalError(err.Error())
+	}
+
+	return article, nil
+}
+
+func (s *articleService) GetArticle(ctx context.Context, query port.GetArticleQuery) (*domain.Article, error) {
+	article, err := s.articleRepo.GetBySlug(ctx, query.Slug, query.ObserverID)
+	if err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+	if article == nil {
+		return nil, domain.NewResourceNotFound("Article", "slug", query.Slug)
 	}
 
 	return article, nil

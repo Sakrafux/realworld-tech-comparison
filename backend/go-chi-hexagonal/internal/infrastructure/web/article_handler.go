@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
@@ -96,6 +97,25 @@ func (h *ArticleHandler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.respondWithArticle(w, http.StatusCreated, article)
+}
+
+func (h *ArticleHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+	var observerID *int64
+	if id, ok := GetUserIDFromContext(r.Context()); ok {
+		observerID = &id
+	}
+
+	article, err := h.articleService.GetArticle(r.Context(), port.GetArticleQuery{
+		Slug:       slug,
+		ObserverID: observerID,
+	})
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	h.respondWithArticle(w, http.StatusOK, article)
 }
 
 func (h *ArticleHandler) respondWithArticle(w http.ResponseWriter, code int, article *domain.Article) {

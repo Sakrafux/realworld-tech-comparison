@@ -29,8 +29,8 @@ func TestArticleService_CreateArticle(t *testing.T) {
 		}
 
 		userRepo.On("FindByID", ctx, int64(1)).Return(author, nil)
-		artRepo.On("GetByTitle", ctx, cmd.Title).Return(nil, nil)
-		artRepo.On("GetBySlug", ctx, "test-article").Return(nil, nil)
+		artRepo.On("GetByTitle", ctx, cmd.Title, (*int64)(nil)).Return(nil, nil)
+		artRepo.On("GetBySlug", ctx, "test-article", (*int64)(nil)).Return(nil, nil)
 		artRepo.On("Create", ctx, mock.AnythingOfType("*domain.Article"), int64(1)).Return(nil)
 
 		article, err := svc.CreateArticle(ctx, cmd)
@@ -62,11 +62,38 @@ func TestArticleService_CreateArticle(t *testing.T) {
 		author := &domain.User{ID: 1}
 		cmd := port.CreateArticleCommand{AuthorID: 1, Title: "Existing"}
 		userRepo.On("FindByID", ctx, int64(1)).Return(author, nil)
-		artRepo.On("GetByTitle", ctx, "Existing").Return(&domain.Article{}, nil)
+		artRepo.On("GetByTitle", ctx, "Existing", (*int64)(nil)).Return(&domain.Article{}, nil)
 
 		_, err := svc.CreateArticle(ctx, cmd)
 
 		assert.Error(t, err)
 		assert.Equal(t, domain.TypeAlreadyExists, err.(domain.AppError).Type)
+	})
+}
+
+func TestArticleService_GetArticle(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		artRepo := new(testmocks.MockArticleRepository)
+		svc := NewArticleService(artRepo, nil)
+		expected := &domain.Article{Slug: "test"}
+		artRepo.On("GetBySlug", ctx, "test", (*int64)(nil)).Return(expected, nil)
+
+		article, err := svc.GetArticle(ctx, port.GetArticleQuery{Slug: "test"})
+
+		assert.NoError(t, err)
+		assert.Equal(t, expected, article)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		artRepo := new(testmocks.MockArticleRepository)
+		svc := NewArticleService(artRepo, nil)
+		artRepo.On("GetBySlug", ctx, "none", (*int64)(nil)).Return(nil, nil)
+
+		_, err := svc.GetArticle(ctx, port.GetArticleQuery{Slug: "none"})
+
+		assert.Error(t, err)
+		assert.Equal(t, domain.TypeNotFound, err.(domain.AppError).Type)
 	})
 }

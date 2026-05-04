@@ -38,7 +38,7 @@ func TestArticleRepository(t *testing.T) {
 		assert.NotZero(t, article.ID)
 
 		// Verify it was created
-		found, err := repo.GetBySlug(ctx, article.Slug)
+		found, err := repo.GetBySlug(ctx, article.Slug, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, article.Title, found.Title)
 		assert.ElementsMatch(t, article.TagList, found.TagList)
@@ -46,19 +46,33 @@ func TestArticleRepository(t *testing.T) {
 	})
 
 	t.Run("GetByTitle", func(t *testing.T) {
-		found, err := repo.GetByTitle(ctx, "Test Article")
+		found, err := repo.GetByTitle(ctx, "Test Article", nil)
 		assert.NoError(t, err)
 		assert.NotNil(t, found)
 		assert.Equal(t, "test-article", found.Slug)
 
-		none, err := repo.GetByTitle(ctx, "Non-existent")
+		none, err := repo.GetByTitle(ctx, "Non-existent", nil)
 		assert.NoError(t, err)
 		assert.Nil(t, none)
 	})
 
 	t.Run("GetBySlug non-existent", func(t *testing.T) {
-		none, err := repo.GetBySlug(ctx, "none")
+		none, err := repo.GetBySlug(ctx, "none", nil)
 		assert.NoError(t, err)
 		assert.Nil(t, none)
+	})
+
+	t.Run("Following status", func(t *testing.T) {
+		follower := &domain.User{Username: "follower", Email: "follower@test.com", Password: "p", Bio: "bio"}
+		userRepo.Create(ctx, follower)
+		profileRepo := NewProfileRepository(db)
+		profileRepo.Follow(ctx, follower.ID, author.ID)
+
+		found, err := repo.GetBySlug(ctx, "test-article", &follower.ID)
+		assert.NoError(t, err)
+		assert.True(t, found.Author.Following)
+
+		unauth, _ := repo.GetBySlug(ctx, "test-article", nil)
+		assert.False(t, unauth.Author.Following)
 	})
 }

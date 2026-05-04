@@ -200,6 +200,14 @@ func (m *MockArticleService) CreateArticle(ctx context.Context, cmd port.CreateA
 	return args.Get(0).(*domain.Article), args.Error(1)
 }
 
+func (m *MockArticleService) GetArticle(ctx context.Context, query port.GetArticleQuery) (*domain.Article, error) {
+	args := m.Called(ctx, query)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Article), args.Error(1)
+}
+
 type MockArticleRepository struct {
 	mock.Mock
 }
@@ -209,16 +217,16 @@ func (m *MockArticleRepository) Create(ctx context.Context, article *domain.Arti
 	return args.Error(0)
 }
 
-func (m *MockArticleRepository) GetBySlug(ctx context.Context, slug string) (*domain.Article, error) {
-	args := m.Called(ctx, slug)
+func (m *MockArticleRepository) GetBySlug(ctx context.Context, slug string, observerID *int64) (*domain.Article, error) {
+	args := m.Called(ctx, slug, observerID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.Article), args.Error(1)
 }
 
-func (m *MockArticleRepository) GetByTitle(ctx context.Context, title string) (*domain.Article, error) {
-	args := m.Called(ctx, title)
+func (m *MockArticleRepository) GetByTitle(ctx context.Context, title string, observerID *int64) (*domain.Article, error) {
+	args := m.Called(ctx, title, observerID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

@@ -24,6 +24,7 @@ func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler 
 		r.Group(func(r chi.Router) {
 			r.Use(OptionalAuthMiddleware(userHandler.tokenGenerator))
 			r.Get("/profiles/{username}", profileHandler.GetProfile)
+			r.Get("/articles/{slug}", articleHandler.GetArticle)
 		})
 
 		r.Group(func(r chi.Router) {

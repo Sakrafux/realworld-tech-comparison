@@ -34,6 +34,7 @@ type articleSchema struct {
 	AuthorUsername string         `db:"username"`
 	AuthorBio      string         `db:"bio"`
 	AuthorImage    sql.NullString `db:"image"`
+	Following      bool           `db:"following"`
 }
 
 func (s *articleSchema) toDomain(tags []string) *domain.Article {
@@ -54,9 +55,10 @@ func (s *articleSchema) toDomain(tags []string) *domain.Article {
 		Favorited:      false, // TODO: implement favorites check if auth user
 		FavoritesCount: 0,     // TODO: implement favorites count
 		Author: domain.Profile{
-			Username: s.AuthorUsername,
-			Bio:      s.AuthorBio,
-			Image:    image,
+			Username:  s.AuthorUsername,
+			Bio:       s.AuthorBio,
+			Image:     image,
+			Following: s.Following,
 		},
 	}
 }
@@ -159,24 +161,43 @@ func (r *articleRepository) createTags(ctx context.Context, tx *sqlx.Tx, article
 	return nil
 }
 
-func (r *articleRepository) GetBySlug(ctx context.Context, slug string) (*domain.Article, error) {
-	return r.findOneBy(ctx, "slug", slug)
+func (r *articleRepository) GetBySlug(ctx context.Context, slug string, observerID *int64) (*domain.Article, error) {
+	return r.findOneBy(ctx, "slug", slug, observerID)
 }
 
-func (r *articleRepository) GetByTitle(ctx context.Context, title string) (*domain.Article, error) {
-	return r.findOneBy(ctx, "title", title)
+func (r *articleRepository) GetByTitle(ctx context.Context, title string, observerID *int64) (*domain.Article, error) {
+	return r.findOneBy(ctx, "title", title, observerID)
 }
 
-func (r *articleRepository) findOneBy(ctx context.Context, column string, value any) (*domain.Article, error) {
+func (r *articleRepository) findOneBy(ctx context.Context, column string, value any, observerID *int64) (*domain.Article, error) {
 	var schema articleSchema
-	query := `
-		SELECT a.id, a.slug, a.title, a.description, a.body, a.fk_author, a.created_at, a.updated_at,
-		       u.username, u.bio, u.image
-		FROM article a
-		JOIN app_user u ON a.fk_author = u.id
-		WHERE a.` + column + ` = $1
-	`
-	err := r.db.GetContext(ctx, &schema, query, value)
+	var query string
+	var args []any
+
+	if observerID != nil {
+		query = `
+			SELECT a.id, a.slug, a.title, a.description, a.body, a.fk_author, a.created_at, a.updated_at,
+			       u.username, u.bio, u.image,
+			       CASE WHEN f.following_user_id IS NOT NULL THEN 1 ELSE 0 END as following
+			FROM article a
+			JOIN app_user u ON a.fk_author = u.id
+			LEFT JOIN follow_is_user_to_user f ON u.id = f.followed_user_id AND f.following_user_id = $2
+			WHERE a.` + column + ` = $1
+		`
+		args = []any{value, *observerID}
+	} else {
+		query = `
+			SELECT a.id, a.slug, a.title, a.description, a.body, a.fk_author, a.created_at, a.updated_at,
+			       u.username, u.bio, u.image,
+			       0 as following
+			FROM article a
+			JOIN app_user u ON a.fk_author = u.id
+			WHERE a.` + column + ` = $1
+		`
+		args = []any{value}
+	}
+
+	err := r.db.GetContext(ctx, &schema, query, args...)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil

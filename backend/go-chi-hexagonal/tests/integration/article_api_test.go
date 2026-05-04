@@ -154,4 +154,28 @@ func TestArticleAPI_Integration(t *testing.T) {
 		json.NewDecoder(w.Body).Decode(&resp)
 		assert.Contains(t, resp.Errors.Body[0], "already exists")
 	})
+
+	t.Run("Get article success", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/articles/how-to-train-your-dragon", nil)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var resp struct {
+			Article struct {
+				Slug  string `json:"slug"`
+				Title string `json:"title"`
+			} `json:"article"`
+		}
+		json.NewDecoder(w.Body).Decode(&resp)
+		assert.Equal(t, "how-to-train-your-dragon", resp.Article.Slug)
+	})
+
+	t.Run("Get article not found", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/articles/non-existent", nil)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
 }

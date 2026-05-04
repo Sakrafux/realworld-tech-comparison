@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/tests/testmocks"
@@ -75,5 +76,71 @@ func TestArticleHandler_CreateArticle(t *testing.T) {
 		h.CreateArticle(w, req)
 
 		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+}
+
+func TestArticleHandler_GetArticle(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		svc := new(testmocks.MockArticleService)
+		h := NewArticleHandler(svc)
+
+		article := &domain.Article{Slug: "test", Title: "Test"}
+		svc.On("GetArticle", mock.Anything, port.GetArticleQuery{Slug: "test", ObserverID: nil}).Return(article, nil)
+
+		req := httptest.NewRequest("GET", "/api/articles/test", nil)
+		// chi context is usually handled by the router, but here we can mock chi.URLParam by manually adding it to the context if needed,
+		// but since we are calling the handler directly, we might need to use chi.NewRouteContext()
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("slug", "test")
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+		w := httptest.NewRecorder()
+
+		h.GetArticle(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var resp articleResponse
+		json.NewDecoder(w.Body).Decode(&resp)
+		assert.Equal(t, "test", resp.Article.Slug)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		svc := new(testmocks.MockArticleService)
+		h := NewArticleHandler(svc)
+
+		svc.On("GetArticle", mock.Anything, port.GetArticleQuery{Slug: "none", ObserverID: nil}).Return(nil, domain.NewNotFoundError("not found"))
+
+		req := httptest.NewRequest("GET", "/api/articles/none", nil)
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("slug", "none")
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+		w := httptest.NewRecorder()
+
+		h.GetArticle(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("success authenticated", func(t *testing.T) {
+		svc := new(testmocks.MockArticleService)
+		h := NewArticleHandler(svc)
+
+		observerID := int64(1)
+		article := &domain.Article{Slug: "test", Title: "Test"}
+		svc.On("GetArticle", mock.Anything, port.GetArticleQuery{Slug: "test", ObserverID: &observerID}).Return(article, nil)
+
+		req := httptest.NewRequest("GET", "/api/articles/test", nil)
+		ctx := context.WithValue(req.Context(), userIDKey, observerID)
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("slug", "test")
+		req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
+
+		w := httptest.NewRecorder()
+
+		h.GetArticle(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		svc.AssertExpectations(t)
 	})
 }
