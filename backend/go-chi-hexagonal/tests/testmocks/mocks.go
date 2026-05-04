@@ -187,3 +187,40 @@ func (m *MockProfileRepository) Unfollow(ctx context.Context, followerID, follow
 	args := m.Called(ctx, followerID, followedID)
 	return args.Error(0)
 }
+
+type MockArticleService struct {
+	mock.Mock
+}
+
+func (m *MockArticleService) CreateArticle(ctx context.Context, cmd port.CreateArticleCommand) (*domain.Article, error) {
+	args := m.Called(ctx, cmd)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Article), args.Error(1)
+}
+
+type MockArticleRepository struct {
+	mock.Mock
+}
+
+func (m *MockArticleRepository) Create(ctx context.Context, article *domain.Article, authorID int64) error {
+	args := m.Called(ctx, article, authorID)
+	return args.Error(0)
+}
+
+func (m *MockArticleRepository) GetBySlug(ctx context.Context, slug string) (*domain.Article, error) {
+	args := m.Called(ctx, slug)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Article), args.Error(1)
+}
+
+func (m *MockArticleRepository) GetByTitle(ctx context.Context, title string) (*domain.Article, error) {
+	args := m.Called(ctx, title)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Article), args.Error(1)
+}
