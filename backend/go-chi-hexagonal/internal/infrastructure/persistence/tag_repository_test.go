@@ -17,7 +17,7 @@ func TestTagRepository_FindAll(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
-	repo := NewPostgresTagRepository(db)
+	repo := NewTagRepository(db)
 	ctx := context.Background()
 
 	t.Run("empty tags", func(t *testing.T) {

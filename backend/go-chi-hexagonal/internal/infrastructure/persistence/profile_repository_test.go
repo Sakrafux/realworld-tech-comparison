@@ -15,8 +15,8 @@ func TestProfileRepository(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
-	repo := NewPostgresProfileRepository(db)
-	userRepo := NewPostgresUserRepository(db)
+	repo := NewProfileRepository(db)
+	userRepo := NewUserRepository(db)
 	ctx := context.Background()
 
 	// Setup users

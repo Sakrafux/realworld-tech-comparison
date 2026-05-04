@@ -12,7 +12,7 @@ type tagRepository struct {
 	db *sqlx.DB
 }
 
-func NewPostgresTagRepository(db *sqlx.DB) port.TagRepository {
+func NewTagRepository(db *sqlx.DB) port.TagRepository {
 	return &tagRepository{
 		db: db,
 	}

@@ -15,7 +15,7 @@ func TestUserRepository(t *testing.T) {
 	assert.NoError(t, err)
 	defer db.Close()
 
-	repo := NewPostgresUserRepository(db)
+	repo := NewUserRepository(db)
 	ctx := context.Background()
 
 	t.Run("Create success", func(t *testing.T) {

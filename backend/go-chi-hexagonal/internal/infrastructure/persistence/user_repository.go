@@ -15,7 +15,7 @@ type userRepository struct {
 	db *sqlx.DB
 }
 
-func NewPostgresUserRepository(db *sqlx.DB) port.UserRepository {
+func NewUserRepository(db *sqlx.DB) port.UserRepository {
 	return &userRepository{
 		db: db,
 	}

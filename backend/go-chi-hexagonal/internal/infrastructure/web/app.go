@@ -13,21 +13,26 @@ import (
 // This is used by both the main application and integration tests.
 func NewApp(cfg *configuration.Config, db *sqlx.DB) *chi.Mux {
 	// Tags
-	tagRepo := persistence.NewPostgresTagRepository(db)
+	tagRepo := persistence.NewTagRepository(db)
 	tagService := service.NewTagService(tagRepo)
 	tagHandler := NewTagHandler(tagService)
 
 	// User & Auth
 	passwordHasher := security.NewBcryptHasher()
 	tokenGenerator := security.NewJWTGenerator(cfg.Security.JWTSecret)
-	userRepo := persistence.NewPostgresUserRepository(db)
+	userRepo := persistence.NewUserRepository(db)
 	userService := service.NewUserService(userRepo, passwordHasher)
 	userHandler := NewUserHandler(userService, tokenGenerator)
 
 	// Profiles
-	profileRepo := persistence.NewPostgresProfileRepository(db)
+	profileRepo := persistence.NewProfileRepository(db)
 	profileService := service.NewProfileService(profileRepo, userRepo)
 	profileHandler := NewProfileHandler(profileService)
 
-	return NewRouter(cfg.Web, tagHandler, userHandler, profileHandler)
+	// Articles
+	articleRepo := persistence.NewArticleRepository(db)
+	articleService := service.NewArticleService(articleRepo, userRepo)
+	articleHandler := NewArticleHandler(articleService)
+
+	return NewRouter(cfg.Web, tagHandler, userHandler, profileHandler, articleHandler)
 }

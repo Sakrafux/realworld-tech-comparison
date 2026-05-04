@@ -14,8 +14,7 @@ type profileRepository struct {
 	db *sqlx.DB
 }
 
-// NewPostgresProfileRepository creates a new profile repository.
-func NewPostgresProfileRepository(db *sqlx.DB) port.ProfileRepository {
+func NewProfileRepository(db *sqlx.DB) port.ProfileRepository {
 	return &profileRepository{
 		db: db,
 	}
