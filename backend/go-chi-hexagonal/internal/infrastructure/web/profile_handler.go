@@ -42,7 +42,7 @@ func (h *ProfileHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		ObserverID: observerID,
 	})
 	if err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 
@@ -75,13 +75,13 @@ func (h *ProfileHandler) handleFollowAction(
 	username := chi.URLParam(r, "username")
 	userID, ok := GetUserIDFromContext(r.Context())
 	if !ok {
-		RespondWithError(w, domain.NewUnauthorizedError("user not found in context"))
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
 		return
 	}
 
 	profile, err := action(r.Context(), userID, username)
 	if err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 

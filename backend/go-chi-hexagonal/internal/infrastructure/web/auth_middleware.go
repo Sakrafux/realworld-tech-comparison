@@ -19,20 +19,19 @@ func AuthMiddleware(tokenGenerator port.TokenGenerator) func(http.Handler) http.
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
-				RespondWithError(w, domain.NewUnauthorizedError("authorization header is required"))
+				RespondWithError(w, r, domain.NewUnauthorizedError("authorization header is required"))
 				return
 			}
 
 			parts := strings.Split(authHeader, " ")
 			if len(parts) != 2 || parts[0] != "Token" {
-				RespondWithError(w, domain.NewUnauthorizedError("invalid authorization header format. Expected 'Token <token>'"))
+				RespondWithError(w, r, domain.NewUnauthorizedError("invalid authorization header format. Expected 'Token <token>'"))
 				return
 			}
 
-			token := parts[1]
-			userID, err := tokenGenerator.Parse(token)
+			userID, err := tokenGenerator.Parse(parts[1])
 			if err != nil {
-				RespondWithError(w, domain.NewUnauthorizedError("invalid or expired token"))
+				RespondWithError(w, r, domain.NewUnauthorizedError("invalid or expired token"))
 				return
 			}
 

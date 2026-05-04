@@ -26,7 +26,7 @@ type tagsResponse struct {
 func (h *TagHandler) GetTags(w http.ResponseWriter, r *http.Request) {
 	tags, err := h.tagService.GetTags(r.Context())
 	if err != nil {
-		RespondWithError(w, domain.NewInternalError(err.Error()))
+		RespondWithError(w, r, domain.NewInternalError(err.Error()))
 		return
 	}
 

@@ -80,12 +80,12 @@ type updateUserRequest struct {
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req registrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		RespondWithError(w, domain.NewUnprocessableEntityError("invalid request body"))
+		RespondWithError(w, r, domain.NewUnprocessableEntityError("invalid request body"))
 		return
 	}
 
 	if err := h.validate.Struct(req); err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 
@@ -95,22 +95,22 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		Password: req.User.Password,
 	})
 	if err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 
-	h.respondWithUser(w, http.StatusCreated, user)
+	h.respondWithUser(w, r, http.StatusCreated, user)
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req loginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		RespondWithError(w, domain.NewUnprocessableEntityError("invalid request body"))
+		RespondWithError(w, r, domain.NewUnprocessableEntityError("invalid request body"))
 		return
 	}
 
 	if err := h.validate.Struct(req); err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 
@@ -119,44 +119,44 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Password: req.User.Password,
 	})
 	if err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 
-	h.respondWithUser(w, http.StatusOK, user)
+	h.respondWithUser(w, r, http.StatusOK, user)
 }
 
 func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	userID, ok := GetUserIDFromContext(r.Context())
 	if !ok {
-		RespondWithError(w, domain.NewUnauthorizedError("user not found in context"))
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
 		return
 	}
 
 	user, err := h.userService.GetUser(r.Context(), port.GetUserQuery{ID: userID})
 	if err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 
-	h.respondWithUser(w, http.StatusOK, user)
+	h.respondWithUser(w, r, http.StatusOK, user)
 }
 
 func (h *UserHandler) UpdateCurrentUser(w http.ResponseWriter, r *http.Request) {
 	userID, ok := GetUserIDFromContext(r.Context())
 	if !ok {
-		RespondWithError(w, domain.NewUnauthorizedError("user not found in context"))
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
 		return
 	}
 
 	var req updateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		RespondWithError(w, domain.NewUnprocessableEntityError("invalid request body"))
+		RespondWithError(w, r, domain.NewUnprocessableEntityError("invalid request body"))
 		return
 	}
 
 	if err := h.validate.Struct(req); err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 
@@ -169,17 +169,17 @@ func (h *UserHandler) UpdateCurrentUser(w http.ResponseWriter, r *http.Request) 
 		Image:    req.User.Image,
 	})
 	if err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 
-	h.respondWithUser(w, http.StatusOK, user)
+	h.respondWithUser(w, r, http.StatusOK, user)
 }
 
-func (h *UserHandler) respondWithUser(w http.ResponseWriter, code int, user *domain.User) {
+func (h *UserHandler) respondWithUser(w http.ResponseWriter, r *http.Request, code int, user *domain.User) {
 	token, err := h.tokenGenerator.Generate(user)
 	if err != nil {
-		RespondWithError(w, domain.NewInternalError("failed to generate token"))
+		RespondWithError(w, r, domain.NewInternalError("failed to generate token"))
 		return
 	}
 

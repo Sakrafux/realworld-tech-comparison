@@ -68,18 +68,18 @@ type profileData struct {
 func (h *ArticleHandler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 	userID, ok := GetUserIDFromContext(r.Context())
 	if !ok {
-		RespondWithError(w, domain.NewUnauthorizedError("user not found in context"))
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
 		return
 	}
 
 	var req createArticleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		RespondWithError(w, domain.NewUnprocessableEntityError("invalid request body"))
+		RespondWithError(w, r, domain.NewUnprocessableEntityError("invalid request body"))
 		return
 	}
 
 	if err := h.validate.Struct(req); err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 
@@ -91,7 +91,7 @@ func (h *ArticleHandler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 		TagList:     req.Article.TagList,
 	})
 	if err != nil {
-		RespondWithError(w, err)
+		RespondWithError(w, r, err)
 		return
 	}
 

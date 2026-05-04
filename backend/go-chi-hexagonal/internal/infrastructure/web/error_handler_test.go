@@ -65,7 +65,8 @@ func TestRespondWithError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			RespondWithError(w, tt.err)
+			r := httptest.NewRequest("GET", "/", nil)
+			RespondWithError(w, r, tt.err)
 
 			assert.Equal(t, tt.expectedCode, w.Code)
 			var resp genericErrorResponse

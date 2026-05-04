@@ -30,7 +30,25 @@ func (s *articleService) CreateArticle(ctx context.Context, cmd port.CreateArtic
 		return nil, domain.NewResourceNotFound("User", "id", cmd.AuthorID)
 	}
 
+	// Check if article with same title already exists
+	existingArticle, err := s.articleRepo.GetByTitle(ctx, cmd.Title)
+	if err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+	if existingArticle != nil {
+		return nil, domain.NewAlreadyExistsError("Article with this title already exists")
+	}
+
 	slug := slugify(cmd.Title)
+
+	// Check if article with same slug already exists
+	existingArticle, err = s.articleRepo.GetBySlug(ctx, slug)
+	if err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+	if existingArticle != nil {
+		return nil, domain.NewAlreadyExistsError("Article with this slug already exists")
+	}
 
 	article := &domain.Article{
 		Slug:           slug,

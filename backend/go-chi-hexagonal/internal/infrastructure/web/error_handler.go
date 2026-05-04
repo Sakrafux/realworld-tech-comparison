@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/httplog/v2"
 	"github.com/go-playground/validator/v10"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
 )
 
 // RespondWithError maps domain errors to HTTP responses.
-func RespondWithError(w http.ResponseWriter, err error) {
+func RespondWithError(w http.ResponseWriter, r *http.Request, err error) {
+	logger := httplog.LogEntry(r.Context())
+
 	if appErr, ok := errors.AsType[domain.AppError](err); ok {
 		switch appErr.Type {
 		case domain.TypeNotFound:
@@ -25,6 +28,7 @@ func RespondWithError(w http.ResponseWriter, err error) {
 		case domain.TypeUnprocessable:
 			respond(w, http.StatusUnprocessableEntity, appErr.Message)
 		case domain.TypeInternal:
+			logger.Error(appErr.Message)
 			respond(w, http.StatusInternalServerError, appErr.Message)
 		default:
 			respond(w, http.StatusInternalServerError, "An unexpected error occurred")

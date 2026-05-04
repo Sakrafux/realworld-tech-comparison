@@ -160,15 +160,23 @@ func (r *articleRepository) createTags(ctx context.Context, tx *sqlx.Tx, article
 }
 
 func (r *articleRepository) GetBySlug(ctx context.Context, slug string) (*domain.Article, error) {
+	return r.findOneBy(ctx, "slug", slug)
+}
+
+func (r *articleRepository) GetByTitle(ctx context.Context, title string) (*domain.Article, error) {
+	return r.findOneBy(ctx, "title", title)
+}
+
+func (r *articleRepository) findOneBy(ctx context.Context, column string, value any) (*domain.Article, error) {
 	var schema articleSchema
 	query := `
 		SELECT a.id, a.slug, a.title, a.description, a.body, a.fk_author, a.created_at, a.updated_at,
 		       u.username, u.bio, u.image
 		FROM article a
 		JOIN app_user u ON a.fk_author = u.id
-		WHERE a.slug = $1
+		WHERE a.` + column + ` = $1
 	`
-	err := r.db.GetContext(ctx, &schema, query, slug)
+	err := r.db.GetContext(ctx, &schema, query, value)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil

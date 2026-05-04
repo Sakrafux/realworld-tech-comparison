@@ -24,4 +24,5 @@ type ArticleService interface {
 type ArticleRepository interface {
 	Create(ctx context.Context, article *domain.Article, authorID int64) error
 	GetBySlug(ctx context.Context, slug string) (*domain.Article, error)
+	GetByTitle(ctx context.Context, title string) (*domain.Article, error)
 }
