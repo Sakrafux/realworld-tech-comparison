@@ -25,6 +25,8 @@ func RespondWithError(w http.ResponseWriter, r *http.Request, err error) {
 			respond(w, http.StatusUnauthorized, appErr.Message)
 		case domain.TypeUnauthorized:
 			respond(w, http.StatusUnauthorized, appErr.Message)
+		case domain.TypeForbidden:
+			respond(w, http.StatusForbidden, appErr.Message)
 		case domain.TypeUnprocessable:
 			respond(w, http.StatusUnprocessableEntity, appErr.Message)
 		case domain.TypeInternal:

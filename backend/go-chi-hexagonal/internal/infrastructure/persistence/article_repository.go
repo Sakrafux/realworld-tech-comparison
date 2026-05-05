@@ -169,6 +169,25 @@ func (r *articleRepository) GetByTitle(ctx context.Context, title string, observ
 	return r.findOneBy(ctx, "title", title, observerID)
 }
 
+func (r *articleRepository) Update(ctx context.Context, article *domain.Article) error {
+	query := `
+		UPDATE article 
+		SET slug = :slug, title = :title, description = :description, body = :body, updated_at = :updated_at
+		WHERE id = :id
+	`
+	arg := map[string]any{
+		"id":          article.ID,
+		"slug":        article.Slug,
+		"title":       article.Title,
+		"description": article.Description,
+		"body":        article.Body,
+		"updated_at":  article.UpdatedAt,
+	}
+
+	_, err := r.db.NamedExecContext(ctx, query, arg)
+	return err
+}
+
 func (r *articleRepository) findOneBy(ctx context.Context, column string, value any, observerID *int64) (*domain.Article, error) {
 	var schema articleSchema
 	var query string

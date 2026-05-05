@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // Article represents an article in the system.
 type Article struct {
@@ -15,4 +18,33 @@ type Article struct {
 	Favorited      bool
 	FavoritesCount int
 	Author         Profile
+}
+
+// Update updates the article fields.
+func (a *Article) Update(title, description, body *string, checkDuplicate func(title, slug string) error) error {
+	if title != nil && *title != a.Title {
+		newTitle := *title
+		newSlug := Slugify(newTitle)
+		if err := checkDuplicate(newTitle, newSlug); err != nil {
+			return err
+		}
+		a.Title = newTitle
+		a.Slug = newSlug
+	}
+
+	if description != nil {
+		a.Description = *description
+	}
+
+	if body != nil {
+		a.Body = *body
+	}
+
+	a.UpdatedAt = time.Now()
+	return nil
+}
+
+// Slugify converts a title to a slug.
+func Slugify(title string) string {
+	return strings.ToLower(strings.ReplaceAll(title, " ", "-"))
 }

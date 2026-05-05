@@ -178,4 +178,72 @@ func TestArticleAPI_Integration(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
 	})
+
+	t.Run("Update article success", func(t *testing.T) {
+		updateReq := map[string]any{
+			"article": map[string]any{
+				"title":       "How to train your dragon 2",
+				"description": "Ever wonder how? Now you know.",
+			},
+		}
+		body, _ := json.Marshal(updateReq)
+		req := httptest.NewRequest("PUT", "/api/articles/how-to-train-your-dragon", bytes.NewBuffer(body))
+		req.Header.Set("Authorization", "Token "+token)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp struct {
+			Article struct {
+				Slug        string `json:"slug"`
+				Title       string `json:"title"`
+				Description string `json:"description"`
+				Body        string `json:"body"`
+			} `json:"article"`
+		}
+		err := json.NewDecoder(w.Body).Decode(&resp)
+		assert.NoError(t, err)
+		assert.Equal(t, "how-to-train-your-dragon-2", resp.Article.Slug)
+		assert.Equal(t, "How to train your dragon 2", resp.Article.Title)
+		assert.Equal(t, "Ever wonder how? Now you know.", resp.Article.Description)
+		assert.Equal(t, "You have to believe", resp.Article.Body) // Body should remain unchanged
+	})
+
+	t.Run("Update article forbidden", func(t *testing.T) {
+		// Register another user
+		regReq2 := map[string]any{
+			"user": map[string]string{
+				"username": "otheruser",
+				"email":    "other@example.com",
+				"password": "password123",
+			},
+		}
+		body2, _ := json.Marshal(regReq2)
+		req2 := httptest.NewRequest("POST", "/api/users", bytes.NewBuffer(body2))
+		w2 := httptest.NewRecorder()
+		router.ServeHTTP(w2, req2)
+		assert.Equal(t, http.StatusCreated, w2.Code)
+
+		var regResp2 struct {
+			User struct {
+				Token string `json:"token"`
+			} `json:"user"`
+		}
+		json.NewDecoder(w2.Body).Decode(&regResp2)
+		otherToken := regResp2.User.Token
+
+		updateReq := map[string]any{
+			"article": map[string]any{
+				"title": "Hack the dragon",
+			},
+		}
+		body, _ := json.Marshal(updateReq)
+		req := httptest.NewRequest("PUT", "/api/articles/how-to-train-your-dragon-2", bytes.NewBuffer(body))
+		req.Header.Set("Authorization", "Token "+otherToken)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+	})
 }

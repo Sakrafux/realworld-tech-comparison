@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
@@ -39,7 +38,7 @@ func (s *articleService) CreateArticle(ctx context.Context, cmd port.CreateArtic
 		return nil, domain.NewAlreadyExistsError("Article with this title already exists")
 	}
 
-	slug := slugify(cmd.Title)
+	slug := domain.Slugify(cmd.Title)
 
 	// Check if article with same slug already exists
 	existingArticle, err = s.articleRepo.GetBySlug(ctx, slug, nil)
@@ -87,6 +86,54 @@ func (s *articleService) GetArticle(ctx context.Context, query port.GetArticleQu
 	return article, nil
 }
 
-func slugify(title string) string {
-	return strings.ToLower(strings.ReplaceAll(title, " ", "-"))
+func (s *articleService) UpdateArticle(ctx context.Context, cmd port.UpdateArticleCommand) (*domain.Article, error) {
+	// Get article and check if it exists
+	article, err := s.articleRepo.GetBySlug(ctx, cmd.Slug, &cmd.UserID)
+	if err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+	if article == nil {
+		return nil, domain.NewResourceNotFound("Article", "slug", cmd.Slug)
+	}
+
+	// Check if user is author
+	author, err := s.userRepo.FindByUsername(ctx, article.Author.Username)
+	if err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+	if author == nil || author.ID != cmd.UserID {
+		return nil, domain.NewForbiddenError("you are not the author of this article")
+	}
+
+	// Define duplicate check function
+	checkDuplicate := func(title, slug string) error {
+		// Check title
+		existing, err := s.articleRepo.GetByTitle(ctx, title, nil)
+		if err != nil {
+			return domain.NewInternalError(err.Error())
+		}
+		if existing != nil && existing.ID != article.ID {
+			return domain.NewAlreadyExistsError("Article with this title already exists")
+		}
+
+		// Check slug
+		existing, err = s.articleRepo.GetBySlug(ctx, slug, nil)
+		if err != nil {
+			return domain.NewInternalError(err.Error())
+		}
+		if existing != nil && existing.ID != article.ID {
+			return domain.NewAlreadyExistsError("Article with this slug already exists")
+		}
+		return nil
+	}
+
+	if err := article.Update(cmd.Title, cmd.Description, cmd.Body, checkDuplicate); err != nil {
+		return nil, err
+	}
+
+	if err := s.articleRepo.Update(ctx, article); err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+
+	return article, nil
 }

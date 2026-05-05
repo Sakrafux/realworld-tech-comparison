@@ -44,6 +44,14 @@ type createArticleRequest struct {
 	} `json:"article" validate:"required"`
 }
 
+type updateArticleRequest struct {
+	Article struct {
+		Title       *string `json:"title" validate:"omitempty,max=100"`
+		Description *string `json:"description" validate:"omitempty,max=255"`
+		Body        *string `json:"body" validate:"omitempty"`
+	} `json:"article" validate:"required"`
+}
+
 type articleResponse struct {
 	Article struct {
 		Slug           string      `json:"slug"`
@@ -109,6 +117,41 @@ func (h *ArticleHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
 	article, err := h.articleService.GetArticle(r.Context(), port.GetArticleQuery{
 		Slug:       slug,
 		ObserverID: observerID,
+	})
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	h.respondWithArticle(w, http.StatusOK, article)
+}
+
+func (h *ArticleHandler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
+	userID, ok := GetUserIDFromContext(r.Context())
+	if !ok {
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
+		return
+	}
+
+	slug := chi.URLParam(r, "slug")
+
+	var req updateArticleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		RespondWithError(w, r, domain.NewUnprocessableEntityError("invalid request body"))
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	article, err := h.articleService.UpdateArticle(r.Context(), port.UpdateArticleCommand{
+		Slug:        slug,
+		UserID:      userID,
+		Title:       req.Article.Title,
+		Description: req.Article.Description,
+		Body:        req.Article.Body,
 	})
 	if err != nil {
 		RespondWithError(w, r, err)
