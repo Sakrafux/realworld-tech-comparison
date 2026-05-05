@@ -246,4 +246,19 @@ func TestArticleAPI_Integration(t *testing.T) {
 
 		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
+
+	t.Run("Delete article success", func(t *testing.T) {
+		req := httptest.NewRequest("DELETE", "/api/articles/how-to-train-your-dragon-2", nil)
+		req.Header.Set("Authorization", "Token "+token)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// Verify it's gone
+		reqGet := httptest.NewRequest("GET", "/api/articles/how-to-train-your-dragon-2", nil)
+		wGet := httptest.NewRecorder()
+		router.ServeHTTP(wGet, reqGet)
+		assert.Equal(t, http.StatusNotFound, wGet.Code)
+	})
 }

@@ -137,3 +137,27 @@ func (s *articleService) UpdateArticle(ctx context.Context, cmd port.UpdateArtic
 
 	return article, nil
 }
+
+func (s *articleService) DeleteArticle(ctx context.Context, slug string, userID int64) error {
+	article, err := s.articleRepo.GetBySlug(ctx, slug, &userID)
+	if err != nil {
+		return domain.NewInternalError(err.Error())
+	}
+	if article == nil {
+		return domain.NewResourceNotFound("Article", "slug", slug)
+	}
+
+	author, err := s.userRepo.FindByUsername(ctx, article.Author.Username)
+	if err != nil {
+		return domain.NewInternalError(err.Error())
+	}
+	if author == nil || author.ID != userID {
+		return domain.NewForbiddenError("you are not the author of this article")
+	}
+
+	if err := s.articleRepo.Delete(ctx, article.ID); err != nil {
+		return domain.NewInternalError(err.Error())
+	}
+
+	return nil
+}

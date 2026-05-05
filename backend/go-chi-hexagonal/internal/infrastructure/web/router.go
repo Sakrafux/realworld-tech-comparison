@@ -35,6 +35,7 @@ func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler 
 			r.Delete("/profiles/{username}/follow", profileHandler.Unfollow)
 			r.Post("/articles", articleHandler.CreateArticle)
 			r.Put("/articles/{slug}", articleHandler.UpdateArticle)
+			r.Delete("/articles/{slug}", articleHandler.DeleteArticle)
 		})
 	})
 

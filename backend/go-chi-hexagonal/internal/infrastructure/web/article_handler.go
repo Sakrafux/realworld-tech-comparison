@@ -161,6 +161,24 @@ func (h *ArticleHandler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	h.respondWithArticle(w, http.StatusOK, article)
 }
 
+func (h *ArticleHandler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
+	userID, ok := GetUserIDFromContext(r.Context())
+	if !ok {
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
+		return
+	}
+
+	slug := chi.URLParam(r, "slug")
+
+	err := h.articleService.DeleteArticle(r.Context(), slug, userID)
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (h *ArticleHandler) respondWithArticle(w http.ResponseWriter, code int, article *domain.Article) {
 	var resp articleResponse
 	resp.Article.Slug = article.Slug

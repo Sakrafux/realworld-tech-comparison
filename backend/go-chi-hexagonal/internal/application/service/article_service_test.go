@@ -162,3 +162,54 @@ func TestArticleService_UpdateArticle(t *testing.T) {
 		assert.Equal(t, domain.TypeForbidden, err.(domain.AppError).Type)
 	})
 }
+
+func TestArticleService_DeleteArticle(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		artRepo := new(testmocks.MockArticleRepository)
+		userRepo := new(testmocks.MockUserRepository)
+		svc := NewArticleService(artRepo, userRepo)
+
+		article := &domain.Article{
+			ID:   1,
+			Slug: "test",
+			Author: domain.Profile{
+				Username: "author",
+			},
+		}
+		author := &domain.User{ID: 1, Username: "author"}
+
+		artRepo.On("GetBySlug", ctx, "test", mock.Anything).Return(article, nil)
+		userRepo.On("FindByUsername", ctx, "author").Return(author, nil)
+		artRepo.On("Delete", ctx, int64(1)).Return(nil)
+
+		err := svc.DeleteArticle(ctx, "test", 1)
+
+		assert.NoError(t, err)
+		artRepo.AssertExpectations(t)
+	})
+
+	t.Run("forbidden", func(t *testing.T) {
+		artRepo := new(testmocks.MockArticleRepository)
+		userRepo := new(testmocks.MockUserRepository)
+		svc := NewArticleService(artRepo, userRepo)
+
+		article := &domain.Article{
+			ID:   1,
+			Slug: "test",
+			Author: domain.Profile{
+				Username: "author",
+			},
+		}
+		user := &domain.User{ID: 1, Username: "author"}
+
+		artRepo.On("GetBySlug", ctx, "test", mock.Anything).Return(article, nil)
+		userRepo.On("FindByUsername", ctx, "author").Return(user, nil)
+
+		err := svc.DeleteArticle(ctx, "test", 2) // Different user
+
+		assert.Error(t, err)
+		assert.Equal(t, domain.TypeForbidden, err.(domain.AppError).Type)
+	})
+}

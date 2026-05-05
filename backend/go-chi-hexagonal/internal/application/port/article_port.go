@@ -34,6 +34,7 @@ type ArticleService interface {
 	CreateArticle(ctx context.Context, cmd CreateArticleCommand) (*domain.Article, error)
 	GetArticle(ctx context.Context, query GetArticleQuery) (*domain.Article, error)
 	UpdateArticle(ctx context.Context, cmd UpdateArticleCommand) (*domain.Article, error)
+	DeleteArticle(ctx context.Context, slug string, userID int64) error
 }
 
 // ArticleRepository defines the outbound port for article data persistence.
@@ -42,4 +43,5 @@ type ArticleRepository interface {
 	GetBySlug(ctx context.Context, slug string, observerID *int64) (*domain.Article, error)
 	GetByTitle(ctx context.Context, title string, observerID *int64) (*domain.Article, error)
 	Update(ctx context.Context, article *domain.Article) error
+	Delete(ctx context.Context, id int64) error
 }

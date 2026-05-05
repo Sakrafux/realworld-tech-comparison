@@ -216,12 +216,27 @@ func (m *MockArticleService) UpdateArticle(ctx context.Context, cmd port.UpdateA
 	return args.Get(0).(*domain.Article), args.Error(1)
 }
 
+func (m *MockArticleService) DeleteArticle(ctx context.Context, slug string, userID int64) error {
+	args := m.Called(ctx, slug, userID)
+	return args.Error(0)
+}
+
 type MockArticleRepository struct {
 	mock.Mock
 }
 
 func (m *MockArticleRepository) Create(ctx context.Context, article *domain.Article, authorID int64) error {
 	args := m.Called(ctx, article, authorID)
+	return args.Error(0)
+}
+
+func (m *MockArticleRepository) Update(ctx context.Context, article *domain.Article) error {
+	args := m.Called(ctx, article)
+	return args.Error(0)
+}
+
+func (m *MockArticleRepository) Delete(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
@@ -239,9 +254,4 @@ func (m *MockArticleRepository) GetByTitle(ctx context.Context, title string, ob
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.Article), args.Error(1)
-}
-
-func (m *MockArticleRepository) Update(ctx context.Context, article *domain.Article) error {
-	args := m.Called(ctx, article)
-	return args.Error(0)
 }

@@ -188,6 +188,40 @@ func (r *articleRepository) Update(ctx context.Context, article *domain.Article)
 	return err
 }
 
+func (r *articleRepository) Delete(ctx context.Context, id int64) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// 1. Delete tag associations
+	_, err = tx.ExecContext(ctx, "DELETE FROM tag_is_article_to_tag WHERE article_id = $1", id)
+	if err != nil {
+		return err
+	}
+
+	// 2. Delete favorites
+	_, err = tx.ExecContext(ctx, "DELETE FROM favorite_is_article_to_user WHERE article_id = $1", id)
+	if err != nil {
+		return err
+	}
+
+	// 3. Delete comments
+	_, err = tx.ExecContext(ctx, "DELETE FROM comment WHERE fk_article = $1", id)
+	if err != nil {
+		return err
+	}
+
+	// 4. Delete article
+	_, err = tx.ExecContext(ctx, "DELETE FROM article WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 func (r *articleRepository) findOneBy(ctx context.Context, column string, value any, observerID *int64) (*domain.Article, error) {
 	var schema articleSchema
 	var query string
