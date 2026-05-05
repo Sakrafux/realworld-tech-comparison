@@ -161,3 +161,35 @@ func (s *articleService) DeleteArticle(ctx context.Context, slug string, userID 
 
 	return nil
 }
+
+func (s *articleService) FavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error) {
+	article, err := s.articleRepo.GetBySlug(ctx, slug, &userID)
+	if err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+	if article == nil {
+		return nil, domain.NewResourceNotFound("Article", "slug", slug)
+	}
+
+	if err := s.articleRepo.Favorite(ctx, article.ID, userID); err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+
+	return s.articleRepo.GetBySlug(ctx, slug, &userID)
+}
+
+func (s *articleService) UnfavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error) {
+	article, err := s.articleRepo.GetBySlug(ctx, slug, &userID)
+	if err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+	if article == nil {
+		return nil, domain.NewResourceNotFound("Article", "slug", slug)
+	}
+
+	if err := s.articleRepo.Unfavorite(ctx, article.ID, userID); err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+
+	return s.articleRepo.GetBySlug(ctx, slug, &userID)
+}

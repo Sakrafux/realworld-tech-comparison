@@ -179,6 +179,42 @@ func (h *ArticleHandler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (h *ArticleHandler) FavoriteArticle(w http.ResponseWriter, r *http.Request) {
+	userID, ok := GetUserIDFromContext(r.Context())
+	if !ok {
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
+		return
+	}
+
+	slug := chi.URLParam(r, "slug")
+
+	article, err := h.articleService.FavoriteArticle(r.Context(), slug, userID)
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	h.respondWithArticle(w, http.StatusOK, article)
+}
+
+func (h *ArticleHandler) UnfavoriteArticle(w http.ResponseWriter, r *http.Request) {
+	userID, ok := GetUserIDFromContext(r.Context())
+	if !ok {
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
+		return
+	}
+
+	slug := chi.URLParam(r, "slug")
+
+	article, err := h.articleService.UnfavoriteArticle(r.Context(), slug, userID)
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	h.respondWithArticle(w, http.StatusOK, article)
+}
+
 func (h *ArticleHandler) respondWithArticle(w http.ResponseWriter, code int, article *domain.Article) {
 	var resp articleResponse
 	resp.Article.Slug = article.Slug

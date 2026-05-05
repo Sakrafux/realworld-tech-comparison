@@ -261,4 +261,40 @@ func TestArticleAPI_Integration(t *testing.T) {
 		router.ServeHTTP(wGet, reqGet)
 		assert.Equal(t, http.StatusNotFound, wGet.Code)
 	})
+
+	t.Run("Favorite article success", func(t *testing.T) {
+		// 1. Create an article first
+		artReq := map[string]any{
+			"article": map[string]any{
+				"title":       "Favorite Me",
+				"description": "Desc",
+				"body":        "Body",
+			},
+		}
+		body, _ := json.Marshal(artReq)
+		reqCreate := httptest.NewRequest("POST", "/api/articles", bytes.NewBuffer(body))
+		reqCreate.Header.Set("Authorization", "Token "+token)
+		wCreate := httptest.NewRecorder()
+		router.ServeHTTP(wCreate, reqCreate)
+		assert.Equal(t, http.StatusCreated, wCreate.Code)
+
+		// 2. Favorite it
+		reqFav := httptest.NewRequest("POST", "/api/articles/favorite-me/favorite", nil)
+		reqFav.Header.Set("Authorization", "Token "+token)
+		wFav := httptest.NewRecorder()
+		router.ServeHTTP(wFav, reqFav)
+
+		assert.Equal(t, http.StatusOK, wFav.Code)
+
+		var resp struct {
+			Article struct {
+				Favorited      bool `json:"favorited"`
+				FavoritesCount int  `json:"favoritesCount"`
+			} `json:"article"`
+		}
+		err := json.NewDecoder(wFav.Body).Decode(&resp)
+		assert.NoError(t, err)
+		assert.True(t, resp.Article.Favorited)
+		assert.Equal(t, 1, resp.Article.FavoritesCount)
+	})
 }

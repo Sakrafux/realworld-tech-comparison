@@ -221,6 +221,22 @@ func (m *MockArticleService) DeleteArticle(ctx context.Context, slug string, use
 	return args.Error(0)
 }
 
+func (m *MockArticleService) FavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error) {
+	args := m.Called(ctx, slug, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Article), args.Error(1)
+}
+
+func (m *MockArticleService) UnfavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error) {
+	args := m.Called(ctx, slug, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Article), args.Error(1)
+}
+
 type MockArticleRepository struct {
 	mock.Mock
 }
@@ -237,6 +253,16 @@ func (m *MockArticleRepository) Update(ctx context.Context, article *domain.Arti
 
 func (m *MockArticleRepository) Delete(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockArticleRepository) Favorite(ctx context.Context, articleID, userID int64) error {
+	args := m.Called(ctx, articleID, userID)
+	return args.Error(0)
+}
+
+func (m *MockArticleRepository) Unfavorite(ctx context.Context, articleID, userID int64) error {
+	args := m.Called(ctx, articleID, userID)
 	return args.Error(0)
 }
 

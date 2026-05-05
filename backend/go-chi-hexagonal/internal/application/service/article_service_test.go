@@ -213,3 +213,26 @@ func TestArticleService_DeleteArticle(t *testing.T) {
 		assert.Equal(t, domain.TypeForbidden, err.(domain.AppError).Type)
 	})
 }
+
+func TestArticleService_FavoriteArticle(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		artRepo := new(testmocks.MockArticleRepository)
+		svc := NewArticleService(artRepo, nil)
+
+		article := &domain.Article{ID: 1, Slug: "test"}
+		artRepo.On("GetBySlug", ctx, "test", mock.Anything).Return(article, nil).Once()
+		artRepo.On("Favorite", ctx, int64(1), int64(10)).Return(nil)
+
+		favoritedArticle := &domain.Article{ID: 1, Slug: "test", Favorited: true, FavoritesCount: 1}
+		artRepo.On("GetBySlug", ctx, "test", mock.Anything).Return(favoritedArticle, nil).Once()
+
+		result, err := svc.FavoriteArticle(ctx, "test", 10)
+
+		assert.NoError(t, err)
+		assert.True(t, result.Favorited)
+		assert.Equal(t, 1, result.FavoritesCount)
+		artRepo.AssertExpectations(t)
+	})
+}

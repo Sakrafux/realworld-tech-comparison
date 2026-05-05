@@ -35,6 +35,8 @@ type articleSchema struct {
 	AuthorBio      string         `db:"bio"`
 	AuthorImage    sql.NullString `db:"image"`
 	Following      bool           `db:"following"`
+	Favorited      bool           `db:"favorited"`
+	FavoritesCount int            `db:"favorites_count"`
 }
 
 func (s *articleSchema) toDomain(tags []string) *domain.Article {
@@ -52,8 +54,8 @@ func (s *articleSchema) toDomain(tags []string) *domain.Article {
 		TagList:        tags,
 		CreatedAt:      s.CreatedAt,
 		UpdatedAt:      s.UpdatedAt,
-		Favorited:      false, // TODO: implement favorites check if auth user
-		FavoritesCount: 0,     // TODO: implement favorites count
+		Favorited:      s.Favorited,
+		FavoritesCount: s.FavoritesCount,
 		Author: domain.Profile{
 			Username:  s.AuthorUsername,
 			Bio:       s.AuthorBio,
@@ -222,6 +224,23 @@ func (r *articleRepository) Delete(ctx context.Context, id int64) error {
 	return tx.Commit()
 }
 
+func (r *articleRepository) Favorite(ctx context.Context, articleID, userID int64) error {
+	_, err := r.db.ExecContext(ctx, `
+		INSERT INTO favorite_is_article_to_user (article_id, user_id)
+		VALUES ($1, $2)
+		ON CONFLICT (article_id, user_id) DO NOTHING
+	`, articleID, userID)
+	return err
+}
+
+func (r *articleRepository) Unfavorite(ctx context.Context, articleID, userID int64) error {
+	_, err := r.db.ExecContext(ctx, `
+		DELETE FROM favorite_is_article_to_user 
+		WHERE article_id = $1 AND user_id = $2
+	`, articleID, userID)
+	return err
+}
+
 func (r *articleRepository) findOneBy(ctx context.Context, column string, value any, observerID *int64) (*domain.Article, error) {
 	var schema articleSchema
 	var query string
@@ -231,10 +250,13 @@ func (r *articleRepository) findOneBy(ctx context.Context, column string, value 
 		query = `
 			SELECT a.id, a.slug, a.title, a.description, a.body, a.fk_author, a.created_at, a.updated_at,
 			       u.username, u.bio, u.image,
-			       CASE WHEN f.following_user_id IS NOT NULL THEN 1 ELSE 0 END as following
+			       CASE WHEN f.following_user_id IS NOT NULL THEN 1 ELSE 0 END as following,
+			       CASE WHEN fav.user_id IS NOT NULL THEN 1 ELSE 0 END as favorited,
+			       (SELECT COUNT(*) FROM favorite_is_article_to_user WHERE article_id = a.id) as favorites_count
 			FROM article a
 			JOIN app_user u ON a.fk_author = u.id
 			LEFT JOIN follow_is_user_to_user f ON u.id = f.followed_user_id AND f.following_user_id = $2
+			LEFT JOIN favorite_is_article_to_user fav ON a.id = fav.article_id AND fav.user_id = $2
 			WHERE a.` + column + ` = $1
 		`
 		args = []any{value, *observerID}
@@ -242,7 +264,9 @@ func (r *articleRepository) findOneBy(ctx context.Context, column string, value 
 		query = `
 			SELECT a.id, a.slug, a.title, a.description, a.body, a.fk_author, a.created_at, a.updated_at,
 			       u.username, u.bio, u.image,
-			       0 as following
+			       0 as following,
+			       0 as favorited,
+			       (SELECT COUNT(*) FROM favorite_is_article_to_user WHERE article_id = a.id) as favorites_count
 			FROM article a
 			JOIN app_user u ON a.fk_author = u.id
 			WHERE a.` + column + ` = $1
