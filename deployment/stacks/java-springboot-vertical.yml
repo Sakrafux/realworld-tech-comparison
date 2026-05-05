@@ -1,25 +1,7 @@
 services:
-  db:
-    profiles:
-      - java-springboot-vertical
-    build:
-      context: ../../db/postgresql
-      dockerfile: Dockerfile
-    container_name: db
-    environment:
-      POSTGRES_DB: realworld
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: postgres
-    ports:
-      - "5432:5432"
-    networks:
-      - realworld-network
-
   backend:
-    profiles:
-      - java-springboot-vertical
     build:
-      context: ../../backend/java-springboot-vertical
+      context: ../backend/java-springboot-vertical
       dockerfile: Dockerfile
     container_name: backend
     ports:
@@ -36,7 +18,3 @@ services:
       - db
     networks:
       - realworld-network
-
-networks:
-  realworld-network:
-    name: realworld-network

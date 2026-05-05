@@ -1,24 +1,29 @@
 # This is the main orchestrator for the RealWorld Tech Comparison.
-# It uses Docker Compose Profiles to allow mixing and matching implementations.
-# 
-# Usage Examples:
-#   Start Java Backend:         docker-compose --profile java-springboot-layered up -d
-#   Start with Monitoring:      docker-compose --profile java-springboot-layered --profile monitoring up -d
-#   
-#   IMPORTANT: The --profile flag MUST come BEFORE the command (e.g., 'up').
-#   Incorrect: docker-compose up --profile ...
-#   Correct:   docker-compose --profile ... up
+# It uses Docker Compose Files to allow mixing and matching implementations.
 #
-# Alternatively, use the COMPOSE_PROFILES environment variable:
-#   COMPOSE_PROFILES=java-springboot-layered,monitoring docker-compose up -d
+# Usage Examples:
+#   Start Java Backend:         docker-compose -f docker-compose.yml -f java-springboot-layered.yml up -d
+#   Start with Monitoring:      docker-compose -f docker-compose.yml -f java-springboot-layered.yml -f monitoring.yml up -d
+#
+#   IMPORTANT: The -f flag MUST come BEFORE the command (e.g., 'up').
+#   Incorrect: docker-compose up -f ...
+#   Correct:   docker-compose -f ... up
 name: realworld-tech-comparison
 
-include:
-  - path: stacks/monitoring.yml
-  - path: stacks/java-springboot-layered.yml
-  - path: stacks/java-springboot-vertical.yml
-  - path: stacks/java-springboot-hexagonal.yml
-  - path: stacks/java-springboot-hive.yml
+services:
+  db:
+    build:
+      context: ../db/postgresql
+      dockerfile: Dockerfile
+    container_name: db
+    environment:
+      POSTGRES_DB: realworld
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - realworld-network
 
 networks:
   realworld-network:
