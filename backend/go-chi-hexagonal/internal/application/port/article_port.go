@@ -47,10 +47,17 @@ type GetArticleQuery struct {
 	ObserverID *int64
 }
 
+type GetFeedQuery struct {
+	UserID int64
+	Limit  int
+	Offset int
+}
+
 // ArticleService defines the inbound port for article-related use cases.
 type ArticleService interface {
 	CreateArticle(ctx context.Context, cmd CreateArticleCommand) (*domain.Article, error)
 	GetArticle(ctx context.Context, query GetArticleQuery) (*domain.Article, error)
+	GetFeed(ctx context.Context, query GetFeedQuery) ([]*domain.Article, int, error)
 	UpdateArticle(ctx context.Context, cmd UpdateArticleCommand) (*domain.Article, error)
 	DeleteArticle(ctx context.Context, cmd DeleteArticleCommand) error
 	FavoriteArticle(ctx context.Context, cmd FavoriteArticleCommand) (*domain.Article, error)
@@ -62,6 +69,7 @@ type ArticleRepository interface {
 	Create(ctx context.Context, article *domain.Article, authorID int64) error
 	GetBySlug(ctx context.Context, slug string, observerID *int64) (*domain.Article, error)
 	GetByTitle(ctx context.Context, title string, observerID *int64) (*domain.Article, error)
+	GetFeed(ctx context.Context, userID int64, limit, offset int) ([]*domain.Article, int, error)
 	Update(ctx context.Context, article *domain.Article) error
 	Delete(ctx context.Context, id int64) error
 	Favorite(ctx context.Context, articleID, userID int64) error

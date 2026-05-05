@@ -208,6 +208,14 @@ func (m *MockArticleService) GetArticle(ctx context.Context, query port.GetArtic
 	return args.Get(0).(*domain.Article), args.Error(1)
 }
 
+func (m *MockArticleService) GetFeed(ctx context.Context, query port.GetFeedQuery) ([]*domain.Article, int, error) {
+	args := m.Called(ctx, query)
+	if args.Get(0) == nil {
+		return nil, 0, args.Error(2)
+	}
+	return args.Get(0).([]*domain.Article), args.Int(1), args.Error(2)
+}
+
 func (m *MockArticleService) UpdateArticle(ctx context.Context, cmd port.UpdateArticleCommand) (*domain.Article, error) {
 	args := m.Called(ctx, cmd)
 	if args.Get(0) == nil {
@@ -280,6 +288,14 @@ func (m *MockArticleRepository) GetByTitle(ctx context.Context, title string, ob
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.Article), args.Error(1)
+}
+
+func (m *MockArticleRepository) GetFeed(ctx context.Context, userID int64, limit, offset int) ([]*domain.Article, int, error) {
+	args := m.Called(ctx, userID, limit, offset)
+	if args.Get(0) == nil {
+		return nil, 0, args.Error(2)
+	}
+	return args.Get(0).([]*domain.Article), args.Int(1), args.Error(2)
 }
 
 // --- Comments ---

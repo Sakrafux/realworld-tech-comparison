@@ -98,6 +98,26 @@ func TestArticleService_GetArticle(t *testing.T) {
 	})
 }
 
+func TestArticleService_GetFeed(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		artRepo := new(testmocks.MockArticleRepository)
+		svc := NewArticleService(artRepo, nil)
+		expectedArticles := []*domain.Article{{Slug: "test1"}, {Slug: "test2"}}
+		expectedCount := 2
+
+		artRepo.On("GetFeed", ctx, int64(1), 20, 0).Return(expectedArticles, expectedCount, nil)
+
+		articles, count, err := svc.GetFeed(ctx, port.GetFeedQuery{UserID: 1, Limit: 20, Offset: 0})
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedCount, count)
+		assert.Equal(t, expectedArticles, articles)
+		artRepo.AssertExpectations(t)
+	})
+}
+
 func TestArticleService_UpdateArticle(t *testing.T) {
 	ctx := context.Background()
 

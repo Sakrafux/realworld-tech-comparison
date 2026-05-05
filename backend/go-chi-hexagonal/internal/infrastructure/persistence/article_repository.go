@@ -171,6 +171,56 @@ func (r *articleRepository) GetByTitle(ctx context.Context, title string, observ
 	return r.findOneBy(ctx, "title", title, observerID)
 }
 
+func (r *articleRepository) GetFeed(ctx context.Context, userID int64, limit, offset int) ([]*domain.Article, int, error) {
+	query := `
+		SELECT a.id, a.slug, a.title, a.description, a.body, a.fk_author, a.created_at, a.updated_at,
+		       u.username, u.bio, u.image,
+		       1 as following,
+		       CASE WHEN fav.user_id IS NOT NULL THEN 1 ELSE 0 END as favorited,
+		       (SELECT COUNT(*) FROM favorite_is_article_to_user WHERE article_id = a.id) as favorites_count
+		FROM article a
+		JOIN app_user u ON a.fk_author = u.id
+		JOIN follow_is_user_to_user f ON u.id = f.followed_user_id AND f.following_user_id = $1
+		LEFT JOIN favorite_is_article_to_user fav ON a.id = fav.article_id AND fav.user_id = $1
+		ORDER BY a.created_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	var schemas []articleSchema
+	err := r.db.SelectContext(ctx, &schemas, query, userID, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var count int
+	countQuery := `
+		SELECT COUNT(*)
+		FROM article a
+		JOIN follow_is_user_to_user f ON a.fk_author = f.followed_user_id AND f.following_user_id = $1
+	`
+	err = r.db.GetContext(ctx, &count, countQuery, userID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	articles := make([]*domain.Article, len(schemas))
+	for i, s := range schemas {
+		var tags []string
+		err = r.db.SelectContext(ctx, &tags, `
+			SELECT t.tag 
+			FROM tag t
+			JOIN tag_is_article_to_tag tat ON t.id = tat.tag_id
+			WHERE tat.article_id = $1
+		`, s.ID)
+		if err != nil {
+			return nil, 0, err
+		}
+		articles[i] = s.toDomain(tags)
+	}
+
+	return articles, count, nil
+}
+
 func (r *articleRepository) Update(ctx context.Context, article *domain.Article) error {
 	query := `
 		UPDATE article 

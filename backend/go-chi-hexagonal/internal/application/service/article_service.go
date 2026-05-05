@@ -86,6 +86,14 @@ func (s *articleService) GetArticle(ctx context.Context, query port.GetArticleQu
 	return article, nil
 }
 
+func (s *articleService) GetFeed(ctx context.Context, query port.GetFeedQuery) ([]*domain.Article, int, error) {
+	articles, count, err := s.articleRepo.GetFeed(ctx, query.UserID, query.Limit, query.Offset)
+	if err != nil {
+		return nil, 0, domain.NewInternalError(err.Error())
+	}
+	return articles, count, nil
+}
+
 func (s *articleService) UpdateArticle(ctx context.Context, cmd port.UpdateArticleCommand) (*domain.Article, error) {
 	// Get article and check if it exists
 	article, err := s.articleRepo.GetBySlug(ctx, cmd.Slug, &cmd.UserID)

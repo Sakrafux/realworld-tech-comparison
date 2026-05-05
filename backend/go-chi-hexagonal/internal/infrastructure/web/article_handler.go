@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -52,19 +53,26 @@ type updateArticleRequest struct {
 	} `json:"article" validate:"required"`
 }
 
+type articleResponseData struct {
+	Slug           string      `json:"slug"`
+	Title          string      `json:"title"`
+	Description    string      `json:"description"`
+	Body           string      `json:"body"`
+	TagList        []string    `json:"tagList"`
+	CreatedAt      string      `json:"createdAt"`
+	UpdatedAt      string      `json:"updatedAt"`
+	Favorited      bool        `json:"favorited"`
+	FavoritesCount int         `json:"favoritesCount"`
+	Author         profileData `json:"author"`
+}
+
 type articleResponse struct {
-	Article struct {
-		Slug           string      `json:"slug"`
-		Title          string      `json:"title"`
-		Description    string      `json:"description"`
-		Body           string      `json:"body"`
-		TagList        []string    `json:"tagList"`
-		CreatedAt      string      `json:"createdAt"`
-		UpdatedAt      string      `json:"updatedAt"`
-		Favorited      bool        `json:"favorited"`
-		FavoritesCount int         `json:"favoritesCount"`
-		Author         profileData `json:"author"`
-	} `json:"article"`
+	Article articleResponseData `json:"article"`
+}
+
+type multipleArticlesResponse struct {
+	Articles      []articleResponseData `json:"articles"`
+	ArticlesCount int                   `json:"articlesCount"`
 }
 
 type profileData struct {
@@ -105,6 +113,39 @@ func (h *ArticleHandler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.respondWithArticle(w, http.StatusCreated, article)
+}
+
+func (h *ArticleHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
+	userID, ok := GetUserIDFromContext(r.Context())
+	if !ok {
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
+		return
+	}
+
+	limit := 20
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil {
+			limit = l
+		}
+	}
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if o, err := strconv.Atoi(offsetStr); err == nil {
+			offset = o
+		}
+	}
+
+	articles, count, err := h.articleService.GetFeed(r.Context(), port.GetFeedQuery{
+		UserID: userID,
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	h.respondWithMultipleArticles(w, http.StatusOK, articles, count)
 }
 
 func (h *ArticleHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
@@ -225,20 +266,48 @@ func (h *ArticleHandler) UnfavoriteArticle(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *ArticleHandler) respondWithArticle(w http.ResponseWriter, code int, article *domain.Article) {
-	var resp articleResponse
-	resp.Article.Slug = article.Slug
-	resp.Article.Title = article.Title
-	resp.Article.Description = article.Description
-	resp.Article.Body = article.Body
-	resp.Article.TagList = article.TagList
-	resp.Article.CreatedAt = article.CreatedAt.Format(time.RFC3339)
-	resp.Article.UpdatedAt = article.UpdatedAt.Format(time.RFC3339)
-	resp.Article.Favorited = article.Favorited
-	resp.Article.FavoritesCount = article.FavoritesCount
-	resp.Article.Author.Username = article.Author.Username
-	resp.Article.Author.Bio = article.Author.Bio
-	resp.Article.Author.Image = article.Author.Image
-	resp.Article.Author.Following = article.Author.Following
+	resp := articleResponse{
+		Article: mapArticleToResponseData(article),
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(resp)
+}
+
+func mapArticleToResponseData(article *domain.Article) articleResponseData {
+	if article.TagList == nil {
+		article.TagList = []string{}
+	}
+	return articleResponseData{
+		Slug:           article.Slug,
+		Title:          article.Title,
+		Description:    article.Description,
+		Body:           article.Body,
+		TagList:        article.TagList,
+		CreatedAt:      article.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      article.UpdatedAt.Format(time.RFC3339),
+		Favorited:      article.Favorited,
+		FavoritesCount: article.FavoritesCount,
+		Author: profileData{
+			Username:  article.Author.Username,
+			Bio:       article.Author.Bio,
+			Image:     article.Author.Image,
+			Following: article.Author.Following,
+		},
+	}
+}
+
+func (h *ArticleHandler) respondWithMultipleArticles(w http.ResponseWriter, code int, articles []*domain.Article, count int) {
+	resp := multipleArticlesResponse{
+		Articles:      make([]articleResponseData, len(articles)),
+		ArticlesCount: count,
+	}
+	for i, a := range articles {
+		resp.Articles[i] = mapArticleToResponseData(a)
+	}
+	if resp.Articles == nil {
+		resp.Articles = make([]articleResponseData, 0)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)

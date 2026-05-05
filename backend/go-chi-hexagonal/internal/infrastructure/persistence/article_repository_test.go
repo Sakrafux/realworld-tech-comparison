@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
@@ -74,5 +75,47 @@ func TestArticleRepository(t *testing.T) {
 
 		unauth, _ := repo.GetBySlug(ctx, "test-article", nil)
 		assert.False(t, unauth.Author.Following)
+	})
+
+	t.Run("GetFeed", func(t *testing.T) {
+		follower := &domain.User{Username: "feed-follower", Email: "ff@test.com", Password: "p", Bio: "bio"}
+		userRepo.Create(ctx, follower)
+		profileRepo := NewProfileRepository(db)
+		profileRepo.Follow(ctx, follower.ID, author.ID)
+
+		// Create a second article from author to test sorting and pagination
+		article2 := &domain.Article{
+			Slug:        "test-article-2",
+			Title:       "Test Article 2",
+			Description: "Desc",
+			Body:        "Body",
+			CreatedAt:   time.Now().Add(time.Minute),
+			UpdatedAt:   time.Now().Add(time.Minute),
+		}
+		err := repo.Create(ctx, article2, author.ID)
+		assert.NoError(t, err)
+
+		articles, count, err := repo.GetFeed(ctx, follower.ID, 1, 0)
+		assert.NoError(t, err)
+		// Now author has 2 articles
+		assert.Equal(t, 2, count)
+		assert.Len(t, articles, 1)
+		// article2 is newer, should be returned first
+		assert.Equal(t, "test-article-2", articles[0].Slug)
+
+		// Test offset
+		articles, _, err = repo.GetFeed(ctx, follower.ID, 1, 1)
+		assert.NoError(t, err)
+		assert.Len(t, articles, 1)
+		assert.Equal(t, "test-article", articles[0].Slug)
+
+		// User that follows no one
+		loner := &domain.User{Username: "loner", Email: "loner@test.com", Password: "p", Bio: "bio"}
+		userRepo.Create(ctx, loner)
+
+		articles, count, err = repo.GetFeed(ctx, loner.ID, 10, 0)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, count)
+		assert.Len(t, articles, 0)
 	})
 }

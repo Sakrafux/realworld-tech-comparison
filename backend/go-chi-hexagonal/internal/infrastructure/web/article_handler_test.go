@@ -144,3 +144,62 @@ func TestArticleHandler_GetArticle(t *testing.T) {
 		svc.AssertExpectations(t)
 	})
 }
+
+func TestArticleHandler_GetFeed(t *testing.T) {
+	t.Run("success with defaults", func(t *testing.T) {
+		svc := new(testmocks.MockArticleService)
+		h := NewArticleHandler(svc)
+
+		userID := int64(1)
+		articles := []*domain.Article{{Slug: "test", Title: "Test"}}
+		count := 1
+		svc.On("GetFeed", mock.Anything, port.GetFeedQuery{UserID: userID, Limit: 20, Offset: 0}).Return(articles, count, nil)
+
+		req := httptest.NewRequest("GET", "/api/articles/feed", nil)
+		ctx := context.WithValue(req.Context(), userIDKey, userID)
+		req = req.WithContext(ctx)
+
+		w := httptest.NewRecorder()
+
+		h.GetFeed(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var resp multipleArticlesResponse
+		json.NewDecoder(w.Body).Decode(&resp)
+		assert.Equal(t, count, resp.ArticlesCount)
+		assert.Len(t, resp.Articles, 1)
+		assert.Equal(t, "test", resp.Articles[0].Slug)
+		svc.AssertExpectations(t)
+	})
+
+	t.Run("success with query params", func(t *testing.T) {
+		svc := new(testmocks.MockArticleService)
+		h := NewArticleHandler(svc)
+
+		userID := int64(1)
+		articles := []*domain.Article{{Slug: "test", Title: "Test"}}
+		count := 1
+		svc.On("GetFeed", mock.Anything, port.GetFeedQuery{UserID: userID, Limit: 10, Offset: 5}).Return(articles, count, nil)
+
+		req := httptest.NewRequest("GET", "/api/articles/feed?limit=10&offset=5", nil)
+		ctx := context.WithValue(req.Context(), userIDKey, userID)
+		req = req.WithContext(ctx)
+
+		w := httptest.NewRecorder()
+
+		h.GetFeed(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		svc.AssertExpectations(t)
+	})
+
+	t.Run("unauthorized", func(t *testing.T) {
+		h := NewArticleHandler(nil)
+		req := httptest.NewRequest("GET", "/api/articles/feed", nil)
+		w := httptest.NewRecorder()
+
+		h.GetFeed(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+}
