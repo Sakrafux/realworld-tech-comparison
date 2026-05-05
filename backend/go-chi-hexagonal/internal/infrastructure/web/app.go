@@ -40,5 +40,5 @@ func NewApp(cfg *configuration.Config, db *sqlx.DB, logger *httplog.Logger) *chi
 	commentService := service.NewCommentService(commentRepo, articleRepo, userRepo)
 	commentHandler := NewCommentHandler(commentService)
 
-	return NewRouter(cfg.Web, logger, tagHandler, userHandler, profileHandler, articleHandler, commentHandler)
+	return NewRouter(cfg.Web, cfg.Otel, logger, tagHandler, userHandler, profileHandler, articleHandler, commentHandler)
 }

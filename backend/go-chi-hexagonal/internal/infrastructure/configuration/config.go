@@ -28,12 +28,19 @@ type SecurityConfig struct {
 	JWTSecret string
 }
 
+type OtelConfig struct {
+	Enabled     bool
+	Endpoint    string
+	ServiceName string
+}
+
 // Config is the root configuration object for the application.
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Web      WebConfig
 	Security SecurityConfig
+	Otel     OtelConfig
 }
 
 // LoadConfig reads application configuration from environment variables with sensible defaults.
@@ -57,6 +64,11 @@ func LoadConfig() *Config {
 		Security: SecurityConfig{
 			JWTSecret: getEnv("JWT_SECRET", "super-secret-key"),
 		},
+		Otel: OtelConfig{
+			Enabled:     getEnvBool("OTEL_ENABLED", "false"),
+			Endpoint:    getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4318"),
+			ServiceName: getEnv("OTEL_SERVICE_NAME", "realworld"),
+		},
 	}
 }
 
@@ -65,6 +77,11 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func getEnvBool(key, fallback string) bool {
+	value := getEnv(key, fallback)
+	return value == "true"
 }
 
 func getEnvArray(key string, fallback []string) []string {

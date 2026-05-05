@@ -1,6 +1,7 @@
 package web
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -8,10 +9,12 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httplog/v2"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func NewRouter(
 	cfg configuration.WebConfig,
+	otelCfg configuration.OtelConfig,
 	logger *httplog.Logger,
 	tagHandler *TagHandler,
 	userHandler *UserHandler,
@@ -21,7 +24,7 @@ func NewRouter(
 ) *chi.Mux {
 	r := chi.NewRouter()
 
-	registerMiddleware(r, cfg, logger)
+	registerMiddleware(r, cfg, otelCfg, logger)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/tags", tagHandler.GetTags)
@@ -56,9 +59,14 @@ func NewRouter(
 	return r
 }
 
-func registerMiddleware(r *chi.Mux, cfg configuration.WebConfig, logger *httplog.Logger) {
+func registerMiddleware(r *chi.Mux, cfg configuration.WebConfig, otelCfg configuration.OtelConfig, logger *httplog.Logger) {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
+	if otelCfg.Enabled {
+		r.Use(func(next http.Handler) http.Handler {
+			return otelhttp.NewHandler(next, otelCfg.ServiceName)
+		})
+	}
 	r.Use(httplog.RequestLogger(logger))
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))

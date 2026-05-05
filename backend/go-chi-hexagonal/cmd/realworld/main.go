@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"log/slog"
 	"net/http"
@@ -22,6 +23,17 @@ func main() {
 
 	logger.Info("Starting application")
 	cfg := configuration.LoadConfig()
+
+	ctx := context.Background()
+	shutdown, err := configuration.InitOtel(ctx, cfg.Otel)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := shutdown(ctx); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	db, err := configuration.NewDatabase(cfg.Database, logger)
 	if err != nil {
