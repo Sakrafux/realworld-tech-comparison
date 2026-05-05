@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"log/slog"
 	"os"
 	"strings"
 )
@@ -38,7 +37,6 @@ type Config struct {
 
 // LoadConfig reads application configuration from environment variables with sensible defaults.
 func LoadConfig() *Config {
-	slog.Info("Loading configuration")
 	return &Config{
 		Server: ServerConfig{
 			Port: getEnv("SERVER_PORT", "8080"),

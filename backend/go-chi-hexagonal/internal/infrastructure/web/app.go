@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httplog/v2"
 	"github.com/jmoiron/sqlx"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/service"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
@@ -11,7 +12,7 @@ import (
 
 // NewApp wires all dependencies and returns a configured router.
 // This is used by both the main application and integration tests.
-func NewApp(cfg *configuration.Config, db *sqlx.DB) *chi.Mux {
+func NewApp(cfg *configuration.Config, db *sqlx.DB, logger *httplog.Logger) *chi.Mux {
 	// Tags
 	tagRepo := persistence.NewTagRepository(db)
 	tagService := service.NewTagService(tagRepo)
@@ -39,5 +40,5 @@ func NewApp(cfg *configuration.Config, db *sqlx.DB) *chi.Mux {
 	commentService := service.NewCommentService(commentRepo, articleRepo, userRepo)
 	commentHandler := NewCommentHandler(commentService)
 
-	return NewRouter(cfg.Web, tagHandler, userHandler, profileHandler, articleHandler, commentHandler)
+	return NewRouter(cfg.Web, logger, tagHandler, userHandler, profileHandler, articleHandler, commentHandler)
 }

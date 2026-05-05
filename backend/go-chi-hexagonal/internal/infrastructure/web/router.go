@@ -1,7 +1,6 @@
 package web
 
 import (
-	"log/slog"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -11,10 +10,18 @@ import (
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 )
 
-func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler *UserHandler, profileHandler *ProfileHandler, articleHandler *ArticleHandler, commentHandler *CommentHandler) *chi.Mux {
+func NewRouter(
+	cfg configuration.WebConfig,
+	logger *httplog.Logger,
+	tagHandler *TagHandler,
+	userHandler *UserHandler,
+	profileHandler *ProfileHandler,
+	articleHandler *ArticleHandler,
+	commentHandler *CommentHandler,
+) *chi.Mux {
 	r := chi.NewRouter()
 
-	registerMiddleware(r, cfg)
+	registerMiddleware(r, cfg, logger)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/tags", tagHandler.GetTags)
@@ -48,15 +55,7 @@ func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler 
 	return r
 }
 
-func registerMiddleware(r *chi.Mux, cfg configuration.WebConfig) {
-	// httplog is designed for easy integration with a go-chi router, is based on slog and thus allows for structured logging
-	logger := httplog.NewLogger("realworld", httplog.Options{
-		LogLevel:        slog.LevelInfo,
-		JSON:            true,
-		Concise:         true,
-		TimeFieldFormat: time.RFC3339,
-	})
-
+func registerMiddleware(r *chi.Mux, cfg configuration.WebConfig, logger *httplog.Logger) {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(httplog.RequestLogger(logger))

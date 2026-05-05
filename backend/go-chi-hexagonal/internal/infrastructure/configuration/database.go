@@ -3,8 +3,8 @@ package configuration
 import (
 	_ "embed"
 	"fmt"
-	"log/slog"
 
+	"github.com/go-chi/httplog/v2"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	_ "modernc.org/sqlite"
@@ -15,18 +15,18 @@ var sqliteSchema string
 
 // NewDatabase creates a new SQL database connection based on the provided configuration.
 // It supports both "postgres" and "sqlite" (in-memory) drivers.
-func NewDatabase(cfg DatabaseConfig) (*sqlx.DB, error) {
+func NewDatabase(cfg DatabaseConfig, logger *httplog.Logger) (*sqlx.DB, error) {
 	var driver, dsn string
 
 	if cfg.Type == "sqlite" {
 		driver = "sqlite"
 		dsn = ":memory:"
-		slog.Info("Using in-memory SQLite database")
+		logger.Info("Using in-memory SQLite database")
 	} else {
 		driver = "postgres"
 		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 			cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSLMode)
-		slog.Info("Connecting to Postgres database", "host", cfg.Host, "port", cfg.Port, "dbname", cfg.Name)
+		logger.Info("Connecting to Postgres database", "host", cfg.Host, "port", cfg.Port, "dbname", cfg.Name)
 	}
 
 	db, err := sqlx.Connect(driver, dsn)
@@ -40,12 +40,12 @@ func NewDatabase(cfg DatabaseConfig) (*sqlx.DB, error) {
 		// is a separate database. This means requests could fail as they query an empty database.
 		db.SetMaxOpenConns(1)
 
-		slog.Info("Initializing SQLite schema")
+		logger.Info("Initializing SQLite schema")
 		if _, err := db.Exec(sqliteSchema); err != nil {
 			return nil, fmt.Errorf("failed to initialize sqlite schema: %w", err)
 		}
 	}
 
-	slog.Info("Successfully connected to database")
+	logger.Info("Successfully connected to database")
 	return db, nil
 }
