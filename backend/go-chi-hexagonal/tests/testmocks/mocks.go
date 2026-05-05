@@ -208,6 +208,14 @@ func (m *MockArticleService) GetArticle(ctx context.Context, query port.GetArtic
 	return args.Get(0).(*domain.Article), args.Error(1)
 }
 
+func (m *MockArticleService) UpdateArticle(ctx context.Context, cmd port.UpdateArticleCommand) (*domain.Article, error) {
+	args := m.Called(ctx, cmd)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Article), args.Error(1)
+}
+
 type MockArticleRepository struct {
 	mock.Mock
 }
@@ -231,4 +239,9 @@ func (m *MockArticleRepository) GetByTitle(ctx context.Context, title string, ob
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.Article), args.Error(1)
+}
+
+func (m *MockArticleRepository) Update(ctx context.Context, article *domain.Article) error {
+	args := m.Called(ctx, article)
+	return args.Error(0)
 }

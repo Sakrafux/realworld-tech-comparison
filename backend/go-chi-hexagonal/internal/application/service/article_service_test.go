@@ -97,3 +97,68 @@ func TestArticleService_GetArticle(t *testing.T) {
 		assert.Equal(t, domain.TypeNotFound, err.(domain.AppError).Type)
 	})
 }
+
+func TestArticleService_UpdateArticle(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		artRepo := new(testmocks.MockArticleRepository)
+		userRepo := new(testmocks.MockUserRepository)
+		svc := NewArticleService(artRepo, userRepo)
+
+		oldArticle := &domain.Article{
+			ID:    1,
+			Slug:  "old-title",
+			Title: "Old Title",
+			Author: domain.Profile{
+				Username: "author",
+			},
+		}
+		author := &domain.User{ID: 1, Username: "author"}
+
+		newTitle := "New Title"
+		cmd := port.UpdateArticleCommand{
+			Slug:   "old-title",
+			UserID: 1,
+			Title:  &newTitle,
+		}
+
+		artRepo.On("GetBySlug", ctx, "old-title", mock.Anything).Return(oldArticle, nil)
+		userRepo.On("FindByUsername", ctx, "author").Return(author, nil)
+		artRepo.On("GetByTitle", ctx, "New Title", (*int64)(nil)).Return(nil, nil)
+		artRepo.On("GetBySlug", ctx, "new-title", (*int64)(nil)).Return(nil, nil)
+		artRepo.On("Update", ctx, mock.AnythingOfType("*domain.Article")).Return(nil)
+
+		article, err := svc.UpdateArticle(ctx, cmd)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "new-title", article.Slug)
+		assert.Equal(t, "New Title", article.Title)
+		artRepo.AssertExpectations(t)
+	})
+
+	t.Run("forbidden", func(t *testing.T) {
+		artRepo := new(testmocks.MockArticleRepository)
+		userRepo := new(testmocks.MockUserRepository)
+		svc := NewArticleService(artRepo, userRepo)
+
+		article := &domain.Article{
+			Slug: "test",
+			Author: domain.Profile{
+				Username: "author",
+			},
+		}
+		user := &domain.User{ID: 1, Username: "author"}
+
+		artRepo.On("GetBySlug", ctx, "test", mock.Anything).Return(article, nil)
+		userRepo.On("FindByUsername", ctx, "author").Return(user, nil)
+
+		_, err := svc.UpdateArticle(ctx, port.UpdateArticleCommand{
+			Slug:   "test",
+			UserID: 2, // Different user
+		})
+
+		assert.Error(t, err)
+		assert.Equal(t, domain.TypeForbidden, err.(domain.AppError).Type)
+	})
+}
