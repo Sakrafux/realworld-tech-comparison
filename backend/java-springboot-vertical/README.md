@@ -126,70 +126,70 @@ Individual Unit and Integration tests within this module are largely derivative 
 #### Medium load (50 VUs / 1m)
 
     HTTP
-    http_req_duration..............: avg=123.5ms  min=813.35µs med=6.13ms  max=25.07s   p(90)=36.64ms  p(95)=72.44ms 
-      { expected_response:true }...: avg=123.68ms min=813.35µs med=6.12ms  max=25.07s   p(90)=36.49ms  p(95)=72.26ms 
-      { name:AddComment }..........: avg=18.47ms  min=3.11ms   med=7.01ms  max=334.56ms p(90)=32.25ms  p(95)=71.16ms 
-      { name:CreateArticle }.......: avg=678.66ms min=4.25ms   med=8.71ms  max=25.07s   p(90)=44.82ms  p(95)=833.81ms
-      { name:DeleteArticle }.......: avg=10.71ms  min=2.54ms   med=5.82ms  max=167.09ms p(90)=23.6ms   p(95)=33.27ms 
-      { name:DeleteComment }.......: avg=11.1ms   min=2.49ms   med=5.57ms  max=161.84ms p(90)=23.28ms  p(95)=34.58ms 
-      { name:FavoriteArticle }.....: avg=14.73ms  min=3.16ms   med=7.23ms  max=343.78ms p(90)=31.32ms  p(95)=50.03ms 
-      { name:FollowUser }..........: avg=12.72ms  min=1.86ms   med=4.99ms  max=296.5ms  p(90)=18.92ms  p(95)=33.39ms 
-      { name:GetArticle }..........: avg=12.09ms  min=1.35ms   med=3.86ms  max=367.19ms p(90)=20.79ms  p(95)=50.31ms 
-      { name:GetArticlesFeed }.....: avg=35.33ms  min=1.09ms   med=3.05ms  max=25.07s   p(90)=13.09ms  p(95)=20.26ms 
-      { name:GetComments }.........: avg=11.24ms  min=1.53ms   med=3.82ms  max=286.15ms p(90)=20.13ms  p(95)=47.97ms 
-      { name:GetCurrentUser }......: avg=9.31ms   min=949.65µs med=2.38ms  max=221.81ms p(90)=12.61ms  p(95)=39.94ms 
-      { name:GetGlobalArticles }...: avg=16.44ms  min=4.67ms   med=10.06ms max=144.86ms p(90)=34.86ms  p(95)=50.71ms 
-      { name:GetProfile }..........: avg=335.6ms  min=1.09ms   med=2.99ms  max=24.97s   p(90)=11.55ms  p(95)=20.13ms 
-      { name:GetTags }.............: avg=5.5ms    min=813.35µs med=2.47ms  max=107.58ms p(90)=11.64ms  p(95)=17.26ms 
-      { name:Login }...............: avg=794.35ms min=60.85ms  med=75.23ms max=24.98s   p(90)=243.91ms p(95)=1.06s   
-      { name:Register }............: avg=726.99ms min=63.41ms  med=71.1ms  max=24.78s   p(90)=147.31ms p(95)=375.61ms
-      { name:UnfavoriteArticle }...: avg=13.7ms   min=3.15ms   med=7.05ms  max=211.35ms p(90)=28.03ms  p(95)=45.24ms 
-      { name:UnfollowUser }........: avg=10.19ms  min=2ms      med=4.95ms  max=182.38ms p(90)=13.64ms  p(95)=23.73ms 
-    http_req_failed................: 0.20%  24 out of 11925
-    http_reqs......................: 11925  174.507771/s
+    http_req_duration..............: avg=94.55ms  min=992.65µs med=7.96ms  max=17.87s   p(90)=71.07ms  p(95)=115.55ms
+      { expected_response:true }...: avg=94.57ms  min=992.65µs med=7.95ms  max=17.87s   p(90)=71.03ms  p(95)=115.08ms
+      { name:AddComment }..........: avg=26.53ms  min=3.7ms    med=9.34ms  max=289.37ms p(90)=70.1ms   p(95)=112.39ms
+      { name:CreateArticle }.......: avg=434.45ms min=4.76ms   med=11.94ms max=17.63s   p(90)=86.62ms  p(95)=213.25ms
+      { name:DeleteArticle }.......: avg=22.55ms  min=2.73ms   med=7.89ms  max=674.02ms p(90)=51.47ms  p(95)=83.13ms 
+      { name:DeleteComment }.......: avg=23.1ms   min=2.45ms   med=7.79ms  max=625.21ms p(90)=50.33ms  p(95)=75.04ms 
+      { name:FavoriteArticle }.....: avg=26.55ms  min=3.61ms   med=9.03ms  max=291.44ms p(90)=66.61ms  p(95)=109.59ms
+      { name:FollowUser }..........: avg=18.55ms  min=2.35ms   med=7.05ms  max=303.99ms p(90)=44.71ms  p(95)=71.89ms 
+      { name:GetArticle }..........: avg=18.37ms  min=1.66ms   med=5.51ms  max=379.77ms p(90)=42.8ms   p(95)=70.31ms 
+      { name:GetArticlesFeed }.....: avg=13.8ms   min=1.05ms   med=4.33ms  max=267.2ms  p(90)=37.55ms  p(95)=57.74ms 
+      { name:GetComments }.........: avg=17.61ms  min=1.72ms   med=5.12ms  max=273.94ms p(90)=44.36ms  p(95)=78.93ms 
+      { name:GetCurrentUser }......: avg=17.85ms  min=1.29ms   med=3.83ms  max=388.57ms p(90)=48.5ms   p(95)=81.25ms 
+      { name:GetGlobalArticles }...: avg=33.23ms  min=3.9ms    med=10.98ms max=689.38ms p(90)=80.44ms  p(95)=120.43ms
+      { name:GetProfile }..........: avg=217.77ms min=1.05ms   med=4.6ms   max=17.57s   p(90)=41.43ms  p(95)=72.32ms 
+      { name:GetTags }.............: avg=13.58ms  min=992.65µs med=3.12ms  max=348.89ms p(90)=33.92ms  p(95)=63.27ms 
+      { name:Login }...............: avg=535.01ms min=61.82ms  med=83.31ms max=17.87s   p(90)=325.71ms p(95)=412.19ms
+      { name:Register }............: avg=516.16ms min=63.64ms  med=84.35ms max=17.68s   p(90)=329.55ms p(95)=529.81ms
+      { name:UnfavoriteArticle }...: avg=63.69ms  min=3.39ms   med=9.45ms  max=17.63s   p(90)=71.43ms  p(95)=110.08ms
+      { name:UnfollowUser }........: avg=20.76ms  min=2.32ms   med=7.06ms  max=398.41ms p(90)=41.29ms  p(95)=75.76ms 
+    http_req_failed................: 0.09%  12 out of 13096
+    http_reqs......................: 13096  189.381266/s
 
     EXECUTION
-    iteration_duration.............: avg=1.77s    min=1s       med=1.06s   max=26.49s   p(90)=1.25s    p(95)=2.1s    
-    iterations.....................: 1896   27.745638/s
-    vus............................: 46     min=46          max=50
+    iteration_duration.............: avg=1.58s    min=1s       med=1.07s   max=19.18s   p(90)=1.47s    p(95)=1.84s   
+    iterations.....................: 2129   30.787471/s
+    vus............................: 33     min=0           max=50
     vus_max........................: 50     min=50          max=50
 
     NETWORK
-    data_received..................: 9.4 MB 138 kB/s
-    data_sent......................: 3.2 MB 47 kB/s
+    data_received..................: 10 MB  146 kB/s
+    data_sent......................: 3.5 MB 51 kB/s
 
 #### Heavy load (200 VUs / 3m)
 
     HTTP
-    http_req_duration..............: avg=2.78s  min=765.64µs med=327.26ms max=39.09s p(90)=1.01s    p(95)=34.89s  
-      { expected_response:true }...: avg=2.71s  min=765.64µs med=326.64ms max=39.09s p(90)=995.46ms p(95)=34.86s  
-      { name:AddComment }..........: avg=1.54s  min=2.89ms   med=309.37ms max=35.78s p(90)=808.61ms p(95)=1.05s   
-      { name:CreateArticle }.......: avg=6.35s  min=3.47ms   med=414.6ms  max=38.63s p(90)=34.92s   p(95)=35.67s  
-      { name:DeleteArticle }.......: avg=1.58s  min=2.41ms   med=276.39ms max=38.66s p(90)=794.37ms p(95)=1.16s   
-      { name:DeleteComment }.......: avg=2.03s  min=2.74ms   med=278.67ms max=38.1s  p(90)=778.64ms p(95)=20.45s  
-      { name:FavoriteArticle }.....: avg=1.44s  min=3.95ms   med=291.76ms max=38.04s p(90)=744.64ms p(95)=982.29ms
-      { name:FollowUser }..........: avg=1.49s  min=1.37ms   med=300.28ms max=38.69s p(90)=803.52ms p(95)=1.12s   
-      { name:GetArticle }..........: avg=1.71s  min=1.32ms   med=315.79ms max=38.66s p(90)=776.44ms p(95)=1.12s   
-      { name:GetArticlesFeed }.....: avg=1.36s  min=1.04ms   med=272.84ms max=38.27s p(90)=773.97ms p(95)=973.31ms
-      { name:GetComments }.........: avg=2.01s  min=1.31ms   med=261.74ms max=38.27s p(90)=817.87ms p(95)=20.44s  
-      { name:GetCurrentUser }......: avg=1.6s   min=1.05ms   med=294.79ms max=39.08s p(90)=809.3ms  p(95)=1.15s   
-      { name:GetGlobalArticles }...: avg=1.97s  min=7.4ms    med=299.92ms max=38.69s p(90)=817.08ms p(95)=16.68s  
-      { name:GetProfile }..........: avg=5.35s  min=1.09ms   med=353.9ms  max=38.43s p(90)=34.82s   p(95)=35.6s   
-      { name:GetTags }.............: avg=1.3s   min=765.64µs med=255.65ms max=39.09s p(90)=749.18ms p(95)=962.15ms
-      { name:Login }...............: avg=7.47s  min=85.74ms  med=618.93ms max=39s    p(90)=35.45s   p(95)=35.84s  
-      { name:Register }............: avg=7.03s  min=62.96ms  med=567.53ms max=38.33s p(90)=35.12s   p(95)=35.88s  
-      { name:UnfavoriteArticle }...: avg=1.76s  min=3.14ms   med=286.89ms max=38.7s  p(90)=779.75ms p(95)=1.15s   
-      { name:UnfollowUser }........: avg=1.72s  min=2.12ms   med=300.07ms max=38.66s p(90)=771.25ms p(95)=1.29s   
-    http_req_failed................: 0.36%  48 out of 13226
-    http_reqs......................: 13226  65.979204/s
+    http_req_duration..............: avg=2.57s  min=806.74µs med=305.42ms max=34.41s p(90)=1.04s    p(95)=31.39s  
+      { expected_response:true }...: avg=2.53s  min=806.74µs med=304.96ms max=34.25s p(90)=1.02s    p(95)=31.32s  
+      { name:AddComment }..........: avg=1.36s  min=2.62ms   med=303.53ms max=33.78s p(90)=785.61ms p(95)=1.21s   
+      { name:CreateArticle }.......: avg=6.53s  min=4.28ms   med=386.53ms max=33.86s p(90)=31.52s   p(95)=32.09s  
+      { name:DeleteArticle }.......: avg=1.23s  min=2.01ms   med=254.22ms max=33.7s  p(90)=687.88ms p(95)=965.51ms
+      { name:DeleteComment }.......: avg=1.63s  min=2.2ms    med=288.71ms max=33.77s p(90)=792.84ms p(95)=1.42s   
+      { name:FavoriteArticle }.....: avg=1.35s  min=2.93ms   med=286.86ms max=34s    p(90)=718.96ms p(95)=953.67ms
+      { name:FollowUser }..........: avg=1.29s  min=1.3ms    med=287.95ms max=33.95s p(90)=728.66ms p(95)=1.05s   
+      { name:GetArticle }..........: avg=1.33s  min=1.22ms   med=290.59ms max=33.83s p(90)=800.99ms p(95)=1.06s   
+      { name:GetArticlesFeed }.....: avg=1.54s  min=1.05ms   med=271.2ms  max=34.28s p(90)=738.38ms p(95)=1.21s   
+      { name:GetComments }.........: avg=1.26s  min=1.24ms   med=275.82ms max=33.78s p(90)=706.9ms  p(95)=926.6ms 
+      { name:GetCurrentUser }......: avg=1.25s  min=870.94µs med=263.67ms max=34.06s p(90)=736.95ms p(95)=968.91ms
+      { name:GetGlobalArticles }...: avg=1.57s  min=7.39ms   med=289.26ms max=34.25s p(90)=745.1ms  p(95)=1.17s   
+      { name:GetProfile }..........: avg=5.86s  min=1.14ms   med=345.61ms max=34.23s p(90)=31.43s   p(95)=32.02s  
+      { name:GetTags }.............: avg=1.34s  min=806.74µs med=240.34ms max=33.58s p(90)=688.17ms p(95)=1.08s   
+      { name:Login }...............: avg=7.14s  min=66.89ms  med=614.72ms max=34.41s p(90)=31.63s   p(95)=32.1s   
+      { name:Register }............: avg=6.76s  min=64.16ms  med=588.54ms max=34.14s p(90)=31.79s   p(95)=32.34s  
+      { name:UnfavoriteArticle }...: avg=1.3s   min=3.1ms    med=271.57ms max=34.04s p(90)=724.81ms p(95)=1.09s   
+      { name:UnfollowUser }........: avg=1.31s  min=1.94ms   med=287.51ms max=33.95s p(90)=818.69ms p(95)=1.11s   
+    http_req_failed................: 0.24%  35 out of 14111
+    http_reqs......................: 14111  71.114881/s
 
     EXECUTION
-    iteration_duration.............: avg=13.35s min=1s       med=2.78s    max=1m20s  p(90)=38.72s   p(95)=39.9s   
-    iterations.....................: 2981   14.871012/s
-    vus............................: 115    min=115         max=200
+    iteration_duration.............: avg=12.54s min=1s       med=2.94s    max=1m9s   p(90)=34.81s   p(95)=35.7s   
+    iterations.....................: 3144   15.844744/s
+    vus............................: 121    min=121         max=200
     vus_max........................: 200    min=200         max=200
 
     NETWORK
-    data_received..................: 11 MB  52 kB/s
-    data_sent......................: 3.6 MB 18 kB/s
+    data_received..................: 11 MB  56 kB/s
+    data_sent......................: 3.8 MB 19 kB/s
 
