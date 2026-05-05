@@ -2,17 +2,24 @@ package persistence
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 	"time"
 
+	"github.com/go-chi/httplog/v2"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/domain"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestArticleRepository(t *testing.T) {
+	logger := httplog.NewLogger("test", httplog.Options{
+		LogLevel: slog.LevelInfo,
+		Concise:  true,
+	})
 	cfg := configuration.DatabaseConfig{Type: "sqlite"}
-	db, err := configuration.NewDatabase(cfg)
+	db, err := configuration.NewDatabase(cfg, logger)
 	assert.NoError(t, err)
 	defer db.Close()
 
@@ -75,6 +82,15 @@ func TestArticleRepository(t *testing.T) {
 
 		unauth, _ := repo.GetBySlug(ctx, "test-article", nil)
 		assert.False(t, unauth.Author.Following)
+	})
+
+	t.Run("GetArticles with tag filter", func(t *testing.T) {
+		tag := "tag1"
+		articles, count, err := repo.GetArticles(ctx, port.GetArticlesQuery{Tag: &tag, Limit: 10, Offset: 0})
+		assert.NoError(t, err)
+		assert.Equal(t, 1, count)
+		assert.Len(t, articles, 1)
+		assert.Equal(t, "test-article", articles[0].Slug)
 	})
 
 	t.Run("GetFeed", func(t *testing.T) {

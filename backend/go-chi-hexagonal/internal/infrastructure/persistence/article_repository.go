@@ -171,6 +171,128 @@ func (r *articleRepository) GetByTitle(ctx context.Context, title string, observ
 	return r.findOneBy(ctx, "title", title, observerID)
 }
 
+func (r *articleRepository) GetArticles(ctx context.Context, params port.GetArticlesQuery) ([]*domain.Article, int, error) {
+	queryBase := `
+		FROM article a
+		JOIN app_user u ON a.fk_author = u.id
+	`
+
+	if params.ObserverID != nil {
+		queryBase += `
+		LEFT JOIN follow_is_user_to_user f ON u.id = f.followed_user_id AND f.following_user_id = :observer_id
+		LEFT JOIN favorite_is_article_to_user fav_obs ON a.id = fav_obs.article_id AND fav_obs.user_id = :observer_id
+		`
+	}
+
+	if params.Tag != nil {
+		queryBase += `
+		JOIN tag_is_article_to_tag tat ON a.id = tat.article_id
+		JOIN tag t ON tat.tag_id = t.id AND t.tag = :tag
+		`
+	}
+
+	if params.Favorited != nil {
+		queryBase += `
+		JOIN favorite_is_article_to_user fav ON a.id = fav.article_id
+		JOIN app_user u_fav ON fav.user_id = u_fav.id AND u_fav.username = :favorited
+		`
+	}
+
+	whereClause := " WHERE 1=1"
+	if params.Author != nil {
+		whereClause += " AND u.username = :author"
+	}
+
+	args := map[string]any{
+		"limit":  params.Limit,
+		"offset": params.Offset,
+	}
+
+	if params.ObserverID != nil {
+		args["observer_id"] = *params.ObserverID
+	}
+	if params.Tag != nil {
+		args["tag"] = *params.Tag
+	}
+	if params.Favorited != nil {
+		args["favorited"] = *params.Favorited
+	}
+	if params.Author != nil {
+		args["author"] = *params.Author
+	}
+
+	// Count Query
+	countQuery := "SELECT COUNT(DISTINCT a.id) " + queryBase + whereClause
+
+	var count int
+	// Need to use NamedQuery for named parameters with basic Query/QueryRow in sqlx
+	countStmt, err := r.db.PrepareNamedContext(ctx, countQuery)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer countStmt.Close()
+	err = countStmt.GetContext(ctx, &count, args)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if count == 0 {
+		return []*domain.Article{}, 0, nil
+	}
+
+	// Select Query
+	selectQuery := `
+		SELECT a.id, a.slug, a.title, a.description, a.body, a.fk_author, a.created_at, a.updated_at,
+		       u.username, u.bio, u.image,
+	`
+	if params.ObserverID != nil {
+		selectQuery += `
+		       CASE WHEN f.following_user_id IS NOT NULL THEN 1 ELSE 0 END as following,
+		       CASE WHEN fav_obs.user_id IS NOT NULL THEN 1 ELSE 0 END as favorited,
+		`
+	} else {
+		selectQuery += `
+		       0 as following,
+		       0 as favorited,
+		`
+	}
+	selectQuery += `
+		       (SELECT COUNT(*) FROM favorite_is_article_to_user WHERE article_id = a.id) as favorites_count
+	`
+	selectQuery += queryBase + whereClause + `
+		ORDER BY a.created_at DESC
+		LIMIT :limit OFFSET :offset
+	`
+
+	var schemas []articleSchema
+	selectStmt, err := r.db.PrepareNamedContext(ctx, selectQuery)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer selectStmt.Close()
+	err = selectStmt.SelectContext(ctx, &schemas, args)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	articleIDs := make([]int64, len(schemas))
+	for i, s := range schemas {
+		articleIDs[i] = s.ID
+	}
+
+	tagsByArticle, err := r.getTagsForArticles(ctx, articleIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	articles := make([]*domain.Article, len(schemas))
+	for i, s := range schemas {
+		articles[i] = s.toDomain(tagsByArticle[s.ID])
+	}
+
+	return articles, count, nil
+}
+
 func (r *articleRepository) GetFeed(ctx context.Context, userID int64, limit, offset int) ([]*domain.Article, int, error) {
 	query := `
 		SELECT a.id, a.slug, a.title, a.description, a.body, a.fk_author, a.created_at, a.updated_at,
@@ -212,29 +334,9 @@ func (r *articleRepository) GetFeed(ctx context.Context, userID int64, limit, of
 		articleIDs[i] = s.ID
 	}
 
-	queryTags, args, err := sqlx.In(`
-		SELECT tat.article_id, t.tag 
-		FROM tag t
-		JOIN tag_is_article_to_tag tat ON t.id = tat.tag_id
-		WHERE tat.article_id IN (?)
-	`, articleIDs)
+	tagsByArticle, err := r.getTagsForArticles(ctx, articleIDs)
 	if err != nil {
 		return nil, 0, err
-	}
-	queryTags = r.db.Rebind(queryTags)
-
-	type articleTagRow struct {
-		ArticleID int64  `db:"article_id"`
-		Tag       string `db:"tag"`
-	}
-	var tagRows []articleTagRow
-	if err := r.db.SelectContext(ctx, &tagRows, queryTags, args...); err != nil {
-		return nil, 0, err
-	}
-
-	tagsByArticle := make(map[int64][]string)
-	for _, tr := range tagRows {
-		tagsByArticle[tr.ArticleID] = append(tagsByArticle[tr.ArticleID], tr.Tag)
 	}
 
 	articles := make([]*domain.Article, len(schemas))
@@ -315,6 +417,39 @@ func (r *articleRepository) Unfavorite(ctx context.Context, articleID, userID in
 	return err
 }
 
+type articleTagRow struct {
+	ArticleID int64  `db:"article_id"`
+	Tag       string `db:"tag"`
+}
+
+func (r *articleRepository) getTagsForArticles(ctx context.Context, articleIDs []int64) (map[int64][]string, error) {
+	if len(articleIDs) == 0 {
+		return make(map[int64][]string), nil
+	}
+
+	query, args, err := sqlx.In(`
+		SELECT tat.article_id, t.tag 
+		FROM tag t
+		JOIN tag_is_article_to_tag tat ON t.id = tat.tag_id
+		WHERE tat.article_id IN (?)
+	`, articleIDs)
+	if err != nil {
+		return nil, err
+	}
+	query = r.db.Rebind(query)
+
+	var tagRows []articleTagRow
+	if err := r.db.SelectContext(ctx, &tagRows, query, args...); err != nil {
+		return nil, err
+	}
+
+	tagsByArticle := make(map[int64][]string)
+	for _, tr := range tagRows {
+		tagsByArticle[tr.ArticleID] = append(tagsByArticle[tr.ArticleID], tr.Tag)
+	}
+	return tagsByArticle, nil
+}
+
 func (r *articleRepository) findOneBy(ctx context.Context, column string, value any, observerID *int64) (*domain.Article, error) {
 	var schema articleSchema
 	var query string
@@ -356,16 +491,10 @@ func (r *articleRepository) findOneBy(ctx context.Context, column string, value 
 		return nil, err
 	}
 
-	var tags []string
-	err = r.db.SelectContext(ctx, &tags, `
-		SELECT t.tag 
-		FROM tag t
-		JOIN tag_is_article_to_tag tat ON t.id = tat.tag_id
-		WHERE tat.article_id = $1
-	`, schema.ID)
+	tagsMap, err := r.getTagsForArticles(ctx, []int64{schema.ID})
 	if err != nil {
 		return nil, err
 	}
 
-	return schema.toDomain(tags), nil
+	return schema.toDomain(tagsMap[schema.ID]), nil
 }

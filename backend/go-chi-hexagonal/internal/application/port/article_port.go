@@ -47,6 +47,15 @@ type GetArticleQuery struct {
 	ObserverID *int64
 }
 
+type GetArticlesQuery struct {
+	Tag        *string
+	Author     *string
+	Favorited  *string
+	Limit      int
+	Offset     int
+	ObserverID *int64
+}
+
 type GetFeedQuery struct {
 	UserID int64
 	Limit  int
@@ -57,6 +66,7 @@ type GetFeedQuery struct {
 type ArticleService interface {
 	CreateArticle(ctx context.Context, cmd CreateArticleCommand) (*domain.Article, error)
 	GetArticle(ctx context.Context, query GetArticleQuery) (*domain.Article, error)
+	GetArticles(ctx context.Context, query GetArticlesQuery) ([]*domain.Article, int, error)
 	GetFeed(ctx context.Context, query GetFeedQuery) ([]*domain.Article, int, error)
 	UpdateArticle(ctx context.Context, cmd UpdateArticleCommand) (*domain.Article, error)
 	DeleteArticle(ctx context.Context, cmd DeleteArticleCommand) error
@@ -69,6 +79,7 @@ type ArticleRepository interface {
 	Create(ctx context.Context, article *domain.Article, authorID int64) error
 	GetBySlug(ctx context.Context, slug string, observerID *int64) (*domain.Article, error)
 	GetByTitle(ctx context.Context, title string, observerID *int64) (*domain.Article, error)
+	GetArticles(ctx context.Context, params GetArticlesQuery) ([]*domain.Article, int, error)
 	GetFeed(ctx context.Context, userID int64, limit, offset int) ([]*domain.Article, int, error)
 	Update(ctx context.Context, article *domain.Article) error
 	Delete(ctx context.Context, id int64) error

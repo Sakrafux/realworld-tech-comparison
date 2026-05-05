@@ -98,6 +98,27 @@ func TestArticleService_GetArticle(t *testing.T) {
 	})
 }
 
+func TestArticleService_GetArticles(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		artRepo := new(testmocks.MockArticleRepository)
+		svc := NewArticleService(artRepo, nil)
+		expectedArticles := []*domain.Article{{Slug: "test1"}, {Slug: "test2"}}
+		expectedCount := 2
+
+		query := port.GetArticlesQuery{Limit: 20, Offset: 0}
+		artRepo.On("GetArticles", ctx, query).Return(expectedArticles, expectedCount, nil)
+
+		articles, count, err := svc.GetArticles(ctx, query)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedCount, count)
+		assert.Equal(t, expectedArticles, articles)
+		artRepo.AssertExpectations(t)
+	})
+}
+
 func TestArticleService_GetFeed(t *testing.T) {
 	ctx := context.Background()
 

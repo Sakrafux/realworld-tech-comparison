@@ -2,18 +2,24 @@ package persistence
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 
+	"github.com/go-chi/httplog/v2"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTagRepository_FindAll(t *testing.T) {
+	logger := httplog.NewLogger("test", httplog.Options{
+		LogLevel: slog.LevelInfo,
+		Concise:  true,
+	})
 	// Setup in-memory SQLite database
 	cfg := configuration.DatabaseConfig{
 		Type: "sqlite",
 	}
-	db, err := configuration.NewDatabase(cfg)
+	db, err := configuration.NewDatabase(cfg, logger)
 	assert.NoError(t, err)
 	defer db.Close()
 

@@ -7,23 +7,24 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/httplog/v2"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/web"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUserAPI_Integration(t *testing.T) {
-	// 1. SETUP: Use the real bootstrapping logic
 	cfg := &configuration.Config{
 		Database: configuration.DatabaseConfig{Type: "sqlite"},
 		Web:      configuration.WebConfig{CorsAllowedOrigins: []string{"*"}},
 		Security: configuration.SecurityConfig{JWTSecret: "test-secret"},
 	}
-	db, err := configuration.NewDatabase(cfg.Database)
+	logger := httplog.NewLogger("test")
+	db, err := configuration.NewDatabase(cfg.Database, logger)
 	assert.NoError(t, err)
 	defer db.Close()
 
-	router := web.NewApp(cfg, db)
+	router := web.NewApp(cfg, db, logger)
 
 	t.Run("Register success", func(t *testing.T) {
 		regReq := map[string]any{
@@ -143,11 +144,12 @@ func TestUserCurrentAPI_Integration(t *testing.T) {
 		Web:      configuration.WebConfig{CorsAllowedOrigins: []string{"*"}},
 		Security: configuration.SecurityConfig{JWTSecret: "test-secret"},
 	}
-	db, err := configuration.NewDatabase(cfg.Database)
+	logger := httplog.NewLogger("test")
+	db, err := configuration.NewDatabase(cfg.Database, logger)
 	assert.NoError(t, err)
 	defer db.Close()
 
-	router := web.NewApp(cfg, db)
+	router := web.NewApp(cfg, db, logger)
 
 	// 1. Register a user to get a token
 	regReq := map[string]any{

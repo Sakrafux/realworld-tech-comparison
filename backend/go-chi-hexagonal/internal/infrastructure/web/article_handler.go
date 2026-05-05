@@ -115,6 +115,43 @@ func (h *ArticleHandler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 	h.respondWithArticle(w, http.StatusCreated, article)
 }
 
+func (h *ArticleHandler) GetArticles(w http.ResponseWriter, r *http.Request) {
+	var observerID *int64
+	if id, ok := GetUserIDFromContext(r.Context()); ok {
+		observerID = &id
+	}
+
+	limit, offset, err := h.parsePagination(r)
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	query := port.GetArticlesQuery{
+		Limit:      limit,
+		Offset:     offset,
+		ObserverID: observerID,
+	}
+
+	if tag := r.URL.Query().Get("tag"); tag != "" {
+		query.Tag = &tag
+	}
+	if author := r.URL.Query().Get("author"); author != "" {
+		query.Author = &author
+	}
+	if favorited := r.URL.Query().Get("favorited"); favorited != "" {
+		query.Favorited = &favorited
+	}
+
+	articles, count, err := h.articleService.GetArticles(r.Context(), query)
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	h.respondWithMultipleArticles(w, http.StatusOK, articles, count)
+}
+
 func (h *ArticleHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
 	userID, ok := GetUserIDFromContext(r.Context())
 	if !ok {
@@ -122,25 +159,9 @@ func (h *ArticleHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit := 20
-	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil {
-			limit = l
-		}
-	}
-	if limit < 1 {
-		RespondWithError(w, r, domain.NewUnprocessableEntityError("limit must be at least 1"))
-		return
-	}
-
-	offset := 0
-	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
-		if o, err := strconv.Atoi(offsetStr); err == nil {
-			offset = o
-		}
-	}
-	if offset < 0 {
-		RespondWithError(w, r, domain.NewUnprocessableEntityError("offset must be at least 0"))
+	limit, offset, err := h.parsePagination(r)
+	if err != nil {
+		RespondWithError(w, r, err)
 		return
 	}
 
@@ -321,4 +342,31 @@ func (h *ArticleHandler) respondWithMultipleArticles(w http.ResponseWriter, code
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *ArticleHandler) parsePagination(r *http.Request) (int, int, error) {
+	limit := 20
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		l, err := strconv.Atoi(limitStr)
+		if err != nil {
+			return 0, 0, domain.NewUnprocessableEntityError("limit must be a number")
+		}
+		limit = l
+	}
+	if limit < 1 {
+		return 0, 0, domain.NewUnprocessableEntityError("limit must be at least 1")
+	}
+
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		o, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			return 0, 0, domain.NewUnprocessableEntityError("offset must be a number")
+		}
+		offset = o
+	}
+	if offset < 0 {
+		return 0, 0, domain.NewUnprocessableEntityError("offset must be at least 0")
+	}
+	return limit, offset, nil
 }

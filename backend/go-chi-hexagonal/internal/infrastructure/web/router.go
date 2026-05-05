@@ -31,6 +31,7 @@ func NewRouter(
 		r.Group(func(r chi.Router) {
 			r.Use(OptionalAuthMiddleware(userHandler.tokenGenerator))
 			r.Get("/profiles/{username}", profileHandler.GetProfile)
+			r.Get("/articles", articleHandler.GetArticles)
 			r.Get("/articles/{slug}", articleHandler.GetArticle)
 			r.Get("/articles/{slug}/comments", commentHandler.GetComments)
 		})

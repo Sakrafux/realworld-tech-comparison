@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/httplog/v2"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/web"
 	"github.com/stretchr/testify/assert"
@@ -18,11 +19,12 @@ func TestArticleAPI_Integration(t *testing.T) {
 		Web:      configuration.WebConfig{CorsAllowedOrigins: []string{"*"}},
 		Security: configuration.SecurityConfig{JWTSecret: "test-secret"},
 	}
-	db, err := configuration.NewDatabase(cfg.Database)
+	logger := httplog.NewLogger("test")
+	db, err := configuration.NewDatabase(cfg.Database, logger)
 	assert.NoError(t, err)
 	defer db.Close()
 
-	router := web.NewApp(cfg, db)
+	router := web.NewApp(cfg, db, logger)
 
 	// 1. Register a user to get a token
 	regReq := map[string]any{
@@ -153,6 +155,24 @@ func TestArticleAPI_Integration(t *testing.T) {
 		}
 		json.NewDecoder(w.Body).Decode(&resp)
 		assert.Contains(t, resp.Errors.Body[0], "already exists")
+	})
+
+	t.Run("Get articles success", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/articles?tag=dragons", nil)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var resp struct {
+			Articles []struct {
+				Slug string `json:"slug"`
+			} `json:"articles"`
+			ArticlesCount int `json:"articlesCount"`
+		}
+		json.NewDecoder(w.Body).Decode(&resp)
+		assert.Equal(t, 1, resp.ArticlesCount)
+		assert.Len(t, resp.Articles, 1)
+		assert.Equal(t, "how-to-train-your-dragon", resp.Articles[0].Slug)
 	})
 
 	t.Run("Get article success", func(t *testing.T) {

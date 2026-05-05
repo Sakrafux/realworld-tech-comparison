@@ -145,6 +145,76 @@ func TestArticleHandler_GetArticle(t *testing.T) {
 	})
 }
 
+func TestArticleHandler_GetArticles(t *testing.T) {
+	t.Run("success with defaults", func(t *testing.T) {
+		svc := new(testmocks.MockArticleService)
+		h := NewArticleHandler(svc)
+
+		articles := []*domain.Article{{Slug: "test", Title: "Test"}}
+		count := 1
+		svc.On("GetArticles", mock.Anything, port.GetArticlesQuery{Limit: 20, Offset: 0}).Return(articles, count, nil)
+
+		req := httptest.NewRequest("GET", "/api/articles", nil)
+		w := httptest.NewRecorder()
+
+		h.GetArticles(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var resp multipleArticlesResponse
+		json.NewDecoder(w.Body).Decode(&resp)
+		assert.Equal(t, count, resp.ArticlesCount)
+		assert.Len(t, resp.Articles, 1)
+		assert.Equal(t, "test", resp.Articles[0].Slug)
+		svc.AssertExpectations(t)
+	})
+
+	t.Run("success with filters", func(t *testing.T) {
+		svc := new(testmocks.MockArticleService)
+		h := NewArticleHandler(svc)
+
+		tag := "tag1"
+		author := "author1"
+		favorited := "user1"
+		articles := []*domain.Article{{Slug: "test", Title: "Test"}}
+		count := 1
+		svc.On("GetArticles", mock.Anything, port.GetArticlesQuery{
+			Tag:       &tag,
+			Author:    &author,
+			Favorited: &favorited,
+			Limit:     10,
+			Offset:    5,
+		}).Return(articles, count, nil)
+
+		req := httptest.NewRequest("GET", "/api/articles?tag=tag1&author=author1&favorited=user1&limit=10&offset=5", nil)
+		w := httptest.NewRecorder()
+
+		h.GetArticles(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		svc.AssertExpectations(t)
+	})
+
+	t.Run("invalid limit type", func(t *testing.T) {
+		h := NewArticleHandler(nil)
+		req := httptest.NewRequest("GET", "/api/articles?limit=abc", nil)
+		w := httptest.NewRecorder()
+
+		h.GetArticles(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+
+	t.Run("invalid offset type", func(t *testing.T) {
+		h := NewArticleHandler(nil)
+		req := httptest.NewRequest("GET", "/api/articles?offset=abc", nil)
+		w := httptest.NewRecorder()
+
+		h.GetArticles(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+}
+
 func TestArticleHandler_GetFeed(t *testing.T) {
 	t.Run("success with defaults", func(t *testing.T) {
 		svc := new(testmocks.MockArticleService)
@@ -227,5 +297,29 @@ func TestArticleHandler_GetFeed(t *testing.T) {
 		h.GetFeed(w, req)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("invalid limit type", func(t *testing.T) {
+		h := NewArticleHandler(nil)
+		req := httptest.NewRequest("GET", "/api/articles/feed?limit=abc", nil)
+		ctx := context.WithValue(req.Context(), userIDKey, int64(1))
+		req = req.WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		h.GetFeed(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+
+	t.Run("invalid offset type", func(t *testing.T) {
+		h := NewArticleHandler(nil)
+		req := httptest.NewRequest("GET", "/api/articles/feed?offset=abc", nil)
+		ctx := context.WithValue(req.Context(), userIDKey, int64(1))
+		req = req.WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		h.GetFeed(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 	})
 }

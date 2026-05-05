@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/go-chi/httplog/v2"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/web"
 	"github.com/stretchr/testify/assert"
@@ -19,11 +20,12 @@ func TestCommentAPI_Integration(t *testing.T) {
 		Web:      configuration.WebConfig{CorsAllowedOrigins: []string{"*"}},
 		Security: configuration.SecurityConfig{JWTSecret: "test-secret"},
 	}
-	db, err := configuration.NewDatabase(cfg.Database)
+	logger := httplog.NewLogger("test")
+	db, err := configuration.NewDatabase(cfg.Database, logger)
 	assert.NoError(t, err)
 	defer db.Close()
 
-	router := web.NewApp(cfg, db)
+	router := web.NewApp(cfg, db, logger)
 
 	// 1. Register a user
 	regReq := map[string]any{
