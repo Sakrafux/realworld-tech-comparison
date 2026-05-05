@@ -296,6 +296,14 @@ func (m *MockCommentService) CreateComment(ctx context.Context, cmd port.CreateC
 	return args.Get(0).(*domain.Comment), args.Error(1)
 }
 
+func (m *MockCommentService) GetComments(ctx context.Context, slug string, observerID *int64) ([]domain.Comment, error) {
+	args := m.Called(ctx, slug, observerID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]domain.Comment), args.Error(1)
+}
+
 type MockCommentRepository struct {
 	mock.Mock
 }
@@ -303,4 +311,12 @@ type MockCommentRepository struct {
 func (m *MockCommentRepository) Create(ctx context.Context, comment *domain.Comment, articleID, authorID int64) error {
 	args := m.Called(ctx, comment, articleID, authorID)
 	return args.Error(0)
+}
+
+func (m *MockCommentRepository) FindByArticleID(ctx context.Context, articleID int64, observerID *int64) ([]domain.Comment, error) {
+	args := m.Called(ctx, articleID, observerID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]domain.Comment), args.Error(1)
 }

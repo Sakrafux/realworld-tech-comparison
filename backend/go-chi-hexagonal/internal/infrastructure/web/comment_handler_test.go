@@ -51,6 +51,7 @@ func TestCommentHandler_CreateComment(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 		var resp commentResponse
 		json.NewDecoder(w.Body).Decode(&resp)
+
 		assert.Equal(t, comment.Body, resp.Comment.Body)
 		svc.AssertExpectations(t)
 	})
@@ -79,5 +80,38 @@ func TestCommentHandler_CreateComment(t *testing.T) {
 		h.CreateComment(w, req)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+}
+
+func TestCommentHandler_GetComments(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		svc := new(testmocks.MockCommentService)
+		h := NewCommentHandler(svc)
+
+		comments := []domain.Comment{
+			{ID: 1, Body: "Comment 1", Author: domain.Profile{Username: "author1"}},
+			{ID: 2, Body: "Comment 2", Author: domain.Profile{Username: "author2"}},
+		}
+
+		svc.On("GetComments", mock.Anything, "test-article", (*int64)(nil)).Return(comments, nil)
+
+		req := httptest.NewRequest("GET", "/api/articles/test-article/comments", nil)
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("slug", "test-article")
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+		w := httptest.NewRecorder()
+
+		h.GetComments(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var resp struct {
+			Comments []struct {
+				Body string `json:"body"`
+			} `json:"comments"`
+		}
+		json.NewDecoder(w.Body).Decode(&resp)
+		assert.Len(t, resp.Comments, 2)
+		assert.Equal(t, "Comment 1", resp.Comments[0].Body)
 	})
 }

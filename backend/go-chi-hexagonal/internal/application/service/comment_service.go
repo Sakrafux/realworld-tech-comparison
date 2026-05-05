@@ -57,3 +57,20 @@ func (s *commentService) CreateComment(ctx context.Context, cmd port.CreateComme
 
 	return comment, nil
 }
+
+func (s *commentService) GetComments(ctx context.Context, slug string, observerID *int64) ([]domain.Comment, error) {
+	article, err := s.articleRepo.GetBySlug(ctx, slug, observerID)
+	if err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+	if article == nil {
+		return nil, domain.NewResourceNotFound("Article", "slug", slug)
+	}
+
+	comments, err := s.commentRepo.FindByArticleID(ctx, article.ID, observerID)
+	if err != nil {
+		return nil, domain.NewInternalError(err.Error())
+	}
+
+	return comments, nil
+}

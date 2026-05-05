@@ -2,6 +2,8 @@ package persistence
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/application/port"
@@ -43,4 +45,79 @@ func (r *commentRepository) Create(ctx context.Context, comment *domain.Comment,
 	comment.ID = id
 
 	return nil
+}
+
+type commentSchema struct {
+	ID        int64     `db:"id"`
+	Body      string    `db:"body"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	// Joined fields
+	AuthorUsername string         `db:"username"`
+	AuthorBio      string         `db:"bio"`
+	AuthorImage    sql.NullString `db:"image"`
+	Following      bool           `db:"following"`
+}
+
+func (s *commentSchema) toDomain() domain.Comment {
+	var image *string
+	if s.AuthorImage.Valid {
+		image = &s.AuthorImage.String
+	}
+
+	return domain.Comment{
+		ID:        s.ID,
+		Body:      s.Body,
+		CreatedAt: s.CreatedAt,
+		UpdatedAt: s.UpdatedAt,
+		Author: domain.Profile{
+			Username:  s.AuthorUsername,
+			Bio:       s.AuthorBio,
+			Image:     image,
+			Following: s.Following,
+		},
+	}
+}
+
+func (r *commentRepository) FindByArticleID(ctx context.Context, articleID int64, observerID *int64) ([]domain.Comment, error) {
+	var schemas []commentSchema
+	var query string
+	var args []any
+
+	if observerID != nil {
+		query = `
+			SELECT c.id, c.body, c.created_at, c.updated_at,
+			       u.username, u.bio, u.image,
+			       CASE WHEN f.following_user_id IS NOT NULL THEN 1 ELSE 0 END as following
+			FROM comment c
+			JOIN app_user u ON c.fk_author = u.id
+			LEFT JOIN follow_is_user_to_user f ON u.id = f.followed_user_id AND f.following_user_id = $2
+			WHERE c.fk_article = $1
+			ORDER BY c.created_at DESC
+		`
+		args = []any{articleID, *observerID}
+	} else {
+		query = `
+			SELECT c.id, c.body, c.created_at, c.updated_at,
+			       u.username, u.bio, u.image,
+			       0 as following
+			FROM comment c
+			JOIN app_user u ON c.fk_author = u.id
+			WHERE c.fk_article = $1
+			ORDER BY c.created_at DESC
+		`
+		args = []any{articleID}
+	}
+
+	err := r.db.SelectContext(ctx, &schemas, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	comments := make([]domain.Comment, len(schemas))
+	for i, s := range schemas {
+		comments[i] = s.toDomain()
+	}
+
+	return comments, nil
 }

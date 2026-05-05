@@ -72,6 +72,22 @@ func (h *CommentHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	h.respondWithComment(w, http.StatusOK, comment)
 }
 
+func (h *CommentHandler) GetComments(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+	var observerID *int64
+	if id, ok := GetUserIDFromContext(r.Context()); ok {
+		observerID = &id
+	}
+
+	comments, err := h.commentService.GetComments(r.Context(), slug, observerID)
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	h.respondWithComments(w, http.StatusOK, comments)
+}
+
 func (h *CommentHandler) respondWithComment(w http.ResponseWriter, code int, comment *domain.Comment) {
 	var resp commentResponse
 	resp.Comment.ID = comment.ID
@@ -82,6 +98,43 @@ func (h *CommentHandler) respondWithComment(w http.ResponseWriter, code int, com
 	resp.Comment.Author.Bio = comment.Author.Bio
 	resp.Comment.Author.Image = comment.Author.Image
 	resp.Comment.Author.Following = comment.Author.Following
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *CommentHandler) respondWithComments(w http.ResponseWriter, code int, comments []domain.Comment) {
+	type multiCommentResponse struct {
+		Comments []struct {
+			ID        int64       `json:"id"`
+			CreatedAt string      `json:"createdAt"`
+			UpdatedAt string      `json:"updatedAt"`
+			Body      string      `json:"body"`
+			Author    profileData `json:"author"`
+		} `json:"comments"`
+	}
+
+	resp := multiCommentResponse{
+		Comments: make([]struct {
+			ID        int64       `json:"id"`
+			CreatedAt string      `json:"createdAt"`
+			UpdatedAt string      `json:"updatedAt"`
+			Body      string      `json:"body"`
+			Author    profileData `json:"author"`
+		}, len(comments)),
+	}
+
+	for i, c := range comments {
+		resp.Comments[i].ID = c.ID
+		resp.Comments[i].CreatedAt = c.CreatedAt.Format(time.RFC3339)
+		resp.Comments[i].UpdatedAt = c.UpdatedAt.Format(time.RFC3339)
+		resp.Comments[i].Body = c.Body
+		resp.Comments[i].Author.Username = c.Author.Username
+		resp.Comments[i].Author.Bio = c.Author.Bio
+		resp.Comments[i].Author.Image = c.Author.Image
+		resp.Comments[i].Author.Following = c.Author.Following
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)

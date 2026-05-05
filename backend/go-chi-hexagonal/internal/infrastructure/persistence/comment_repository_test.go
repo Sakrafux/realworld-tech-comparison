@@ -54,4 +54,13 @@ func TestCommentRepository(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, count)
 	})
+
+	t.Run("FindByArticleID success", func(t *testing.T) {
+		comments, err := repo.FindByArticleID(ctx, article.ID, nil)
+
+		assert.NoError(t, err)
+		assert.Len(t, comments, 1)
+		assert.Equal(t, "Nice article!", comments[0].Body)
+		assert.Equal(t, user.Username, comments[0].Author.Username)
+	})
 }

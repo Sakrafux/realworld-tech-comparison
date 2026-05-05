@@ -91,6 +91,23 @@ func TestCommentAPI_Integration(t *testing.T) {
 		assert.True(t, resp.Comment.ID > 0)
 	})
 
+	t.Run("Get comments success", func(t *testing.T) {
+		// Article 'commentable-article' already has one comment from the previous test
+		req := httptest.NewRequest("GET", "/api/articles/commentable-article/comments", nil)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var resp struct {
+			Comments []struct {
+				Body string `json:"body"`
+			} `json:"comments"`
+		}
+		json.NewDecoder(w.Body).Decode(&resp)
+		assert.Len(t, resp.Comments, 1)
+		assert.Equal(t, "This is a great article!", resp.Comments[0].Body)
+	})
+
 	t.Run("Create comment article not found", func(t *testing.T) {
 		comReq := map[string]any{
 			"comment": map[string]any{
