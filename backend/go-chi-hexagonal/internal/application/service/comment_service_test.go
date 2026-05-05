@@ -73,7 +73,10 @@ func TestCommentService_GetComments(t *testing.T) {
 		artRepo.On("GetBySlug", ctx, "test-slug", (*int64)(nil)).Return(article, nil)
 		comRepo.On("FindByArticleID", ctx, int64(1), (*int64)(nil)).Return(comments, nil)
 
-		result, err := svc.GetComments(ctx, "test-slug", nil)
+		result, err := svc.GetComments(ctx, port.GetCommentsQuery{
+			Slug:       "test-slug",
+			ObserverID: nil,
+		})
 
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
@@ -86,7 +89,9 @@ func TestCommentService_GetComments(t *testing.T) {
 
 		artRepo.On("GetBySlug", ctx, "invalid", (*int64)(nil)).Return(nil, nil)
 
-		_, err := svc.GetComments(ctx, "invalid", nil)
+		_, err := svc.GetComments(ctx, port.GetCommentsQuery{
+			Slug: "invalid",
+		})
 
 		assert.Error(t, err)
 		assert.Equal(t, domain.TypeNotFound, err.(domain.AppError).Type)

@@ -216,21 +216,21 @@ func (m *MockArticleService) UpdateArticle(ctx context.Context, cmd port.UpdateA
 	return args.Get(0).(*domain.Article), args.Error(1)
 }
 
-func (m *MockArticleService) DeleteArticle(ctx context.Context, slug string, userID int64) error {
-	args := m.Called(ctx, slug, userID)
+func (m *MockArticleService) DeleteArticle(ctx context.Context, cmd port.DeleteArticleCommand) error {
+	args := m.Called(ctx, cmd)
 	return args.Error(0)
 }
 
-func (m *MockArticleService) FavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error) {
-	args := m.Called(ctx, slug, userID)
+func (m *MockArticleService) FavoriteArticle(ctx context.Context, cmd port.FavoriteArticleCommand) (*domain.Article, error) {
+	args := m.Called(ctx, cmd)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.Article), args.Error(1)
 }
 
-func (m *MockArticleService) UnfavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error) {
-	args := m.Called(ctx, slug, userID)
+func (m *MockArticleService) UnfavoriteArticle(ctx context.Context, cmd port.UnfavoriteArticleCommand) (*domain.Article, error) {
+	args := m.Called(ctx, cmd)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -296,8 +296,8 @@ func (m *MockCommentService) CreateComment(ctx context.Context, cmd port.CreateC
 	return args.Get(0).(*domain.Comment), args.Error(1)
 }
 
-func (m *MockCommentService) GetComments(ctx context.Context, slug string, observerID *int64) ([]domain.Comment, error) {
-	args := m.Called(ctx, slug, observerID)
+func (m *MockCommentService) GetComments(ctx context.Context, query port.GetCommentsQuery) ([]domain.Comment, error) {
+	args := m.Called(ctx, query)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

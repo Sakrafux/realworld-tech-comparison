@@ -79,7 +79,10 @@ func (h *CommentHandler) GetComments(w http.ResponseWriter, r *http.Request) {
 		observerID = &id
 	}
 
-	comments, err := h.commentService.GetComments(r.Context(), slug, observerID)
+	comments, err := h.commentService.GetComments(r.Context(), port.GetCommentsQuery{
+		Slug:       slug,
+		ObserverID: observerID,
+	})
 	if err != nil {
 		RespondWithError(w, r, err)
 		return

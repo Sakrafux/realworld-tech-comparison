@@ -184,7 +184,10 @@ func TestArticleService_DeleteArticle(t *testing.T) {
 		userRepo.On("FindByUsername", ctx, "author").Return(author, nil)
 		artRepo.On("Delete", ctx, int64(1)).Return(nil)
 
-		err := svc.DeleteArticle(ctx, "test", 1)
+		err := svc.DeleteArticle(ctx, port.DeleteArticleCommand{
+			Slug:   "test",
+			UserID: 1,
+		})
 
 		assert.NoError(t, err)
 		artRepo.AssertExpectations(t)
@@ -207,7 +210,10 @@ func TestArticleService_DeleteArticle(t *testing.T) {
 		artRepo.On("GetBySlug", ctx, "test", mock.Anything).Return(article, nil)
 		userRepo.On("FindByUsername", ctx, "author").Return(user, nil)
 
-		err := svc.DeleteArticle(ctx, "test", 2) // Different user
+		err := svc.DeleteArticle(ctx, port.DeleteArticleCommand{
+			Slug:   "test",
+			UserID: 2, // Different user
+		})
 
 		assert.Error(t, err)
 		assert.Equal(t, domain.TypeForbidden, err.(domain.AppError).Type)
@@ -228,7 +234,10 @@ func TestArticleService_FavoriteArticle(t *testing.T) {
 		favoritedArticle := &domain.Article{ID: 1, Slug: "test", Favorited: true, FavoritesCount: 1}
 		artRepo.On("GetBySlug", ctx, "test", mock.Anything).Return(favoritedArticle, nil).Once()
 
-		result, err := svc.FavoriteArticle(ctx, "test", 10)
+		result, err := svc.FavoriteArticle(ctx, port.FavoriteArticleCommand{
+			Slug:   "test",
+			UserID: 10,
+		})
 
 		assert.NoError(t, err)
 		assert.True(t, result.Favorited)

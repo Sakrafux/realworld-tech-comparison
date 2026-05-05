@@ -13,10 +13,15 @@ type CreateCommentCommand struct {
 	Body     string
 }
 
+type GetCommentsQuery struct {
+	Slug       string
+	ObserverID *int64
+}
+
 // CommentService defines the inbound port for comment-related use cases.
 type CommentService interface {
 	CreateComment(ctx context.Context, cmd CreateCommentCommand) (*domain.Comment, error)
-	GetComments(ctx context.Context, slug string, observerID *int64) ([]domain.Comment, error)
+	GetComments(ctx context.Context, query GetCommentsQuery) ([]domain.Comment, error)
 }
 
 // CommentRepository defines the outbound port for comment data persistence.

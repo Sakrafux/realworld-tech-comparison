@@ -170,7 +170,10 @@ func (h *ArticleHandler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 
 	slug := chi.URLParam(r, "slug")
 
-	err := h.articleService.DeleteArticle(r.Context(), slug, userID)
+	err := h.articleService.DeleteArticle(r.Context(), port.DeleteArticleCommand{
+		Slug:   slug,
+		UserID: userID,
+	})
 	if err != nil {
 		RespondWithError(w, r, err)
 		return
@@ -188,7 +191,10 @@ func (h *ArticleHandler) FavoriteArticle(w http.ResponseWriter, r *http.Request)
 
 	slug := chi.URLParam(r, "slug")
 
-	article, err := h.articleService.FavoriteArticle(r.Context(), slug, userID)
+	article, err := h.articleService.FavoriteArticle(r.Context(), port.FavoriteArticleCommand{
+		Slug:   slug,
+		UserID: userID,
+	})
 	if err != nil {
 		RespondWithError(w, r, err)
 		return
@@ -206,7 +212,10 @@ func (h *ArticleHandler) UnfavoriteArticle(w http.ResponseWriter, r *http.Reques
 
 	slug := chi.URLParam(r, "slug")
 
-	article, err := h.articleService.UnfavoriteArticle(r.Context(), slug, userID)
+	article, err := h.articleService.UnfavoriteArticle(r.Context(), port.UnfavoriteArticleCommand{
+		Slug:   slug,
+		UserID: userID,
+	})
 	if err != nil {
 		RespondWithError(w, r, err)
 		return

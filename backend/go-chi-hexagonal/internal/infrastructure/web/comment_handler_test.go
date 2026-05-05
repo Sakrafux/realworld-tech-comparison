@@ -93,7 +93,10 @@ func TestCommentHandler_GetComments(t *testing.T) {
 			{ID: 2, Body: "Comment 2", Author: domain.Profile{Username: "author2"}},
 		}
 
-		svc.On("GetComments", mock.Anything, "test-article", (*int64)(nil)).Return(comments, nil)
+		svc.On("GetComments", mock.Anything, port.GetCommentsQuery{
+			Slug:       "test-article",
+			ObserverID: nil,
+		}).Return(comments, nil)
 
 		req := httptest.NewRequest("GET", "/api/articles/test-article/comments", nil)
 		rctx := chi.NewRouteContext()

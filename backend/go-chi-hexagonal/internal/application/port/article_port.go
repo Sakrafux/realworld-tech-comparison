@@ -24,6 +24,24 @@ type UpdateArticleCommand struct {
 	Body        *string
 }
 
+// DeleteArticleCommand represents the data needed to delete an article.
+type DeleteArticleCommand struct {
+	Slug   string
+	UserID int64
+}
+
+// FavoriteArticleCommand represents the data needed to favorite an article.
+type FavoriteArticleCommand struct {
+	Slug   string
+	UserID int64
+}
+
+// UnfavoriteArticleCommand represents the data needed to unfavorite an article.
+type UnfavoriteArticleCommand struct {
+	Slug   string
+	UserID int64
+}
+
 type GetArticleQuery struct {
 	Slug       string
 	ObserverID *int64
@@ -34,9 +52,9 @@ type ArticleService interface {
 	CreateArticle(ctx context.Context, cmd CreateArticleCommand) (*domain.Article, error)
 	GetArticle(ctx context.Context, query GetArticleQuery) (*domain.Article, error)
 	UpdateArticle(ctx context.Context, cmd UpdateArticleCommand) (*domain.Article, error)
-	DeleteArticle(ctx context.Context, slug string, userID int64) error
-	FavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error)
-	UnfavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error)
+	DeleteArticle(ctx context.Context, cmd DeleteArticleCommand) error
+	FavoriteArticle(ctx context.Context, cmd FavoriteArticleCommand) (*domain.Article, error)
+	UnfavoriteArticle(ctx context.Context, cmd UnfavoriteArticleCommand) (*domain.Article, error)
 }
 
 // ArticleRepository defines the outbound port for article data persistence.

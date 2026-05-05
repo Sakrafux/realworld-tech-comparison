@@ -138,20 +138,20 @@ func (s *articleService) UpdateArticle(ctx context.Context, cmd port.UpdateArtic
 	return article, nil
 }
 
-func (s *articleService) DeleteArticle(ctx context.Context, slug string, userID int64) error {
-	article, err := s.articleRepo.GetBySlug(ctx, slug, &userID)
+func (s *articleService) DeleteArticle(ctx context.Context, cmd port.DeleteArticleCommand) error {
+	article, err := s.articleRepo.GetBySlug(ctx, cmd.Slug, &cmd.UserID)
 	if err != nil {
 		return domain.NewInternalError(err.Error())
 	}
 	if article == nil {
-		return domain.NewResourceNotFound("Article", "slug", slug)
+		return domain.NewResourceNotFound("Article", "slug", cmd.Slug)
 	}
 
 	author, err := s.userRepo.FindByUsername(ctx, article.Author.Username)
 	if err != nil {
 		return domain.NewInternalError(err.Error())
 	}
-	if author == nil || author.ID != userID {
+	if author == nil || author.ID != cmd.UserID {
 		return domain.NewForbiddenError("you are not the author of this article")
 	}
 
@@ -162,34 +162,34 @@ func (s *articleService) DeleteArticle(ctx context.Context, slug string, userID 
 	return nil
 }
 
-func (s *articleService) FavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error) {
-	article, err := s.articleRepo.GetBySlug(ctx, slug, &userID)
+func (s *articleService) FavoriteArticle(ctx context.Context, cmd port.FavoriteArticleCommand) (*domain.Article, error) {
+	article, err := s.articleRepo.GetBySlug(ctx, cmd.Slug, &cmd.UserID)
 	if err != nil {
 		return nil, domain.NewInternalError(err.Error())
 	}
 	if article == nil {
-		return nil, domain.NewResourceNotFound("Article", "slug", slug)
+		return nil, domain.NewResourceNotFound("Article", "slug", cmd.Slug)
 	}
 
-	if err := s.articleRepo.Favorite(ctx, article.ID, userID); err != nil {
+	if err := s.articleRepo.Favorite(ctx, article.ID, cmd.UserID); err != nil {
 		return nil, domain.NewInternalError(err.Error())
 	}
 
-	return s.articleRepo.GetBySlug(ctx, slug, &userID)
+	return s.articleRepo.GetBySlug(ctx, cmd.Slug, &cmd.UserID)
 }
 
-func (s *articleService) UnfavoriteArticle(ctx context.Context, slug string, userID int64) (*domain.Article, error) {
-	article, err := s.articleRepo.GetBySlug(ctx, slug, &userID)
+func (s *articleService) UnfavoriteArticle(ctx context.Context, cmd port.UnfavoriteArticleCommand) (*domain.Article, error) {
+	article, err := s.articleRepo.GetBySlug(ctx, cmd.Slug, &cmd.UserID)
 	if err != nil {
 		return nil, domain.NewInternalError(err.Error())
 	}
 	if article == nil {
-		return nil, domain.NewResourceNotFound("Article", "slug", slug)
+		return nil, domain.NewResourceNotFound("Article", "slug", cmd.Slug)
 	}
 
-	if err := s.articleRepo.Unfavorite(ctx, article.ID, userID); err != nil {
+	if err := s.articleRepo.Unfavorite(ctx, article.ID, cmd.UserID); err != nil {
 		return nil, domain.NewInternalError(err.Error())
 	}
 
-	return s.articleRepo.GetBySlug(ctx, slug, &userID)
+	return s.articleRepo.GetBySlug(ctx, cmd.Slug, &cmd.UserID)
 }
