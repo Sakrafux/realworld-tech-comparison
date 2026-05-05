@@ -203,19 +203,43 @@ func (r *articleRepository) GetFeed(ctx context.Context, userID int64, limit, of
 		return nil, 0, err
 	}
 
+	if len(schemas) == 0 {
+		return []*domain.Article{}, count, nil
+	}
+
+	articleIDs := make([]int64, len(schemas))
+	for i, s := range schemas {
+		articleIDs[i] = s.ID
+	}
+
+	queryTags, args, err := sqlx.In(`
+		SELECT tat.article_id, t.tag 
+		FROM tag t
+		JOIN tag_is_article_to_tag tat ON t.id = tat.tag_id
+		WHERE tat.article_id IN (?)
+	`, articleIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+	queryTags = r.db.Rebind(queryTags)
+
+	type articleTagRow struct {
+		ArticleID int64  `db:"article_id"`
+		Tag       string `db:"tag"`
+	}
+	var tagRows []articleTagRow
+	if err := r.db.SelectContext(ctx, &tagRows, queryTags, args...); err != nil {
+		return nil, 0, err
+	}
+
+	tagsByArticle := make(map[int64][]string)
+	for _, tr := range tagRows {
+		tagsByArticle[tr.ArticleID] = append(tagsByArticle[tr.ArticleID], tr.Tag)
+	}
+
 	articles := make([]*domain.Article, len(schemas))
 	for i, s := range schemas {
-		var tags []string
-		err = r.db.SelectContext(ctx, &tags, `
-			SELECT t.tag 
-			FROM tag t
-			JOIN tag_is_article_to_tag tat ON t.id = tat.tag_id
-			WHERE tat.article_id = $1
-		`, s.ID)
-		if err != nil {
-			return nil, 0, err
-		}
-		articles[i] = s.toDomain(tags)
+		articles[i] = s.toDomain(tagsByArticle[s.ID])
 	}
 
 	return articles, count, nil
