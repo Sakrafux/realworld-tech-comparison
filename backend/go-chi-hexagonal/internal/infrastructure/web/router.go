@@ -40,6 +40,7 @@ func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler 
 			r.Post("/articles/{slug}/favorite", articleHandler.FavoriteArticle)
 			r.Delete("/articles/{slug}/favorite", articleHandler.UnfavoriteArticle)
 			r.Post("/articles/{slug}/comments", commentHandler.CreateComment)
+			r.Delete("/articles/{slug}/comments/{id}", commentHandler.DeleteComment)
 		})
 	})
 

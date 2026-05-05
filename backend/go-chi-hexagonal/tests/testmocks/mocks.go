@@ -304,6 +304,11 @@ func (m *MockCommentService) GetComments(ctx context.Context, query port.GetComm
 	return args.Get(0).([]domain.Comment), args.Error(1)
 }
 
+func (m *MockCommentService) DeleteComment(ctx context.Context, cmd port.DeleteCommentCommand) error {
+	args := m.Called(ctx, cmd)
+	return args.Error(0)
+}
+
 type MockCommentRepository struct {
 	mock.Mock
 }
@@ -319,4 +324,17 @@ func (m *MockCommentRepository) FindByArticleID(ctx context.Context, articleID i
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]domain.Comment), args.Error(1)
+}
+
+func (m *MockCommentRepository) GetByID(ctx context.Context, id int64) (*domain.Comment, int64, int64, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, 0, 0, args.Error(3)
+	}
+	return args.Get(0).(*domain.Comment), args.Get(1).(int64), args.Get(2).(int64), args.Error(3)
+}
+
+func (m *MockCommentRepository) Delete(ctx context.Context, id int64) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
 }

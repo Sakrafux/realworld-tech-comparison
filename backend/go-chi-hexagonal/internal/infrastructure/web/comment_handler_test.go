@@ -118,3 +118,63 @@ func TestCommentHandler_GetComments(t *testing.T) {
 		assert.Equal(t, "Comment 1", resp.Comments[0].Body)
 	})
 }
+
+func TestCommentHandler_DeleteComment(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		svc := new(testmocks.MockCommentService)
+		h := NewCommentHandler(svc)
+
+		svc.On("DeleteComment", mock.Anything, port.DeleteCommentCommand{
+			Slug:      "test-article",
+			CommentID: 10,
+			UserID:    1,
+		}).Return(nil)
+
+		req := httptest.NewRequest("DELETE", "/api/articles/test-article/comments/10", nil)
+
+		// Setup context
+		ctx := context.WithValue(req.Context(), userIDKey, int64(1))
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("slug", "test-article")
+		rctx.URLParams.Add("id", "10")
+		ctx = context.WithValue(ctx, chi.RouteCtxKey, rctx)
+		req = req.WithContext(ctx)
+
+		w := httptest.NewRecorder()
+
+		h.DeleteComment(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		svc.AssertExpectations(t)
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		h := NewCommentHandler(nil)
+
+		req := httptest.NewRequest("DELETE", "/api/articles/test-article/comments/abc", nil)
+
+		// Setup context
+		ctx := context.WithValue(req.Context(), userIDKey, int64(1))
+		rctx := chi.NewRouteContext()
+		rctx.URLParams.Add("slug", "test-article")
+		rctx.URLParams.Add("id", "abc")
+		ctx = context.WithValue(ctx, chi.RouteCtxKey, rctx)
+		req = req.WithContext(ctx)
+
+		w := httptest.NewRecorder()
+
+		h.DeleteComment(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+
+	t.Run("unauthorized", func(t *testing.T) {
+		h := NewCommentHandler(nil)
+		req := httptest.NewRequest("DELETE", "/api/articles/test-article/comments/10", nil)
+		w := httptest.NewRecorder()
+
+		h.DeleteComment(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+}

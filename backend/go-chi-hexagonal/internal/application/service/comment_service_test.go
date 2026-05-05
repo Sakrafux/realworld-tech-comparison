@@ -97,3 +97,72 @@ func TestCommentService_GetComments(t *testing.T) {
 		assert.Equal(t, domain.TypeNotFound, err.(domain.AppError).Type)
 	})
 }
+
+func TestCommentService_DeleteComment(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("success", func(t *testing.T) {
+		comRepo := new(testmocks.MockCommentRepository)
+		artRepo := new(testmocks.MockArticleRepository)
+		svc := NewCommentService(comRepo, artRepo, nil)
+
+		article := &domain.Article{ID: 1, Slug: "test-slug"}
+		comment := &domain.Comment{ID: 10}
+
+		artRepo.On("GetBySlug", ctx, "test-slug", (*int64)(nil)).Return(article, nil)
+		comRepo.On("GetByID", ctx, int64(10)).Return(comment, int64(1), int64(100), nil)
+		comRepo.On("Delete", ctx, int64(10)).Return(nil)
+
+		err := svc.DeleteComment(ctx, port.DeleteCommentCommand{
+			Slug:      "test-slug",
+			CommentID: 10,
+			UserID:    100,
+		})
+
+		assert.NoError(t, err)
+		artRepo.AssertExpectations(t)
+		comRepo.AssertExpectations(t)
+	})
+
+	t.Run("unauthorized", func(t *testing.T) {
+		comRepo := new(testmocks.MockCommentRepository)
+		artRepo := new(testmocks.MockArticleRepository)
+		svc := NewCommentService(comRepo, artRepo, nil)
+
+		article := &domain.Article{ID: 1, Slug: "test-slug"}
+		comment := &domain.Comment{ID: 10}
+
+		artRepo.On("GetBySlug", ctx, "test-slug", (*int64)(nil)).Return(article, nil)
+		comRepo.On("GetByID", ctx, int64(10)).Return(comment, int64(1), int64(200), nil)
+
+		err := svc.DeleteComment(ctx, port.DeleteCommentCommand{
+			Slug:      "test-slug",
+			CommentID: 10,
+			UserID:    100, // Different user
+		})
+
+		assert.Error(t, err)
+		assert.Equal(t, domain.TypeUnauthorized, err.(domain.AppError).Type)
+	})
+
+	t.Run("article mismatch", func(t *testing.T) {
+		comRepo := new(testmocks.MockCommentRepository)
+		artRepo := new(testmocks.MockArticleRepository)
+		svc := NewCommentService(comRepo, artRepo, nil)
+
+		article := &domain.Article{ID: 1, Slug: "test-slug"}
+		comment := &domain.Comment{ID: 10}
+
+		artRepo.On("GetBySlug", ctx, "test-slug", (*int64)(nil)).Return(article, nil)
+		comRepo.On("GetByID", ctx, int64(10)).Return(comment, int64(2), int64(100), nil) // Different article ID
+
+		err := svc.DeleteComment(ctx, port.DeleteCommentCommand{
+			Slug:      "test-slug",
+			CommentID: 10,
+			UserID:    100,
+		})
+
+		assert.Error(t, err)
+		assert.Equal(t, domain.TypeNotFound, err.(domain.AppError).Type)
+	})
+}

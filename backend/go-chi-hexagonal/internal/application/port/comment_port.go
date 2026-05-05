@@ -13,6 +13,13 @@ type CreateCommentCommand struct {
 	Body     string
 }
 
+// DeleteCommentCommand represents the data needed to delete a comment.
+type DeleteCommentCommand struct {
+	Slug      string
+	CommentID int64
+	UserID    int64
+}
+
 type GetCommentsQuery struct {
 	Slug       string
 	ObserverID *int64
@@ -22,10 +29,13 @@ type GetCommentsQuery struct {
 type CommentService interface {
 	CreateComment(ctx context.Context, cmd CreateCommentCommand) (*domain.Comment, error)
 	GetComments(ctx context.Context, query GetCommentsQuery) ([]domain.Comment, error)
+	DeleteComment(ctx context.Context, cmd DeleteCommentCommand) error
 }
 
 // CommentRepository defines the outbound port for comment data persistence.
 type CommentRepository interface {
 	Create(ctx context.Context, comment *domain.Comment, articleID, authorID int64) error
 	FindByArticleID(ctx context.Context, articleID int64, observerID *int64) ([]domain.Comment, error)
+	GetByID(ctx context.Context, id int64) (*domain.Comment, int64, int64, error)
+	Delete(ctx context.Context, id int64) error
 }

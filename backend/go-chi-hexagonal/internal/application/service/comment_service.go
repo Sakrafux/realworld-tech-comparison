@@ -74,3 +74,35 @@ func (s *commentService) GetComments(ctx context.Context, query port.GetComments
 
 	return comments, nil
 }
+
+func (s *commentService) DeleteComment(ctx context.Context, cmd port.DeleteCommentCommand) error {
+	article, err := s.articleRepo.GetBySlug(ctx, cmd.Slug, nil)
+	if err != nil {
+		return domain.NewInternalError(err.Error())
+	}
+	if article == nil {
+		return domain.NewResourceNotFound("Article", "slug", cmd.Slug)
+	}
+
+	comment, articleID, authorID, err := s.commentRepo.GetByID(ctx, cmd.CommentID)
+	if err != nil {
+		return domain.NewInternalError(err.Error())
+	}
+	if comment == nil {
+		return domain.NewResourceNotFound("Comment", "id", cmd.CommentID)
+	}
+
+	if articleID != article.ID {
+		return domain.NewResourceNotFound("Comment", "id", cmd.CommentID)
+	}
+
+	if authorID != cmd.UserID {
+		return domain.NewUnauthorizedError("user is not the author of the comment")
+	}
+
+	if err := s.commentRepo.Delete(ctx, cmd.CommentID); err != nil {
+		return domain.NewInternalError(err.Error())
+	}
+
+	return nil
+}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
@@ -135,5 +136,50 @@ func TestCommentAPI_Integration(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("Delete comment success", func(t *testing.T) {
+		// First create a comment to delete
+		comReq := map[string]any{
+			"comment": map[string]any{
+				"body": "To be deleted",
+			},
+		}
+		body, _ := json.Marshal(comReq)
+		reqCreate := httptest.NewRequest("POST", "/api/articles/commentable-article/comments", bytes.NewBuffer(body))
+		reqCreate.Header.Set("Authorization", "Token "+token)
+		wCreate := httptest.NewRecorder()
+		router.ServeHTTP(wCreate, reqCreate)
+		assert.Equal(t, http.StatusOK, wCreate.Code)
+
+		var respCreate struct {
+			Comment struct {
+				ID int64 `json:"id"`
+			} `json:"comment"`
+		}
+		json.NewDecoder(wCreate.Body).Decode(&respCreate)
+		commentID := respCreate.Comment.ID
+
+		// Now delete it
+		reqDelete := httptest.NewRequest("DELETE", "/api/articles/commentable-article/comments/"+strconv.FormatInt(commentID, 10), nil)
+		reqDelete.Header.Set("Authorization", "Token "+token)
+		wDelete := httptest.NewRecorder()
+		router.ServeHTTP(wDelete, reqDelete)
+
+		assert.Equal(t, http.StatusOK, wDelete.Code)
+
+		// Verify it's gone
+		reqGet := httptest.NewRequest("GET", "/api/articles/commentable-article/comments", nil)
+		wGet := httptest.NewRecorder()
+		router.ServeHTTP(wGet, reqGet)
+		var respGet struct {
+			Comments []struct {
+				ID int64 `json:"id"`
+			} `json:"comments"`
+		}
+		json.NewDecoder(wGet.Body).Decode(&respGet)
+		for _, c := range respGet.Comments {
+			assert.NotEqual(t, commentID, c.ID)
+		}
 	})
 }

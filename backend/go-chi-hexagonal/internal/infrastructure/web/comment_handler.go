@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -89,6 +90,34 @@ func (h *CommentHandler) GetComments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.respondWithComments(w, http.StatusOK, comments)
+}
+
+func (h *CommentHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	userID, ok := GetUserIDFromContext(r.Context())
+	if !ok {
+		RespondWithError(w, r, domain.NewUnauthorizedError("user not found in context"))
+		return
+	}
+
+	slug := chi.URLParam(r, "slug")
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		RespondWithError(w, r, domain.NewUnprocessableEntityError("invalid comment id"))
+		return
+	}
+
+	err = h.commentService.DeleteComment(r.Context(), port.DeleteCommentCommand{
+		Slug:      slug,
+		CommentID: id,
+		UserID:    userID,
+	})
+	if err != nil {
+		RespondWithError(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *CommentHandler) respondWithComment(w http.ResponseWriter, code int, comment *domain.Comment) {

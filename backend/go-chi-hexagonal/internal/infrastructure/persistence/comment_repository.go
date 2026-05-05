@@ -52,6 +52,8 @@ type commentSchema struct {
 	Body      string    `db:"body"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	ArticleID int64     `db:"fk_article"`
+	AuthorID  int64     `db:"fk_author"`
 	// Joined fields
 	AuthorUsername string         `db:"username"`
 	AuthorBio      string         `db:"bio"`
@@ -79,6 +81,34 @@ func (s *commentSchema) toDomain() domain.Comment {
 	}
 }
 
+func (r *commentRepository) GetByID(ctx context.Context, id int64) (*domain.Comment, int64, int64, error) {
+	var schema commentSchema
+	query := `
+		SELECT c.id, c.body, c.created_at, c.updated_at, c.fk_article, c.fk_author,
+		       u.username, u.bio, u.image,
+		       0 as following
+		FROM comment c
+		JOIN app_user u ON c.fk_author = u.id
+		WHERE c.id = $1
+	`
+	err := r.db.GetContext(ctx, &schema, query, id)
+	if err == sql.ErrNoRows {
+		return nil, 0, 0, nil
+	}
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	comment := schema.toDomain()
+	return &comment, schema.ArticleID, schema.AuthorID, nil
+}
+
+func (r *commentRepository) Delete(ctx context.Context, id int64) error {
+	query := `DELETE FROM comment WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, id)
+	return err
+}
+
 func (r *commentRepository) FindByArticleID(ctx context.Context, articleID int64, observerID *int64) ([]domain.Comment, error) {
 	var schemas []commentSchema
 	var query string
@@ -86,7 +116,7 @@ func (r *commentRepository) FindByArticleID(ctx context.Context, articleID int64
 
 	if observerID != nil {
 		query = `
-			SELECT c.id, c.body, c.created_at, c.updated_at,
+			SELECT c.id, c.body, c.created_at, c.updated_at, c.fk_article, c.fk_author,
 			       u.username, u.bio, u.image,
 			       CASE WHEN f.following_user_id IS NOT NULL THEN 1 ELSE 0 END as following
 			FROM comment c
@@ -98,7 +128,7 @@ func (r *commentRepository) FindByArticleID(ctx context.Context, articleID int64
 		args = []any{articleID, *observerID}
 	} else {
 		query = `
-			SELECT c.id, c.body, c.created_at, c.updated_at,
+			SELECT c.id, c.body, c.created_at, c.updated_at, c.fk_article, c.fk_author,
 			       u.username, u.bio, u.image,
 			       0 as following
 			FROM comment c
