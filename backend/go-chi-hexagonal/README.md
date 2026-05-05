@@ -62,3 +62,26 @@ For local development and unit/integration tests, this project supports an in-me
 - This single-connection restriction impacts performance and concurrency.
 - **Load Testing:** Do NOT use the local SQLite setup for load tests or performance comparisons.
 - **Environment Parity:** For meaningful performance benchmarks or production-like testing, use the provided Docker setup with a **PostgreSQL** database. This ensures a realistic multi-connection environment comparable to other implementations.
+
+## Performance
+
+![performance.png](performance.png)
+
+### API test suite
+
+- On startup: 
+- After 10 warm-up runs: 
+- After load test: 
+
+### Load test suite
+
+#### Light load (10 VUs / 30s)
+
+
+
+#### Medium load (50 VUs / 1m)
+
+
+
+#### Heavy load (200 VUs / 3m)
+

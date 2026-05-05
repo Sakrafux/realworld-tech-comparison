@@ -24,6 +24,7 @@ func (r *commentRepository) Create(ctx context.Context, comment *domain.Comment,
 	query := `
 		INSERT INTO comment (body, fk_article, fk_author, created_at, updated_at)
 		VALUES (:body, :fk_article, :fk_author, :created_at, :updated_at)
+		RETURNING id
 	`
 	arg := map[string]any{
 		"body":       comment.Body,
@@ -33,12 +34,14 @@ func (r *commentRepository) Create(ctx context.Context, comment *domain.Comment,
 		"updated_at": comment.UpdatedAt,
 	}
 
-	result, err := r.db.NamedExecContext(ctx, query, arg)
+	var id int64
+	stmt, err := r.db.PrepareNamedContext(ctx, query)
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
-	id, err := result.LastInsertId()
+	err = stmt.GetContext(ctx, &id, arg)
 	if err != nil {
 		return err
 	}

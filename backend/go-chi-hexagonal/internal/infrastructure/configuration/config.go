@@ -10,6 +10,7 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
+	// Type is 'sqlite' or 'postgres'
 	Type     string
 	Host     string
 	Port     string

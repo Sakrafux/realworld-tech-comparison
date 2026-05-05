@@ -52,6 +52,7 @@ func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
 	query := `
 		INSERT INTO app_user (username, email, password, bio, image)
 		VALUES (:username, :email, :password, :bio, :image)
+		RETURNING id
 	`
 	var image sql.NullString
 	if user.Image != nil {
@@ -66,15 +67,18 @@ func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
 		"image":    image,
 	}
 
-	result, err := r.db.NamedExecContext(ctx, query, arg)
+	var id int64
+	stmt, err := r.db.PrepareNamedContext(ctx, query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	err = stmt.GetContext(ctx, &id, arg)
 	if err != nil {
 		return err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
 	user.ID = id
 	return nil
 }

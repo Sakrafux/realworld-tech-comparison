@@ -1,44 +1,52 @@
+CREATE SEQUENCE seq_user_id START 1 INCREMENT 1 MINVALUE 1;
 CREATE TABLE "app_user" (
-  "id" bigint PRIMARY KEY,
+  "id" bigint PRIMARY KEY DEFAULT nextval('seq_user_id'),
   "username" varchar(50) UNIQUE NOT NULL,
   "email" varchar(100) UNIQUE NOT NULL,
   "password" varchar(60) NOT NULL,
   "bio" varchar(255) NOT NULL,
   "image" varchar(255),
-  "created_at" timestamp,
-  "updated_at" timestamp,
-  "version" integer
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "version" integer DEFAULT 1
 );
+ALTER SEQUENCE seq_user_id OWNED BY app_user.id;
 
+CREATE SEQUENCE seq_article_id START 1 INCREMENT 1 MINVALUE 1;
 CREATE TABLE "article" (
-  "id" bigint PRIMARY KEY,
+  "id" bigint PRIMARY KEY DEFAULT nextval('seq_article_id'),
   "slug" varchar(100) UNIQUE NOT NULL,
   "title" varchar(100) UNIQUE NOT NULL,
   "description" varchar(255) NOT NULL,
   "body" text NOT NULL,
   "fk_author" bigint NOT NULL,
-  "created_at" timestamp,
-  "updated_at" timestamp,
-  "version" integer
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "version" integer DEFAULT 1
 );
+ALTER SEQUENCE seq_article_id OWNED BY article.id;
 
+CREATE SEQUENCE seq_comment_id START 1 INCREMENT 1 MINVALUE 1;
 CREATE TABLE "comment" (
-  "id" bigint PRIMARY KEY,
+  "id" bigint PRIMARY KEY DEFAULT nextval('seq_comment_id'),
   "body" text NOT NULL,
   "fk_article" bigint NOT NULL,
   "fk_author" bigint NOT NULL,
-  "created_at" timestamp,
-  "updated_at" timestamp,
-  "version" integer
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "version" integer DEFAULT 1
 );
+ALTER SEQUENCE seq_comment_id OWNED BY comment.id;
 
+CREATE SEQUENCE seq_tag_id START 1 INCREMENT 1 MINVALUE 1;
 CREATE TABLE "tag" (
-  "id" bigint PRIMARY KEY,
+  "id" bigint PRIMARY KEY DEFAULT nextval('seq_tag_id'),
   "tag" varchar(20) UNIQUE NOT NULL,
-  "created_at" timestamp,
-  "updated_at" timestamp,
-  "version" integer
+  "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "version" integer DEFAULT 1
 );
+ALTER SEQUENCE seq_tag_id OWNED BY tag.id;
 
 CREATE TABLE "follow_is_user_to_user" (
   "following_user_id" bigint,
@@ -89,27 +97,3 @@ ALTER TABLE "tag_is_article_to_tag" ADD FOREIGN KEY ("tag_id") REFERENCES "tag" 
 ALTER TABLE "favorite_is_article_to_user" ADD FOREIGN KEY ("article_id") REFERENCES "article" ("id");
 
 ALTER TABLE "favorite_is_article_to_user" ADD FOREIGN KEY ("user_id") REFERENCES "app_user" ("id");
-
-CREATE SEQUENCE seq_user_id
-    START 1
-    INCREMENT 1
-    MINVALUE 1
-    OWNED BY app_user.id;
-
-CREATE SEQUENCE seq_article_id
-    START 1
-    INCREMENT 1
-    MINVALUE 1
-    OWNED BY article.id;
-
-CREATE SEQUENCE seq_comment_id
-    START 1
-    INCREMENT 1
-    MINVALUE 1
-    OWNED BY comment.id;
-
-CREATE SEQUENCE seq_tag_id
-    START 1
-    INCREMENT 1
-    MINVALUE 1
-    OWNED BY tag.id;

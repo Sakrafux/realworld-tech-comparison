@@ -75,6 +75,7 @@ func (r *articleRepository) Create(ctx context.Context, article *domain.Article,
 	query := `
 		INSERT INTO article (slug, title, description, body, fk_author, created_at, updated_at)
 		VALUES (:slug, :title, :description, :body, :fk_author, :created_at, :updated_at)
+		RETURNING id
 	`
 	arg := map[string]any{
 		"slug":        article.Slug,
@@ -86,12 +87,14 @@ func (r *articleRepository) Create(ctx context.Context, article *domain.Article,
 		"updated_at":  article.UpdatedAt,
 	}
 
-	result, err := tx.NamedExecContext(ctx, query, arg)
+	var id int64
+	stmt, err := tx.PrepareNamed(query)
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
-	id, err := result.LastInsertId()
+	err = stmt.GetContext(ctx, &id, arg)
 	if err != nil {
 		return err
 	}
