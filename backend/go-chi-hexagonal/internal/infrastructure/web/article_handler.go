@@ -128,11 +128,20 @@ func (h *ArticleHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
 			limit = l
 		}
 	}
+	if limit < 1 {
+		RespondWithError(w, r, domain.NewUnprocessableEntityError("limit must be at least 1"))
+		return
+	}
+
 	offset := 0
 	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
 		if o, err := strconv.Atoi(offsetStr); err == nil {
 			offset = o
 		}
+	}
+	if offset < 0 {
+		RespondWithError(w, r, domain.NewUnprocessableEntityError("offset must be at least 0"))
+		return
 	}
 
 	articles, count, err := h.articleService.GetFeed(r.Context(), port.GetFeedQuery{

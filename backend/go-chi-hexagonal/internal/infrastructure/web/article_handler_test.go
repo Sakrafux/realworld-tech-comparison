@@ -193,6 +193,32 @@ func TestArticleHandler_GetFeed(t *testing.T) {
 		svc.AssertExpectations(t)
 	})
 
+	t.Run("invalid limit", func(t *testing.T) {
+		h := NewArticleHandler(nil)
+		req := httptest.NewRequest("GET", "/api/articles/feed?limit=0", nil)
+		ctx := context.WithValue(req.Context(), userIDKey, int64(1))
+		req = req.WithContext(ctx)
+
+		w := httptest.NewRecorder()
+
+		h.GetFeed(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+
+	t.Run("invalid offset", func(t *testing.T) {
+		h := NewArticleHandler(nil)
+		req := httptest.NewRequest("GET", "/api/articles/feed?offset=-1", nil)
+		ctx := context.WithValue(req.Context(), userIDKey, int64(1))
+		req = req.WithContext(ctx)
+
+		w := httptest.NewRecorder()
+
+		h.GetFeed(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	})
+
 	t.Run("unauthorized", func(t *testing.T) {
 		h := NewArticleHandler(nil)
 		req := httptest.NewRequest("GET", "/api/articles/feed", nil)
