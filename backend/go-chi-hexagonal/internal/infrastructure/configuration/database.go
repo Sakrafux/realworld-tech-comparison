@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/go-chi/httplog/v2"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	_ "modernc.org/sqlite"
 )
 
@@ -23,10 +23,10 @@ func NewDatabase(cfg DatabaseConfig, logger *httplog.Logger) (*sqlx.DB, error) {
 		dsn = ":memory:"
 		logger.Info("Using in-memory SQLite database")
 	} else {
-		driver = "postgres"
+		driver = "pgx"
 		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 			cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSLMode)
-		logger.Info("Connecting to Postgres database", "host", cfg.Host, "port", cfg.Port, "dbname", cfg.Name)
+		logger.Info("Connecting to Postgres database (pgx)", "host", cfg.Host, "port", cfg.Port, "dbname", cfg.Name)
 	}
 
 	db, err := sqlx.Connect(driver, dsn)
@@ -44,6 +44,11 @@ func NewDatabase(cfg DatabaseConfig, logger *httplog.Logger) (*sqlx.DB, error) {
 		if _, err := db.Exec(sqliteSchema); err != nil {
 			return nil, fmt.Errorf("failed to initialize sqlite schema: %w", err)
 		}
+	} else {
+		// Limit connections for Postgres to prevent "too many clients" errors
+		db.SetMaxOpenConns(10)
+		db.SetMaxIdleConns(10)
+		logger.Info("Setting Postgres connection limits", "maxOpen", 10, "maxIdle", 10)
 	}
 
 	logger.Info("Successfully connected to database")
