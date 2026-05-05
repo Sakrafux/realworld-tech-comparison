@@ -11,7 +11,7 @@ import (
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hexagonal/internal/infrastructure/configuration"
 )
 
-func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler *UserHandler, profileHandler *ProfileHandler, articleHandler *ArticleHandler) *chi.Mux {
+func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler *UserHandler, profileHandler *ProfileHandler, articleHandler *ArticleHandler, commentHandler *CommentHandler) *chi.Mux {
 	r := chi.NewRouter()
 
 	registerMiddleware(r, cfg)
@@ -38,6 +38,7 @@ func NewRouter(cfg configuration.WebConfig, tagHandler *TagHandler, userHandler 
 			r.Delete("/articles/{slug}", articleHandler.DeleteArticle)
 			r.Post("/articles/{slug}/favorite", articleHandler.FavoriteArticle)
 			r.Delete("/articles/{slug}/favorite", articleHandler.UnfavoriteArticle)
+			r.Post("/articles/{slug}/comments", commentHandler.CreateComment)
 		})
 	})
 

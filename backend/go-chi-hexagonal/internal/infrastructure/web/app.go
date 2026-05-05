@@ -34,5 +34,10 @@ func NewApp(cfg *configuration.Config, db *sqlx.DB) *chi.Mux {
 	articleService := service.NewArticleService(articleRepo, userRepo)
 	articleHandler := NewArticleHandler(articleService)
 
-	return NewRouter(cfg.Web, tagHandler, userHandler, profileHandler, articleHandler)
+	// Comments
+	commentRepo := persistence.NewCommentRepository(db)
+	commentService := service.NewCommentService(commentRepo, articleRepo, userRepo)
+	commentHandler := NewCommentHandler(commentService)
+
+	return NewRouter(cfg.Web, tagHandler, userHandler, profileHandler, articleHandler, commentHandler)
 }

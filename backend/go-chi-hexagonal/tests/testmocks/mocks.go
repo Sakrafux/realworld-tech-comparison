@@ -281,3 +281,26 @@ func (m *MockArticleRepository) GetByTitle(ctx context.Context, title string, ob
 	}
 	return args.Get(0).(*domain.Article), args.Error(1)
 }
+
+// --- Comments ---
+
+type MockCommentService struct {
+	mock.Mock
+}
+
+func (m *MockCommentService) CreateComment(ctx context.Context, cmd port.CreateCommentCommand) (*domain.Comment, error) {
+	args := m.Called(ctx, cmd)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Comment), args.Error(1)
+}
+
+type MockCommentRepository struct {
+	mock.Mock
+}
+
+func (m *MockCommentRepository) Create(ctx context.Context, comment *domain.Comment, articleID, authorID int64) error {
+	args := m.Called(ctx, comment, articleID, authorID)
+	return args.Error(0)
+}
