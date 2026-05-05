@@ -9,10 +9,21 @@ The goal is to provide empirical data on how different tech stacks (e.g., Java v
 - Resource usage (CPU/RAM)
 
 ## Structure
-The load tests are modularized for better maintainability:
-- `src/load-test.ts`: The main entry point that orchestrates the test flow.
-- `src/utils.ts`: Shared constants (`BASE_URL`) and helper functions (`randomString`).
-- `src/groups/`: Directory containing modularized test logic grouped by API resource (e.g., `auth.ts`, `articles.ts`, `comments.ts`).
+The load tests are modularized and use a scenario-based approach:
+- `src/load-test.ts`: The main entry point that defines k6 scenarios (Auth, Articles, Profiles, etc.) and orchestrates the test flow.
+- `src/utils.ts`: Shared constants, helper functions, and the `setupUsers` logic for pre-registering a pool of test users.
+- `src/groups/`: Directory containing modularized test logic grouped by API resource.
+
+### Scenarios
+The test runs multiple scenarios concurrently to simulate realistic load:
+- **Auth**: Login and token validation.
+- **Articles**: Article management (Create, List, Get, Favorite).
+- **Profiles**: Profile interactions (Get Profile, Follow/Unfollow).
+- **Comments**: Comment management on articles.
+- **FullFlow**: A complete sequential user lifecycle.
+
+### User Setup
+To minimize overhead on the registration endpoint during performance testing, a `setup()` phase pre-registers 10 users. Virtual Users (VUs) then pick random users from this pool for their iterations.
 
 **Note on Imports**: When adding new modules, always use the full `.ts` extension in imports (e.g., `import { ... } from './utils.ts'`) to ensure compatibility with k6's internal module loader when running inside Docker.
 

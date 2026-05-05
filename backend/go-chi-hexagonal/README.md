@@ -82,6 +82,5 @@ For local development and unit/integration tests, this project supports an in-me
 #### Medium load (50 VUs / 1m)
 
 
-
 #### Heavy load (200 VUs / 3m)
 

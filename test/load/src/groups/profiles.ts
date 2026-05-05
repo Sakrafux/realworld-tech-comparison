@@ -1,30 +1,32 @@
 import http from 'k6/http';
 import {check, group} from 'k6';
-import {BASE_URL, randomString} from '../utils.ts';
+import {BASE_URL, randomItem, User} from '../utils.ts';
 
-export function profiles(authParams: any, password: string) {
+export function profiles(authParams: any, users: User[], currentUser: User) {
     group('Profiles', () => {
-        const otherUser = `user_${randomString(10)}`;
-        const registerOtherPayload = JSON.stringify({
-            user: {username: otherUser, email: `${otherUser}@example.com`, password},
-        });
-        let res = http.post(`${BASE_URL}/users`, registerOtherPayload, {
-            headers: {'Content-Type': 'application/json'},
-            tags: {name: 'Register'},
-        });
+        const targetUser = randomItem(users);
 
-        if (res.status === 201) {
-            res = http.post(`${BASE_URL}/profiles/${otherUser}/follow`, null, {
-                ...authParams,
-                tags: {name: 'FollowUser'}
-            });
-            check(res, {'follow user status 200': (r) => r.status === 200});
-
-            res = http.del(`${BASE_URL}/profiles/${otherUser}/follow`, null, {
-                ...authParams,
-                tags: {name: 'UnfollowUser'}
-            });
-            check(res, {'unfollow user status 200': (r) => r.status === 200});
+        // Don't follow yourself
+        if (targetUser.username === currentUser.username) {
+            return;
         }
+
+        let res = http.get(`${BASE_URL}/profiles/${targetUser.username}`, {
+            ...authParams,
+            tags: {name: 'GetProfile'}
+        });
+        check(res, {'get profile status 200': (r) => r.status === 200});
+
+        res = http.post(`${BASE_URL}/profiles/${targetUser.username}/follow`, null, {
+            ...authParams,
+            tags: {name: 'FollowUser'}
+        });
+        check(res, {'follow user status 200': (r) => r.status === 200});
+
+        res = http.del(`${BASE_URL}/profiles/${targetUser.username}/follow`, null, {
+            ...authParams,
+            tags: {name: 'UnfollowUser'}
+        });
+        check(res, {'unfollow user status 200': (r) => r.status === 200});
     });
 }

@@ -1,18 +1,67 @@
-import {sleep} from 'k6';
 import {Options} from 'k6/options';
-import {randomString} from './utils.ts';
-import {userAndAuth} from './groups/auth.ts';
-import {articles, deleteArticle, feedsAndTags} from './groups/articles.ts';
-import {comments, deleteComment} from './groups/comments.ts';
-import {favorites} from './groups/favorites.ts';
-import {profiles} from './groups/profiles.ts';
+import {setupUsers, distributeVUs, User} from './utils.ts';
+import runAuth from './flows/auth.ts';
+import runArticles from './flows/articles.ts';
+import runProfiles from './flows/profiles.ts';
+import runComments from './flows/comments.ts';
+import runFullFlow from './flows/full-flow.ts';
+import runRegister from './flows/register.ts';
+
+const TOTAL_VUS = parseInt(__ENV.VUS || '10');
+const DURATION = __ENV.DURATION || '30s';
+
+const weights = {
+    register: 0.1,
+    auth: 0.2,
+    articles: 0.3,
+    profiles: 0.15,
+    comments: 0.15,
+    fullFlow: 0.1,
+};
+
+const distribution = distributeVUs(TOTAL_VUS, weights);
 
 export let options: Options = {
-    vus: 10,
-    duration: '30s',
+    scenarios: {
+        register: {
+            executor: 'constant-vus',
+            vus: distribution.register,
+            duration: DURATION,
+            exec: 'registerScenario',
+        },
+        auth: {
+            executor: 'constant-vus',
+            vus: distribution.auth,
+            duration: DURATION,
+            exec: 'authScenario',
+        },
+        articles: {
+            executor: 'constant-vus',
+            vus: distribution.articles,
+            duration: DURATION,
+            exec: 'articlesScenario',
+        },
+        profiles: {
+            executor: 'constant-vus',
+            vus: distribution.profiles,
+            duration: DURATION,
+            exec: 'profilesScenario',
+        },
+        comments: {
+            executor: 'constant-vus',
+            vus: distribution.comments,
+            duration: DURATION,
+            exec: 'commentsScenario',
+        },
+        fullFlow: {
+            executor: 'constant-vus',
+            vus: distribution.fullFlow,
+            duration: DURATION,
+            exec: 'fullFlowScenario',
+        },
+    },
     thresholds: {
-        // Add thresholds to enable a detailed summary, but make them ineffective to prevent errors
-        http_req_duration: ['p(95)<100000'], // Global
+        http_req_duration: ['p(95)<100000'],
         'http_req_duration{name:Register}': ['p(95)<100000'],
         'http_req_duration{name:Login}': ['p(95)<100000'],
         'http_req_duration{name:GetCurrentUser}': ['p(95)<100000'],
@@ -29,39 +78,38 @@ export let options: Options = {
         'http_req_duration{name:GetArticlesFeed}': ['p(95)<100000'],
         'http_req_duration{name:FollowUser}': ['p(95)<100000'],
         'http_req_duration{name:UnfollowUser}': ['p(95)<100000'],
+        'http_req_duration{name:GetProfile}': ['p(95)<100000'],
     },
 };
 
-export default function () {
-    const username = `user_${randomString(10)}`;
-    const email = `${username}@example.com`;
-    const password = 'password123';
-    const articleTitle = `Article ${randomString(10)}`;
+export function setup() {
+    return setupUsers(10);
+}
 
-    const token = userAndAuth(username, email, password);
-    if (!token) return;
+export function registerScenario() {
+    runRegister();
+}
 
-    const authParams = {
-        headers: {'Content-Type': 'application/json', Authorization: `Token ${token}`},
-    };
+export function authScenario(users: User[]) {
+    runAuth(users);
+}
 
-    const slug = articles(authParams, articleTitle);
+export function articlesScenario(users: User[]) {
+    runArticles(users);
+}
 
-    if (slug) {
-        const commentId = comments(authParams, slug);
+export function profilesScenario(users: User[]) {
+    runProfiles(users);
+}
 
-        favorites(authParams, slug);
+export function commentsScenario(users: User[]) {
+    runComments(users);
+}
 
-        if (commentId) {
-            deleteComment(authParams, slug, commentId);
-        }
+export function fullFlowScenario(users: User[]) {
+    runFullFlow(users);
+}
 
-        deleteArticle(authParams, slug);
-    }
-
-    feedsAndTags(authParams);
-
-    profiles(authParams, password);
-
-    sleep(1);
+export default function (users: User[]) {
+    runFullFlow(users);
 }
