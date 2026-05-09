@@ -12,6 +12,12 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
+// Middlewares holds middleware functions that are passed down to cell handlers.
+type Middlewares struct {
+	Auth         func(http.Handler) http.Handler
+	OptionalAuth func(http.Handler) http.Handler
+}
+
 func RegisterBaseMiddleware(r *chi.Mux, cfg config.WebConfig, otelCfg config.OtelConfig, logger *httplog.Logger) {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
