@@ -83,6 +83,17 @@ func (s *service) GetUser(ctx context.Context, id int64) (*User, error) {
 	return user, nil
 }
 
+func (s *service) GetUserByUsername(ctx context.Context, username string) (*User, error) {
+	user, err := s.repo.FindByUsername(ctx, username)
+	if err != nil {
+		return nil, errors.NewInternalError(err.Error())
+	}
+	if user == nil {
+		return nil, errors.NewResourceNotFound("User", "username", username)
+	}
+	return user, nil
+}
+
 func (s *service) UpdateUser(ctx context.Context, cmd UpdateUserCommand) (*User, error) {
 	user, err := s.repo.FindByID(ctx, cmd.ID)
 	if err != nil {

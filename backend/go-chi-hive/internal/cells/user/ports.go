@@ -29,6 +29,7 @@ type Service interface {
 	Register(ctx context.Context, cmd RegisterCommand) (*User, error)
 	Login(ctx context.Context, cmd LoginCommand) (*User, error)
 	GetUser(ctx context.Context, id int64) (*User, error)
+	GetUserByUsername(ctx context.Context, username string) (*User, error)
 	UpdateUser(ctx context.Context, cmd UpdateUserCommand) (*User, error)
 
 	GetProfile(ctx context.Context, username string, observerID *int64) (*Profile, error)
