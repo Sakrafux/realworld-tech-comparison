@@ -10,7 +10,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
-	<groupId>com.sakrafux</groupId>
+	<groupId>com.sakrafux.realworld</groupId>
 	<artifactId>java-springboot-vertical</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>java-springboot-vertical</name>
