@@ -1,6 +1,6 @@
-package com.sakrafux.realworld.core.exception;
+package com.sakrafux.realworld.core.exception.mapper;
 
-import jakarta.ws.rs.NotFoundException;
+import com.sakrafux.realworld.core.exception.*;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
@@ -33,13 +33,6 @@ public class CoreExceptionMapper implements ExceptionMapper<RuntimeException> {
         if (exception instanceof UnauthorizedException) {
             log.warn("Unauthorized: {}", exception.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(GenericErrorResponse.of(exception.getMessage()))
-                    .build();
-        }
-
-        if (exception instanceof NotFoundException) {
-            log.warn("Not found: {}", exception.getMessage());
-            return Response.status(Response.Status.NOT_FOUND)
                     .entity(GenericErrorResponse.of(exception.getMessage()))
                     .build();
         }

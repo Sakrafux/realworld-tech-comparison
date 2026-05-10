@@ -1,5 +1,6 @@
-package com.sakrafux.realworld.core.exception;
+package com.sakrafux.realworld.core.exception.mapper;
 
+import com.sakrafux.realworld.core.exception.GenericErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
