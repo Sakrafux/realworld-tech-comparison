@@ -42,14 +42,16 @@ docker-compose -f docker-compose.yml -f stacks/java-springboot-vertical.yml up -
 docker-compose -f docker-compose.yml -f stacks/java-springboot-hexagonal.yml up --build
 docker-compose -f docker-compose.yml -f stacks/java-springboot-hive.yml up --build
 docker-compose -f docker-compose.yml -f stacks/go-chi-hexagonal.yml up --build
+docker-compose -f docker-compose.yml -f stacks/go-chi-hive.yml up --build
 ```
 
 ### With Monitoring
 
 ```bash
-docker-compose -f docker-compose.yml -f stacks/java-springboot-layered.yml -f monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-springboot-vertical.yml -f monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-springboot-hexagonal.yml -f monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-springboot-hive.yml -f monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/go-chi-hexagonal.yml -f monitoring.yml up --build
+docker-compose -f docker-compose.yml -f stacks/java-springboot-layered.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose.yml -f stacks/java-springboot-vertical.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose.yml -f stacks/java-springboot-hexagonal.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose.yml -f stacks/java-springboot-hive.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose.yml -f stacks/go-chi-hexagonal.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose.yml -f stacks/go-chi-hive.yml -f stacks/monitoring.yml up --build
 ```
