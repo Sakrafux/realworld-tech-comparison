@@ -1,0 +1,39 @@
+quarkus:
+  application:
+    name: realworld
+  datasource:
+    db-kind: h2
+    jdbc:
+      url: jdbc:h2:mem:realworld;DB_CLOSE_DELAY=-1
+  hibernate-orm:
+    schema-management:
+      strategy: create
+    log:
+      sql: false
+  http:
+    root-path: /api
+    cors:
+      origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+      enabled: true
+  smallrye-jwt:
+    enabled: true
+
+mp:
+  jwt:
+    verify:
+      issuer: realworld
+
+smallrye:
+  jwt:
+    token:
+      schemes: Token
+    new-token:
+      lifespan: 3600
+    sign:
+      key:
+        algorithm: HS256
+        content: ${JWT_SECRET:secret123secret123secret123secret123}
+    verify:
+      key:
+        algorithm: HS256
+        content: ${JWT_SECRET:secret123secret123secret123secret123}
