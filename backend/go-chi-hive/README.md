@@ -57,6 +57,12 @@ The architecture is divided into three distinct layers, organized by their role 
 - **Hive** depends on `shared` and all `cells` to wire them together.
 - **Main** depends only on `hive` to start the application.
 
+## Cross-Cell Dependencies
+
+Dependencies between packages in Go may only flow in a single direction, i.e., no cyclical dependencies, even if only single components are required.
+If the cells have a single dependency flow, this is no issue at all (e.g., `user` -> `article`) and direct imports are possible. However, in case those dependencies are bidirectional, 
+the cross-cell interfaces and DTOs need to be extracted to another package.
+
 ## Why this is the "Ultimate Evolution" for Go
 
 1.  **Readable Package Names**: You use `user.Service` instead of `application.UserService`.
