@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/httplog/v2"
 	"github.com/jmoiron/sqlx"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hive/internal/cells/article"
+	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hive/internal/cells/comment"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hive/internal/cells/user"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hive/internal/shared/config"
 	"github.com/sakrafux/realworld-tech-comparison/backend/go-chi-hive/internal/shared/database"
@@ -40,12 +41,17 @@ func NewApp(cfg *config.Config, logger *httplog.Logger) (*App, error) {
 	articleSvc := article.NewService(articleRepo, userSvc)
 	articleHandler := article.NewHandler(articleSvc)
 
+	commentRepo := comment.NewRepository(db)
+	commentSvc := comment.NewService(commentRepo, articleSvc, userSvc)
+	commentHandler := comment.NewHandler(commentSvc)
+
 	r := chi.NewRouter()
 	web.RegisterBaseMiddleware(r, cfg.Web, cfg.Otel, logger)
 
 	r.Route("/api", func(api chi.Router) {
 		userHandler.MountRoutes(api, middlewares)
 		articleHandler.MountRoutes(api, middlewares)
+		commentHandler.MountRoutes(api, middlewares)
 	})
 
 	return &App{
