@@ -3,16 +3,15 @@ package com.sakrafux.realworld.features.user;
 import com.sakrafux.realworld.core.exception.InvalidCredentialsException;
 import com.sakrafux.realworld.core.exception.ResourceAlreadyExistsException;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
-import com.sakrafux.realworld.features.user.dto.LoginUserRequest;
-import com.sakrafux.realworld.features.user.dto.NewUserRequest;
-import com.sakrafux.realworld.features.user.dto.UpdateUserRequest;
-import com.sakrafux.realworld.features.user.dto.UserResponse;
+import com.sakrafux.realworld.features.user.dto.*;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.smallrye.jwt.build.Jwt;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import java.util.Optional;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -104,6 +103,46 @@ public class UserService {
 
         String token = generateToken(user.email);
         return userMapper.toResponse(user, token);
+    }
+
+    public ProfileResponse getProfile(String username, Optional<String> currentEmail) {
+        UserEntity targetUser = UserEntity.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        boolean following = currentEmail
+                .flatMap(UserEntity::findByEmail)
+                .map(currentUser -> currentUser.following.contains(targetUser))
+                .orElse(false);
+
+        return userMapper.toProfileResponse(targetUser, following);
+    }
+
+    @Transactional
+    public ProfileResponse followUser(String username, String currentEmail) {
+        UserEntity targetUser = UserEntity.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        UserEntity currentUser = UserEntity.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+
+        if (!currentUser.equals(targetUser)) {
+            currentUser.following.add(targetUser);
+        }
+
+        return userMapper.toProfileResponse(targetUser, true);
+    }
+
+    @Transactional
+    public ProfileResponse unfollowUser(String username, String currentEmail) {
+        UserEntity targetUser = UserEntity.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        UserEntity currentUser = UserEntity.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
+
+        currentUser.following.remove(targetUser);
+
+        return userMapper.toProfileResponse(targetUser, false);
     }
 
     private String generateToken(String email) {
