@@ -35,7 +35,7 @@ public class ArticleEntity extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
 
-    @Column(name = "author_id", nullable = false)
+    @Column(name = "fk_author", nullable = false)
     private Long authorId;
 
     @ElementCollection

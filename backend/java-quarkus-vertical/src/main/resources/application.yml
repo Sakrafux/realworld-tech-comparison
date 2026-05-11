@@ -2,21 +2,37 @@ quarkus:
   application:
     name: realworld
   datasource:
-    db-kind: h2
+    db-kind: h2 # Must be decided at build time
     jdbc:
       url: jdbc:h2:mem:realworld;DB_CLOSE_DELAY=-1
   hibernate-orm:
     schema-management:
-      strategy: create
+      strategy: update
     log:
       sql: false
   http:
     root-path: /api
     cors:
-      origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+      origins: http://localhost:3000
       enabled: true
   smallrye-jwt:
     enabled: true
+  otel:
+    enabled: false # Must be enabled at build time
+    # We only want metrics, so traces and logs need to be disabled
+    traces:
+      enabled: false
+    logs:
+      enabled: false
+    metrics:
+      enabled: true
+    metric:
+      export:
+        interval: 10s
+    exporter:
+      otlp:
+        endpoint: http://localhost:4318
+        protocol: http/protobuf
 
 mp:
   jwt:
@@ -26,14 +42,17 @@ mp:
 smallrye:
   jwt:
     token:
+      # Changes the expected scheme from "Bearer" to "Token"
       schemes: Token
     new-token:
+      # Sets the token lifespan to 3600 seconds (1 hour)
+      issuer: realworld
       lifespan: 3600
+      signature-algorithm: HS256
     sign:
       key:
-        algorithm: HS256
-        content: ${JWT_SECRET:secret123secret123secret123secret123}
+        location: secret.jwk
     verify:
       key:
-        algorithm: HS256
-        content: ${JWT_SECRET:secret123secret123secret123secret123}
+        location: secret.jwk
+      algorithm: HS256
