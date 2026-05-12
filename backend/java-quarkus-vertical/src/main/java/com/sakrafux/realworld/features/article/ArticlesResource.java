@@ -67,8 +67,9 @@ public class ArticlesResource {
     @DELETE
     @Path("/{slug}")
     @Authenticated
-    public void deleteArticle(@PathParam("slug") String slug) {
+    public Response deleteArticle(@PathParam("slug") String slug) {
         articleService.deleteArticle(slug, jwt.getName());
+        return Response.ok().build();
     }
 
     @POST
