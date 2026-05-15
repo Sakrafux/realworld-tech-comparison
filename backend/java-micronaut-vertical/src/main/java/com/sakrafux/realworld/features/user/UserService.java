@@ -15,7 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import jakarta.transaction.Transactional;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Singleton
 @RequiredArgsConstructor
@@ -174,5 +177,12 @@ public class UserService {
 
     public Optional<Long> findUserIdByUsername(String username) {
         return userRepository.findByUsername(username).map(UserEntity::getId);
+    }
+
+    public Collection<Long> findFollowingIdsByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(UserEntity::getFollowing)
+                .map(following -> following.stream().map(UserEntity::getId).collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 }

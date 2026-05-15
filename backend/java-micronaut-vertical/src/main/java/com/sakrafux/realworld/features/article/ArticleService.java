@@ -4,13 +4,21 @@ import com.sakrafux.realworld.core.exception.ResourceAlreadyExistsException;
 import com.sakrafux.realworld.core.exception.ResourceNotFoundException;
 import com.sakrafux.realworld.core.exception.UnauthorizedException;
 import com.sakrafux.realworld.features.article.dto.ArticleResponse;
+import com.sakrafux.realworld.features.article.dto.MultipleArticlesResponse;
 import com.sakrafux.realworld.features.article.dto.NewArticleRequest;
 import com.sakrafux.realworld.features.article.dto.UpdateArticleRequest;
 import com.sakrafux.realworld.features.user.UserService;
+import io.micronaut.data.model.Page;
+import io.micronaut.data.model.Pageable;
+import io.micronaut.data.repository.jpa.criteria.PredicateSpecification;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +32,72 @@ public class ArticleService {
     private final TagRepository tagRepository;
     private final ArticleMapper articleMapper;
     private final UserService userService;
+
+    @Transactional
+    public MultipleArticlesResponse getArticles(String tag, String author, String favorited, int limit, int offset, Optional<String> currentEmail) {
+        PredicateSpecification<ArticleEntity> spec = (root, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (tag != null) {
+                predicates.add(criteriaBuilder.isMember(tag, root.get("tags")));
+            }
+            if (author != null) {
+                Optional<Long> authorId = userService.findUserIdByUsername(author);
+                if (authorId.isPresent()) {
+                    predicates.add(criteriaBuilder.equal(root.get("authorId"), authorId.get()));
+                } else {
+                    predicates.add(criteriaBuilder.disjunction());
+                }
+            }
+            if (favorited != null) {
+                Optional<Long> favoritedUserId = userService.findUserIdByUsername(favorited);
+                if (favoritedUserId.isPresent()) {
+                    predicates.add(criteriaBuilder.isMember(favoritedUserId.get(), root.get("favoritedBy")));
+                } else {
+                    predicates.add(criteriaBuilder.disjunction());
+                }
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Pageable pageable = Pageable.from(offset / limit, limit);
+        Page<ArticleEntity> articlePage = articleRepository.findAll(spec, pageable);
+
+        List<ArticleResponse.ArticleData> articles = articlePage.getContent().stream()
+                .map(article -> mapToArticleData(article, currentEmail))
+                .collect(Collectors.toList());
+
+        return articleMapper.toMultipleResponse(articles, (int) articlePage.getTotalSize());
+    }
+
+    @Transactional
+    public MultipleArticlesResponse getFeed(int limit, int offset, String currentEmail) {
+        Collection<Long> followingIds = userService.findFollowingIdsByEmail(currentEmail);
+        if (followingIds.isEmpty()) {
+            return articleMapper.toMultipleResponse(Collections.emptyList(), 0);
+        }
+
+        Pageable pageable = Pageable.from(offset / limit, limit);
+        Page<ArticleEntity> articlePage = articleRepository.findByAuthorIdIn(followingIds, pageable);
+
+        List<ArticleResponse.ArticleData> articles = articlePage.getContent().stream()
+                .map(article -> mapToArticleData(article, Optional.of(currentEmail)))
+                .collect(Collectors.toList());
+
+        return articleMapper.toMultipleResponse(articles, (int) articlePage.getTotalSize());
+    }
+
+    private ArticleResponse.ArticleData mapToArticleData(ArticleEntity article, Optional<String> currentEmail) {
+        List<String> tagList = getTagList(article);
+        Optional<Long> currentUserId = currentEmail.flatMap(userService::findUserIdByEmail);
+        boolean favorited = currentUserId
+                .map(userId -> article.getFavoritedBy().contains(userId))
+                .orElse(false);
+        int favoritesCount = article.getFavoritedBy().size();
+
+        var authorProfile = userService.getProfileById(article.getAuthorId(), currentEmail).getProfile();
+
+        return articleMapper.toArticleData(article, tagList, favorited, favoritesCount, authorProfile);
+    }
 
     @Transactional
     public ArticleResponse createArticle(NewArticleRequest request, String currentEmail) {

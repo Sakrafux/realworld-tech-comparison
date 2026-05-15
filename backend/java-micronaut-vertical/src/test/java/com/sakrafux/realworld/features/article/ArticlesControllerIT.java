@@ -1,9 +1,11 @@
 package com.sakrafux.realworld.features.article;
 
 import com.sakrafux.realworld.features.article.dto.ArticleResponse;
+import com.sakrafux.realworld.features.article.dto.MultipleArticlesResponse;
 import com.sakrafux.realworld.features.article.dto.NewArticleRequest;
 import com.sakrafux.realworld.features.article.dto.UpdateArticleRequest;
 import com.sakrafux.realworld.features.user.dto.NewUserRequest;
+import com.sakrafux.realworld.features.user.dto.ProfileResponse;
 import com.sakrafux.realworld.features.user.dto.UserResponse;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -24,6 +26,94 @@ public class ArticlesControllerIT {
     @Inject
     @Client("/")
     HttpClient httpClient;
+
+    @Test
+    void getArticles_NoFilters_ReturnsAllArticles() {
+        String token = registerAndGetToken("listuser", "list@example.com");
+        createArticle(token, "Article 1");
+        createArticle(token, "Article 2");
+
+        HttpResponse<MultipleArticlesResponse> response = httpClient.toBlocking().exchange(
+                HttpRequest.GET("/api/articles"), MultipleArticlesResponse.class);
+
+        assertEquals(HttpStatus.OK, response.status());
+        MultipleArticlesResponse body = response.body();
+        assertNotNull(body);
+        assertTrue(body.getArticlesCount() >= 2);
+    }
+
+    @Test
+    void getArticles_FilterByTag_ReturnsFilteredArticles() {
+        String token = registerAndGetToken("tagfilteruser", "tagfilter@example.com");
+        createArticleWithTags(token, "Tagged Article", List.of("filtertag"));
+        createArticle(token, "Untagged Article");
+
+        HttpResponse<MultipleArticlesResponse> response = httpClient.toBlocking().exchange(
+                HttpRequest.GET("/api/articles?tag=filtertag"), MultipleArticlesResponse.class);
+
+        assertEquals(HttpStatus.OK, response.status());
+        MultipleArticlesResponse body = response.body();
+        assertNotNull(body);
+        assertEquals(1, body.getArticlesCount());
+        assertEquals("Tagged Article", body.getArticles().get(0).getTitle());
+    }
+
+    @Test
+    void getArticles_FilterByAuthor_ReturnsFilteredArticles() {
+        String token1 = registerAndGetToken("authorA", "authorA@example.com");
+        String token2 = registerAndGetToken("authorB", "authorB@example.com");
+        createArticle(token1, "Author A Article");
+        createArticle(token2, "Author B Article");
+
+        HttpResponse<MultipleArticlesResponse> response = httpClient.toBlocking().exchange(
+                HttpRequest.GET("/api/articles?author=authorA"), MultipleArticlesResponse.class);
+
+        assertEquals(HttpStatus.OK, response.status());
+        MultipleArticlesResponse body = response.body();
+        assertNotNull(body);
+        assertEquals(1, body.getArticlesCount());
+        assertEquals("Author A Article", body.getArticles().get(0).getTitle());
+    }
+
+    @Test
+    void getArticles_FilterByFavorited_ReturnsFilteredArticles() {
+        String authorToken = registerAndGetToken("fauthor", "fauthor@example.com");
+        String readerToken = registerAndGetToken("freader", "freader@example.com");
+        createArticle(authorToken, "Favorited Article");
+        createArticle(authorToken, "Non-Favorited Article");
+
+        httpClient.toBlocking().exchange(
+                HttpRequest.POST("/api/articles/favorited-article/favorite", "").header("Authorization", "Token " + readerToken), Object.class);
+
+        HttpResponse<MultipleArticlesResponse> response = httpClient.toBlocking().exchange(
+                HttpRequest.GET("/api/articles?favorited=freader"), MultipleArticlesResponse.class);
+
+        assertEquals(HttpStatus.OK, response.status());
+        MultipleArticlesResponse body = response.body();
+        assertNotNull(body);
+        assertEquals(1, body.getArticlesCount());
+        assertEquals("Favorited Article", body.getArticles().get(0).getTitle());
+    }
+
+    @Test
+    void getFeed_FollowedAuthors_ReturnsFeed() {
+        String authorToken = registerAndGetToken("followedUser", "followed@example.com");
+        String readerToken = registerAndGetToken("followingUser", "following@example.com");
+        createArticle(authorToken, "Followed Article");
+
+        // Follow author
+        httpClient.toBlocking().exchange(
+                HttpRequest.POST("/api/profiles/followedUser/follow", "").header("Authorization", "Token " + readerToken), ProfileResponse.class);
+
+        HttpResponse<MultipleArticlesResponse> response = httpClient.toBlocking().exchange(
+                HttpRequest.GET("/api/articles/feed").header("Authorization", "Token " + readerToken), MultipleArticlesResponse.class);
+
+        assertEquals(HttpStatus.OK, response.status());
+        MultipleArticlesResponse body = response.body();
+        assertNotNull(body);
+        assertEquals(1, body.getArticlesCount());
+        assertEquals("Followed Article", body.getArticles().get(0).getTitle());
+    }
 
     @Test
     void createArticle_ValidArticle_ReturnsCreated() {
@@ -107,6 +197,20 @@ public class ArticlesControllerIT {
                         .title(title)
                         .description("desc")
                         .body("body")
+                        .build())
+                .build();
+
+        httpClient.toBlocking().exchange(
+                HttpRequest.POST("/api/articles", request).header("Authorization", "Token " + token), ArticleResponse.class);
+    }
+
+    private void createArticleWithTags(String token, String title, List<String> tags) {
+        NewArticleRequest request = NewArticleRequest.builder()
+                .article(NewArticleRequest.ArticleData.builder()
+                        .title(title)
+                        .description("desc")
+                        .body("body")
+                        .tagList(tags)
                         .build())
                 .build();
 

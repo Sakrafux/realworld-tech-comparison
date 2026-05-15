@@ -1,6 +1,7 @@
 package com.sakrafux.realworld.features.article;
 
 import com.sakrafux.realworld.features.article.dto.ArticleResponse;
+import com.sakrafux.realworld.features.article.dto.MultipleArticlesResponse;
 import com.sakrafux.realworld.features.user.dto.ProfileResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -26,4 +27,11 @@ public interface ArticleMapper {
     @Mapping(target = "createdAt", source = "article.createdAt")
     @Mapping(target = "updatedAt", source = "article.updatedAt")
     ArticleResponse.ArticleData toArticleData(ArticleEntity article, List<String> tagList, boolean favorited, int favoritesCount, ProfileResponse.ProfileData author);
+
+    default MultipleArticlesResponse toMultipleResponse(List<ArticleResponse.ArticleData> articles, int articlesCount) {
+        return MultipleArticlesResponse.builder()
+                .articles(articles)
+                .articlesCount(articlesCount)
+                .build();
+    }
 }
