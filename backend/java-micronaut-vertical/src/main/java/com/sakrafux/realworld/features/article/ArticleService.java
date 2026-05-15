@@ -11,6 +11,7 @@ import com.sakrafux.realworld.features.user.UserService;
 import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
 import io.micronaut.data.repository.jpa.criteria.PredicateSpecification;
+import io.micronaut.retry.annotation.Retryable;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Singleton
@@ -99,6 +101,7 @@ public class ArticleService {
         return articleMapper.toArticleData(article, tagList, favorited, favoritesCount, authorProfile);
     }
 
+    @Retryable(attempts = "3", delay = "50ms", multiplier = "2.0")
     @Transactional
     public ArticleResponse createArticle(NewArticleRequest request, String currentEmail) {
         var authorProfile = userService.getProfileByEmail(currentEmail, Optional.of(currentEmail)).getProfile();
@@ -124,7 +127,7 @@ public class ArticleService {
                 .authorId(authorId)
                 .build();
 
-        if (articleData.getTagList() != null) {
+        if (articleData.getTagList() != null && !articleData.getTagList().isEmpty()) {
             persistTags(articleData.getTagList());
             article.setTags(new HashSet<>(articleData.getTagList()));
         }
@@ -237,10 +240,19 @@ public class ArticleService {
     }
 
     private void persistTags(List<String> tags) {
-        for (String tagName : tags) {
-            if (tagRepository.findByTag(tagName).isEmpty()) {
-                tagRepository.save(TagEntity.builder().tag(tagName).build());
-            }
+        Set<String> uniqueTags = new HashSet<>(tags);
+        
+        Set<String> existingTags = tagRepository.findByTagIn(uniqueTags).stream()
+                .map(TagEntity::getTag)
+                .collect(Collectors.toSet());
+
+        List<TagEntity> missingTags = uniqueTags.stream()
+                .filter(tagName -> !existingTags.contains(tagName))
+                .map(tagName -> TagEntity.builder().tag(tagName).build())
+                .collect(Collectors.toList());
+
+        if (!missingTags.isEmpty()) {
+            tagRepository.saveAll(missingTags);
         }
     }
 

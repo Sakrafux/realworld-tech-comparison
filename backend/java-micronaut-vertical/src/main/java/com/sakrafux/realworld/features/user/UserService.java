@@ -10,6 +10,7 @@ import com.sakrafux.realworld.features.user.dto.NewUserRequest;
 import com.sakrafux.realworld.features.user.dto.ProfileResponse;
 import com.sakrafux.realworld.features.user.dto.UpdateUserRequest;
 import com.sakrafux.realworld.features.user.dto.UserResponse;
+import io.micronaut.retry.annotation.Retryable;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -141,6 +142,7 @@ public class UserService {
         return getProfile(user.getUsername(), currentEmail);
     }
 
+    @Retryable(attempts = "3", delay = "50ms", multiplier = "2.0")
     @Transactional
     public ProfileResponse follow(String username, String followerEmail) {
         UserEntity userToFollow = userRepository.findByUsername(username)
@@ -156,6 +158,7 @@ public class UserService {
         return userMapper.toProfileResponse(userToFollow, true);
     }
 
+    @Retryable(attempts = "3", delay = "50ms", multiplier = "2.0")
     @Transactional
     public ProfileResponse unfollow(String username, String followerEmail) {
         UserEntity userToUnfollow = userRepository.findByUsername(username)
