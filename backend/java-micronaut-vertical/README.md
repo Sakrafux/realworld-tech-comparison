@@ -70,3 +70,17 @@
 - [Micronaut Management documentation](https://docs.micronaut.io/latest/guide/index.html#management)
 
 
+Run application:
+```
+mvn mn:run
+```
+
+Before tests:
+```
+mvn mn:start-testresources-service
+```
+
+Remove test resources:
+```
+mvn mn:stop-testresources-service
+```
