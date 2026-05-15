@@ -6,8 +6,6 @@ import com.sakrafux.realworld.core.exception.UnauthorizedException;
 import com.sakrafux.realworld.features.article.dto.ArticleResponse;
 import com.sakrafux.realworld.features.article.dto.NewArticleRequest;
 import com.sakrafux.realworld.features.article.dto.UpdateArticleRequest;
-import com.sakrafux.realworld.features.user.UserEntity;
-import com.sakrafux.realworld.features.user.UserRepository;
 import com.sakrafux.realworld.features.user.UserService;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
@@ -26,11 +24,11 @@ public class ArticleService {
     private final TagRepository tagRepository;
     private final ArticleMapper articleMapper;
     private final UserService userService;
-    private final UserRepository userRepository;
 
     @Transactional
     public ArticleResponse createArticle(NewArticleRequest request, String currentEmail) {
-        UserEntity currentUser = userRepository.findByEmail(currentEmail)
+        var authorProfile = userService.getProfileByEmail(currentEmail, Optional.of(currentEmail)).getProfile();
+        Long authorId = userService.findUserIdByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
         var articleData = request.getArticle();
@@ -49,7 +47,7 @@ public class ArticleService {
                 .slug(slug)
                 .description(articleData.getDescription())
                 .body(articleData.getBody())
-                .authorId(currentUser.getId())
+                .authorId(authorId)
                 .build();
 
         if (articleData.getTagList() != null) {
@@ -59,7 +57,6 @@ public class ArticleService {
 
         article = articleRepository.save(article);
         
-        var authorProfile = userService.getProfile(currentUser.getUsername(), Optional.of(currentEmail)).getProfile();
         return articleMapper.toResponse(article, getTagList(article), false, 0, authorProfile);
     }
 
@@ -68,13 +65,10 @@ public class ArticleService {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        Long currentUserId = currentEmail.flatMap(email -> userRepository.findByEmail(email).map(UserEntity::getId)).orElse(null);
+        Long currentUserId = currentEmail.flatMap(userService::findUserIdByEmail).orElse(null);
         boolean favorited = currentUserId != null && article.getFavoritedBy().contains(currentUserId);
         
-        UserEntity author = userRepository.findById(article.getAuthorId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", article.getAuthorId()));
-                
-        var authorProfile = userService.getProfile(author.getUsername(), currentEmail).getProfile();
+        var authorProfile = userService.getProfileById(article.getAuthorId(), currentEmail).getProfile();
 
         return articleMapper.toResponse(article, getTagList(article), favorited, article.getFavoritedBy().size(), authorProfile);
     }
@@ -84,10 +78,10 @@ public class ArticleService {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        UserEntity currentUser = userRepository.findByEmail(currentEmail)
+        Long currentUserId = userService.findUserIdByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
-        if (!article.getAuthorId().equals(currentUser.getId())) {
+        if (!article.getAuthorId().equals(currentUserId)) {
             throw new UnauthorizedException("You are not the author of this article");
         }
 
@@ -115,8 +109,8 @@ public class ArticleService {
         
         article = articleRepository.update(article);
 
-        var authorProfile = userService.getProfile(currentUser.getUsername(), Optional.of(currentEmail)).getProfile();
-        return articleMapper.toResponse(article, getTagList(article), article.getFavoritedBy().contains(currentUser.getId()), article.getFavoritedBy().size(), authorProfile);
+        var authorProfile = userService.getProfileById(article.getAuthorId(), Optional.of(currentEmail)).getProfile();
+        return articleMapper.toResponse(article, getTagList(article), article.getFavoritedBy().contains(currentUserId), article.getFavoritedBy().size(), authorProfile);
     }
 
     @Transactional
@@ -124,10 +118,10 @@ public class ArticleService {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        UserEntity currentUser = userRepository.findByEmail(currentEmail)
+        Long currentUserId = userService.findUserIdByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
-        if (!article.getAuthorId().equals(currentUser.getId())) {
+        if (!article.getAuthorId().equals(currentUserId)) {
             throw new UnauthorizedException("You are not the author of this article");
         }
 
@@ -139,18 +133,14 @@ public class ArticleService {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        UserEntity currentUser = userRepository.findByEmail(currentEmail)
+        Long currentUserId = userService.findUserIdByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
-        if (article.getFavoritedBy().add(currentUser.getId())) {
+        if (article.getFavoritedBy().add(currentUserId)) {
             article = articleRepository.update(article);
         }
 
-        final Long authorId = article.getAuthorId();
-        UserEntity author = userRepository.findById(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", authorId));
-                
-        var authorProfile = userService.getProfile(author.getUsername(), Optional.of(currentEmail)).getProfile();
+        var authorProfile = userService.getProfileById(article.getAuthorId(), Optional.of(currentEmail)).getProfile();
 
         return articleMapper.toResponse(article, getTagList(article), true, article.getFavoritedBy().size(), authorProfile);
     }
@@ -160,18 +150,14 @@ public class ArticleService {
         ArticleEntity article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article", "slug", slug));
 
-        UserEntity currentUser = userRepository.findByEmail(currentEmail)
+        Long currentUserId = userService.findUserIdByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", currentEmail));
 
-        if (article.getFavoritedBy().remove(currentUser.getId())) {
+        if (article.getFavoritedBy().remove(currentUserId)) {
             article = articleRepository.update(article);
         }
 
-        final Long authorId = article.getAuthorId();
-        UserEntity author = userRepository.findById(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", authorId));
-                
-        var authorProfile = userService.getProfile(author.getUsername(), Optional.of(currentEmail)).getProfile();
+        var authorProfile = userService.getProfileById(article.getAuthorId(), Optional.of(currentEmail)).getProfile();
 
         return articleMapper.toResponse(article, getTagList(article), false, article.getFavoritedBy().size(), authorProfile);
     }

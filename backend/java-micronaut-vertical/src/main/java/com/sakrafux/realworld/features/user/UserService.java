@@ -125,6 +125,20 @@ public class UserService {
     }
 
     @Transactional
+    public ProfileResponse getProfileByEmail(String email, Optional<String> currentEmail) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        return getProfile(user.getUsername(), currentEmail);
+    }
+
+    @Transactional
+    public ProfileResponse getProfileById(Long id, Optional<String> currentEmail) {
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        return getProfile(user.getUsername(), currentEmail);
+    }
+
+    @Transactional
     public ProfileResponse follow(String username, String followerEmail) {
         UserEntity userToFollow = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
