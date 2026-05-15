@@ -7,6 +7,7 @@ import com.sakrafux.realworld.core.security.JwtService;
 import com.sakrafux.realworld.core.security.PasswordService;
 import com.sakrafux.realworld.features.user.dto.LoginUserRequest;
 import com.sakrafux.realworld.features.user.dto.NewUserRequest;
+import com.sakrafux.realworld.features.user.dto.ProfileResponse;
 import com.sakrafux.realworld.features.user.dto.UpdateUserRequest;
 import com.sakrafux.realworld.features.user.dto.UserResponse;
 import jakarta.inject.Singleton;
@@ -109,6 +110,48 @@ public class UserService {
         user = userRepository.save(user);
         String token = jwtService.generateToken(user.getEmail());
         return userMapper.toResponse(user, token);
+    }
+
+    @Transactional
+    public ProfileResponse getProfile(String username, Optional<String> currentEmail) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        boolean following = currentEmail.flatMap(email -> userRepository.findByEmail(email)
+                .map(currentUser -> currentUser.getFollowing().contains(user)))
+                .orElse(false);
+
+        return userMapper.toProfileResponse(user, following);
+    }
+
+    @Transactional
+    public ProfileResponse follow(String username, String followerEmail) {
+        UserEntity userToFollow = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        UserEntity follower = userRepository.findByEmail(followerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", followerEmail));
+
+        if (follower.getFollowing().add(userToFollow)) {
+            userRepository.save(follower);
+        }
+
+        return userMapper.toProfileResponse(userToFollow, true);
+    }
+
+    @Transactional
+    public ProfileResponse unfollow(String username, String followerEmail) {
+        UserEntity userToUnfollow = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        UserEntity follower = userRepository.findByEmail(followerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", followerEmail));
+
+        if (follower.getFollowing().remove(userToUnfollow)) {
+            userRepository.save(follower);
+        }
+
+        return userMapper.toProfileResponse(userToUnfollow, false);
     }
 
     public Optional<Long> findUserIdByEmail(String email) {
