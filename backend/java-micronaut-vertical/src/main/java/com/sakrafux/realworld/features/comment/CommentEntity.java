@@ -23,9 +23,9 @@ public class CommentEntity extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
 
-    @Column(name = "article_id", nullable = false)
+    @Column(name = "fk_article", nullable = false)
     private Long articleId;
 
-    @Column(name = "author_id", nullable = false)
+    @Column(name = "fk_author", nullable = false)
     private Long authorId;
 }

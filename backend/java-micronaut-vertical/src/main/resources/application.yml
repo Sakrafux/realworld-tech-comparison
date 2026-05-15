@@ -21,10 +21,10 @@ micronaut:
             generator:
               secret: ${JWT_SECRET:pleaseChangeThisSecretForANewOne}
   metrics:
-    enabled: false
+    enabled: ${OTEL_ENABLED:false}
     export:
       otlp:
-        enabled: ${OTEL_ENABLED:false}
+        enabled: true
         url: ${OTEL_METRICS_URL:http://otel-collector:4318/v1/metrics}
         step: 10s
     binders:
