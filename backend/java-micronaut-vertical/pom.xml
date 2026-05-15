@@ -123,6 +123,18 @@
         </dependency>
 
         <dependency>
+            <groupId>io.micronaut.micrometer</groupId>
+            <artifactId>micronaut-micrometer-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micronaut.micrometer</groupId>
+            <artifactId>micronaut-micrometer-registry-otlp</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
             <groupId>io.micronaut.testresources</groupId>
             <artifactId>micronaut-test-resources-client</artifactId>
         </dependency>

@@ -3,6 +3,11 @@ micronaut:
     name: java-micronaut-vertical
   server:
     context-path: /api
+    cors:
+      enabled: true
+      configurations:
+        default:
+          allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   serde:
     serialization:
       inclusion: NON_NULL
@@ -15,6 +20,29 @@ micronaut:
           secret:
             generator:
               secret: ${JWT_SECRET:pleaseChangeThisSecretForANewOne}
+  metrics:
+    enabled: false
+    export:
+      otlp:
+        enabled: ${OTEL_ENABLED:false}
+        url: ${OTEL_METRICS_URL:http://otel-collector:4318/v1/metrics}
+        step: 10s
+    binders:
+      jvm:
+        enabled: false
+      processor:
+        enabled: false
+      uptime:
+        enabled: false
+      logback:
+        enabled: false
+      files:
+        enabled: false
+      jdbc:
+        enabled: false
+      hibernate:
+        enabled: false
+
 datasources:
   default:
     db-type: postgres
