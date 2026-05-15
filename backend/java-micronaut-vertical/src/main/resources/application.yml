@@ -3,6 +3,9 @@ micronaut:
     name: java-micronaut-vertical
   server:
     context-path: /api
+  serde:
+    serialization:
+      inclusion: NON_NULL
   security:
     reject-not-found: false
     authentication: bearer
@@ -20,10 +23,13 @@ datasources:
 
 jpa:
   default:
+    entity-scan:
+      packages: com.sakrafux.realworld
     properties:
       hibernate:
         hbm2ddl:
           auto: update
+        show_sql: true
 
 endpoints:
   health:
