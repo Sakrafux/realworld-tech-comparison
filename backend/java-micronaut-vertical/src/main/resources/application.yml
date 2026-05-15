@@ -1,7 +1,10 @@
 micronaut:
   application:
     name: java-micronaut-vertical
+  server:
+    context-path: /api
   security:
+    reject-not-found: false
     authentication: bearer
     token:
       jwt:
@@ -21,3 +24,7 @@ jpa:
       hibernate:
         hbm2ddl:
           auto: update
+
+endpoints:
+  health:
+    details-visible: ANONYMOUS
