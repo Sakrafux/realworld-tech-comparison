@@ -45,7 +45,3 @@ src/
 2. **Easy Navigation**: When fixing a bug in "Comments," you only ever need to look inside the `features/comments/` folder.
 3. **Scalability**: New features can be added by simply creating a new folder in `features/`, with zero risk of breaking existing functionality.
 4. **Validation as a "Port"**: Using tools like **Zod** at the entry of the controller acts as a strict contract, ensuring only valid data enters the business logic.
-
-## Testing
-
-The integration tests rely on an active postgres database to connect to.
