@@ -26,7 +26,8 @@
         "argon2": "^0.44.0",
         "express": "^5.2.1",
         "jose": "^6.2.3",
-        "pg-promise": "^12.6.2"
+        "pg-promise": "^12.6.2",
+        "zod": "^4.4.3"
     },
     "devDependencies": {
         "@types/express": "^5.0.6",

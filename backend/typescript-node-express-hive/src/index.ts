@@ -1,4 +1,7 @@
-import app from "./app.js";
+import { App } from "./hive/app.js";
+
+const hiveApp = new App();
+const app = await hiveApp.bootstrap();
 
 const PORT = process.env.PORT || 8080;
 

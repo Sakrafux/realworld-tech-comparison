@@ -3,7 +3,7 @@ CREATE TABLE "app_user" (
   "id" bigint PRIMARY KEY DEFAULT nextval('seq_user_id'),
   "username" varchar(50) UNIQUE NOT NULL,
   "email" varchar(100) UNIQUE NOT NULL,
-  "password" varchar(60) NOT NULL,
+  "password" varchar(255) NOT NULL,
   "bio" varchar(255) NOT NULL,
   "image" varchar(255),
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
