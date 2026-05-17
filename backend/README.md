@@ -19,7 +19,7 @@ This directory contains various backend implementations of the [RealWorld API sp
 *   [**Go + Chi (Hive)**](./go-chi-hive/README.md): Vertical Hexagonal architecture, organizing features into self-contained hexagonal "cells."
 
 ### TypeScript
-*   [**Express (Vertical Slice)**](./typescript-express-vertical/README.md): High cohesion per feature using TypeScript for type safety across the slice.
+*   [**Express (Vertical Slice)**](typescript-node-express-vertical/README.md): High cohesion per feature using TypeScript for type safety across the slice.
 
 ### Python
 *   [**Django (Vertical Slice)**](./python-django-vertical/README.md): Leveraging standard Django apps with an additional Service Layer for logic isolation.
