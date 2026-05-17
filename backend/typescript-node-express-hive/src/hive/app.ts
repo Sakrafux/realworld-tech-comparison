@@ -15,10 +15,14 @@ export class App {
     private readonly config: Config;
     private readonly db: Database;
 
-    constructor() {
+    constructor(config?: Config) {
         this.expressApp = express();
-        this.config = loadConfig();
+        this.config = config ?? loadConfig();
         this.db = newDatabase(this.config.database);
+    }
+
+    getDatabase(): Database {
+        return this.db;
     }
 
     async bootstrap(): Promise<Express> {
@@ -40,5 +44,9 @@ export class App {
         this.expressApp.use(errorHandler);
 
         return this.expressApp;
+    }
+
+    async shutdown() {
+        this.db.$config.pgp.end();
     }
 }
