@@ -58,6 +58,10 @@ jpa:
         hbm2ddl:
           auto: update
         show_sql: false
+        bytecode:
+          provider: none
+          user_reflection_optimizer: false
+    compile-time-hibernate-proxies: true
 
 endpoints:
   health:

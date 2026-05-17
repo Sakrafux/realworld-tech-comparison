@@ -1,0 +1,31 @@
+####
+# This Dockerfile is used in order to build a container that runs the Micronaut application in native (no JVM) mode.
+#
+# Before building the container image run:
+#
+# ./mvnw package -Dpackaging=native-image -DskipTests
+#
+# Then, build the image with:
+#
+# docker build -f Dockerfile.native -t micronaut/java-micronaut-vertical .
+###
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7
+WORKDIR /app
+
+# 1. Install OS-level font and graphics dependencies required by the .so files
+RUN microdnf install -y freetype fontconfig && \
+    microdnf clean all
+
+# 2. Copy the native executable AND the required shared libraries
+COPY target/java-micronaut-vertical /app/application
+COPY target/*.so /app/
+
+# 3. Inform the Linux linker where to find your custom .so files
+ENV LD_LIBRARY_PATH=/app
+
+EXPOSE 8080
+
+# 4. Run as a non-root user for production security (UBI standard practice)
+USER 1001
+
+ENTRYPOINT ["/app/application"]
