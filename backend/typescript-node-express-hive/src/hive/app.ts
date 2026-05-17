@@ -10,6 +10,11 @@ import { PostgresUserRepository } from "../cells/user/repository.js";
 import { DefaultUserService } from "../cells/user/service.js";
 import { UserHandler } from "../cells/user/handler.js";
 
+// Article Cell
+import { PostgresArticleRepository } from "../cells/article/repository.js";
+import { DefaultArticleService } from "../cells/article/service.js";
+import { ArticleHandler } from "../cells/article/handler.js";
+
 export class App {
     private readonly expressApp: Express;
     private readonly config: Config;
@@ -37,8 +42,14 @@ export class App {
         const userService = new DefaultUserService(userRepo, passwordHasher);
         const userHandler = new UserHandler(userService, jwtTokenGenerator, jwtTokenGenerator);
 
+        // Article Cell wiring
+        const articleRepo = new PostgresArticleRepository(this.db);
+        const articleService = new DefaultArticleService(articleRepo, userService);
+        const articleHandler = new ArticleHandler(articleService, jwtTokenGenerator);
+
         // Routing
         this.expressApp.use("/api", userHandler.getRouter());
+        this.expressApp.use("/api", articleHandler.getRouter());
 
         // Error Handling
         this.expressApp.use(errorHandler);
