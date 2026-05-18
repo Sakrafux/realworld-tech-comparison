@@ -15,6 +15,11 @@ import { PostgresArticleRepository } from "../cells/article/repository.js";
 import { DefaultArticleService } from "../cells/article/service.js";
 import { ArticleHandler } from "../cells/article/handler.js";
 
+// Comment Cell
+import { PostgresCommentRepository } from "../cells/comment/repository.js";
+import { DefaultCommentService } from "../cells/comment/service.js";
+import { CommentHandler } from "../cells/comment/handler.js";
+
 export class App {
     private readonly expressApp: Express;
     private readonly config: Config;
@@ -47,9 +52,15 @@ export class App {
         const articleService = new DefaultArticleService(articleRepo, userService);
         const articleHandler = new ArticleHandler(articleService, jwtTokenGenerator);
 
+        // Comment Cell wiring
+        const commentRepo = new PostgresCommentRepository(this.db);
+        const commentService = new DefaultCommentService(commentRepo, userService, articleService);
+        const commentHandler = new CommentHandler(commentService, jwtTokenGenerator);
+
         // Routing
         this.expressApp.use("/api", userHandler.getRouter());
         this.expressApp.use("/api", articleHandler.getRouter());
+        this.expressApp.use("/api", commentHandler.getRouter());
 
         // Error Handling
         this.expressApp.use(errorHandler);
