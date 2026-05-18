@@ -1,0 +1,32 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      '@types/k6':
+        specifier: ^0.45.0
+        version: 0.45.3
+      typescript:
+        specifier: ^5.2.2
+        version: 5.9.3
+
+packages:
+
+  '@types/k6@0.45.3':
+    resolution: {integrity: sha512-HkB61Bz08E9462J72igdDf+M6uMn5GLEIYUxfojWcOm/7lLEapySgsEPVXYRyPbCX/xUn77iCG8PxOJnndNZzQ==}
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+snapshots:
+
+  '@types/k6@0.45.3': {}
+
+  typescript@5.9.3: {}
