@@ -16,6 +16,8 @@ describe("ArticleHandler", () => {
             deleteArticle: vi.fn(),
             favoriteArticle: vi.fn(),
             unfavoriteArticle: vi.fn(),
+            getArticles: vi.fn(),
+            getFeed: vi.fn(),
             getTags: vi.fn(),
         };
         jwtTokenGenerator = new JwtTokenGenerator("secret");
@@ -76,6 +78,60 @@ describe("ArticleHandler", () => {
                 article: expect.objectContaining({
                     slug: "test-slug",
                 }),
+            });
+        });
+    });
+
+    describe("getArticles", () => {
+        it("should return articles list", async () => {
+            const req: any = {
+                query: { limit: "10", offset: "0" },
+                userId: undefined,
+            };
+            const res: any = {
+                json: vi.fn(),
+            };
+            const next = vi.fn();
+
+            const articles = [
+                new Article(1, "slug1", "T1", "D1", "B1", [], new Date(), new Date(), false, 0, { username: "a", bio: "", image: null, following: false }),
+            ];
+            service.getArticles.mockResolvedValue({ articles, articlesCount: 1 });
+
+            await (handler as any).getArticles(req, res, next);
+
+            expect(res.json).toHaveBeenCalledWith({
+                articles: expect.arrayContaining([
+                    expect.objectContaining({ slug: "slug1" }),
+                ]),
+                articlesCount: 1,
+            });
+        });
+    });
+
+    describe("getFeed", () => {
+        it("should return articles feed", async () => {
+            const req: any = {
+                query: { limit: "10", offset: "0" },
+                userId: 1,
+            };
+            const res: any = {
+                json: vi.fn(),
+            };
+            const next = vi.fn();
+
+            const articles = [
+                new Article(1, "slug1", "T1", "D1", "B1", [], new Date(), new Date(), false, 0, { username: "a", bio: "", image: null, following: false }),
+            ];
+            service.getFeed.mockResolvedValue({ articles, articlesCount: 1 });
+
+            await (handler as any).getFeed(req, res, next);
+
+            expect(res.json).toHaveBeenCalledWith({
+                articles: expect.arrayContaining([
+                    expect.objectContaining({ slug: "slug1" }),
+                ]),
+                articlesCount: 1,
             });
         });
     });

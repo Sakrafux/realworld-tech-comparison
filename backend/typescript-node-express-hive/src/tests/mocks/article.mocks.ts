@@ -5,6 +5,8 @@ export const mockArticleRepository = (): any => ({
     create: vi.fn(),
     getBySlug: vi.fn(),
     getByTitle: vi.fn(),
+    findAll: vi.fn(),
+    findFeed: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
     favorite: vi.fn(),

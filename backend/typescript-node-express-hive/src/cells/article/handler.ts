@@ -2,7 +2,12 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import type { ArticleService } from "./ports.js";
 import { type AuthenticatedRequest, authMiddleware } from "../../shared/web/auth-middleware.js";
 import type { JwtTokenGenerator } from "../../shared/security/token.js";
-import { createArticleSchema, updateArticleSchema } from "./validator.js";
+import {
+    createArticleSchema,
+    updateArticleSchema,
+    getArticlesQuerySchema,
+    getFeedQuerySchema,
+} from "./validator.js";
 
 export class ArticleHandler {
     constructor(
@@ -14,6 +19,17 @@ export class ArticleHandler {
         const router = Router();
 
         router.get("/tags", this.getTags.bind(this));
+
+        router.get(
+            "/articles",
+            authMiddleware(this.jwtTokenGenerator, false),
+            this.getArticles.bind(this),
+        );
+        router.get(
+            "/articles/feed",
+            authMiddleware(this.jwtTokenGenerator),
+            this.getFeed.bind(this),
+        );
 
         router.post(
             "/articles",
@@ -48,6 +64,38 @@ export class ArticleHandler {
         );
 
         return router;
+    }
+
+    private async getFeed(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const query = getFeedQuerySchema.parse(req.query);
+            const result = await this.service.getFeed({
+                ...query,
+                userId: req.userId!,
+            });
+            res.json({
+                articles: result.articles.map((a) => this.mapArticleToResponse(a)),
+                articlesCount: result.articlesCount,
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    private async getArticles(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const query = getArticlesQuerySchema.parse(req.query);
+            const result = await this.service.getArticles({
+                ...query,
+                observerId: req.userId,
+            });
+            res.json({
+                articles: result.articles.map((a) => this.mapArticleToResponse(a)),
+                articlesCount: result.articlesCount,
+            });
+        } catch (err) {
+            next(err);
+        }
     }
 
     private async createArticle(req: AuthenticatedRequest, res: Response, next: NextFunction) {

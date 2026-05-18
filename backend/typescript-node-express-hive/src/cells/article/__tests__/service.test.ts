@@ -135,4 +135,30 @@ describe("DefaultArticleService", () => {
             expect(repo.delete).toHaveBeenCalledWith(1);
         });
     });
+
+    describe("getArticles", () => {
+        it("should call repo.findAll with query", async () => {
+            const query = { limit: 10, offset: 0, tag: "tag1" };
+            const expectedResult = { articles: [], articlesCount: 0 };
+            repo.findAll.mockResolvedValue(expectedResult);
+
+            const result = await service.getArticles(query);
+
+            expect(result).toBe(expectedResult);
+            expect(repo.findAll).toHaveBeenCalledWith(query);
+        });
+    });
+
+    describe("getFeed", () => {
+        it("should call repo.findFeed with query", async () => {
+            const query = { limit: 10, offset: 0, userId: 1 };
+            const expectedResult = { articles: [], articlesCount: 0 };
+            repo.findFeed.mockResolvedValue(expectedResult);
+
+            const result = await service.getFeed(query);
+
+            expect(result).toBe(expectedResult);
+            expect(repo.findFeed).toHaveBeenCalledWith(query);
+        });
+    });
 });

@@ -9,6 +9,9 @@ import type {
     ArticleService,
     ArticleRepository,
     UserProvider,
+    GetArticlesQuery,
+    ArticlesList,
+    GetArticlesFeedQuery,
 } from "./ports.js";
 import {
     newAlreadyExistsError,
@@ -107,6 +110,14 @@ export class DefaultArticleService implements ArticleService {
         const article = await this.getArticle({ slug: cmd.slug, observerId: cmd.userId });
         await this.repo.unfavorite(article.id, cmd.userId);
         return this.getArticle({ slug: cmd.slug, observerId: cmd.userId });
+    }
+
+    async getArticles(query: GetArticlesQuery): Promise<ArticlesList> {
+        return this.repo.findAll(query);
+    }
+
+    async getFeed(query: GetArticlesFeedQuery): Promise<ArticlesList> {
+        return this.repo.findFeed(query);
     }
 
     async getTags(): Promise<Tag[]> {
