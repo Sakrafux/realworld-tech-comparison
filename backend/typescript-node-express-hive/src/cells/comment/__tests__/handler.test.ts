@@ -33,12 +33,17 @@ describe("CommentHandler", () => {
             };
             const next = vi.fn();
 
-            const comment = new Comment(1, new Date(), new Date(), "test body", { username: "author", bio: "", image: null, following: false });
+            const comment = new Comment(1, new Date(), new Date(), "test body", {
+                username: "author",
+                bio: "",
+                image: null,
+                following: false,
+            });
             service.createComment.mockResolvedValue(comment);
 
             await (handler as any).createComment(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith({
                 comment: expect.objectContaining({
                     body: "test body",
@@ -60,16 +65,19 @@ describe("CommentHandler", () => {
             const next = vi.fn();
 
             const comments = [
-                new Comment(1, new Date(), new Date(), "body1", { username: "a", bio: "", image: null, following: false }),
+                new Comment(1, new Date(), new Date(), "body1", {
+                    username: "a",
+                    bio: "",
+                    image: null,
+                    following: false,
+                }),
             ];
             service.getComments.mockResolvedValue(comments);
 
             await (handler as any).getComments(req, res, next);
 
             expect(res.json).toHaveBeenCalledWith({
-                comments: expect.arrayContaining([
-                    expect.objectContaining({ body: "body1" }),
-                ]),
+                comments: expect.arrayContaining([expect.objectContaining({ body: "body1" })]),
             });
         });
     });

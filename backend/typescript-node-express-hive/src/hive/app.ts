@@ -38,6 +38,11 @@ export class App {
     async bootstrap(): Promise<Express> {
         this.expressApp.use(express.json());
 
+        // Health Check
+        this.expressApp.get("/health", (req, res) => {
+            res.status(200).send("OK");
+        });
+
         // Shared Components
         const passwordHasher = new Argon2PasswordHasher();
         const jwtTokenGenerator = new JwtTokenGenerator(this.config.security.jwtSecret);
