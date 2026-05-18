@@ -1,4 +1,4 @@
-import type { Comment } from "./comment.js";
+import type { Comment } from "./comment.domain.js";
 
 export interface CreateCommentCommand {
     slug: string;

@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { UserHandler } from "../handler.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { UserHandler } from "../user.controller.js";
 import { mockUserRepository, mockTokenGenerator } from "../../../tests/mocks/user.mocks.js";
-import { User } from "../user.js";
+import { User } from "../user.domain.js";
 import { JwtTokenGenerator } from "../../../shared/security/token.js";
+
 
 describe("UserHandler", () => {
     let handler: UserHandler;

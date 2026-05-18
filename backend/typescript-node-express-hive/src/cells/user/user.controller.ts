@@ -1,8 +1,8 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import type { UserService } from "./ports.js";
+import type { UserService } from "./user.ports.js";
 import { type AuthenticatedRequest, authMiddleware } from "../../shared/web/auth-middleware.js";
 import { JwtTokenGenerator, type TokenGenerator } from "../../shared/security/token.js";
-import { loginSchema, registerSchema, updateUserSchema } from "./validator.js";
+import { loginSchema, registerSchema, updateUserSchema } from "./user.validator.js";
 
 export class UserHandler {
     constructor(

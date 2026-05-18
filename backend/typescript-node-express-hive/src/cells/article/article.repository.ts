@@ -1,6 +1,6 @@
 import type { Database } from "../../shared/database/database.js";
-import { Article, type Tag } from "./article.js";
-import type { ArticleRepository } from "./ports.js";
+import { Article, type Tag } from "./article.domain.js";
+import type { ArticleRepository } from "./article.ports.js";
 
 export class PostgresArticleRepository implements ArticleRepository {
     constructor(private db: Database) {}
@@ -135,7 +135,10 @@ export class PostgresArticleRepository implements ArticleRepository {
             `;
         }
 
-        selectQuery += queryBase + whereClause + ` ORDER BY a.created_at DESC LIMIT $${argIndex++} OFFSET $${argIndex++}`;
+        selectQuery +=
+            queryBase +
+            whereClause +
+            ` ORDER BY a.created_at DESC LIMIT $${argIndex++} OFFSET $${argIndex++}`;
         args.push(params.limit, params.offset);
 
         const rows = await this.db.manyOrNone(selectQuery, args);

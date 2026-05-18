@@ -1,5 +1,5 @@
-import type { Article, Tag } from "./article.js";
-import type { User } from "../user/user.js";
+import type { Article, Tag } from "./article.domain.js";
+import type { User } from "../user/user.domain.js";
 
 export interface CreateArticleCommand {
     authorId: number;

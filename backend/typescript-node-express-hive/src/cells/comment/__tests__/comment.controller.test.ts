@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { CommentHandler } from "../handler.js";
-import { Comment } from "../comment.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { CommentHandler } from "../comment.controller.js";
+import { Comment } from "../comment.domain.js";
 import { JwtTokenGenerator } from "../../../shared/security/token.js";
+
 
 describe("CommentHandler", () => {
     let handler: CommentHandler;

@@ -1,11 +1,11 @@
-import { User, type Profile } from "./user.js";
+import { User, type Profile } from "./user.domain.js";
 import type {
     RegisterCommand,
     LoginCommand,
     UpdateUserCommand,
     UserService,
     UserRepository,
-} from "./ports.js";
+} from "./user.ports.js";
 import {
     newAlreadyExistsError,
     newInvalidCredentialsError,

@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { DefaultUserService } from "../service.js";
-import { User } from "../user.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { DefaultUserService } from "../user.service.js";
+import { User } from "../user.domain.js";
 import { mockUserRepository, mockPasswordHasher } from "../../../tests/mocks/user.mocks.js";
 import { ErrorType } from "../../../shared/errors/app-error.js";
+
 
 describe("DefaultUserService", () => {
     let service: DefaultUserService;

@@ -6,19 +6,19 @@ import { Argon2PasswordHasher } from "../shared/security/password.js";
 import { JwtTokenGenerator } from "../shared/security/token.js";
 
 // User Cell
-import { PostgresUserRepository } from "../cells/user/repository.js";
-import { DefaultUserService } from "../cells/user/service.js";
-import { UserHandler } from "../cells/user/handler.js";
+import { PostgresUserRepository } from "../cells/user/user.repository.js";
+import { DefaultUserService } from "../cells/user/user.service.js";
+import { UserHandler } from "../cells/user/user.controller.js";
 
 // Article Cell
-import { PostgresArticleRepository } from "../cells/article/repository.js";
-import { DefaultArticleService } from "../cells/article/service.js";
-import { ArticleHandler } from "../cells/article/handler.js";
+import { PostgresArticleRepository } from "../cells/article/article.repository.js";
+import { DefaultArticleService } from "../cells/article/article.service.js";
+import { ArticleHandler } from "../cells/article/article.controller.js";
 
 // Comment Cell
-import { PostgresCommentRepository } from "../cells/comment/repository.js";
-import { DefaultCommentService } from "../cells/comment/service.js";
-import { CommentHandler } from "../cells/comment/handler.js";
+import { PostgresCommentRepository } from "../cells/comment/comment.repository.js";
+import { DefaultCommentService } from "../cells/comment/comment.service.js";
+import { CommentHandler } from "../cells/comment/comment.controller.js";
 
 export class App {
     private readonly expressApp: Express;

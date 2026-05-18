@@ -1,6 +1,6 @@
 import type { Database } from "../../shared/database/database.js";
-import { User, type Profile } from "./user.js";
-import type { UserRepository } from "./ports.js";
+import { User, type Profile } from "./user.domain.js";
+import type { UserRepository } from "./user.ports.js";
 
 export class PostgresUserRepository implements UserRepository {
     constructor(private db: Database) {}

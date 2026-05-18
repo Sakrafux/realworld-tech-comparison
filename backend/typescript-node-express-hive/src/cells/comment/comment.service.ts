@@ -1,4 +1,4 @@
-import { Comment } from "./comment.js";
+import { Comment } from "./comment.domain.js";
 import type {
     CommentService,
     CommentRepository,
@@ -7,7 +7,7 @@ import type {
     CreateCommentCommand,
     GetCommentsQuery,
     DeleteCommentCommand,
-} from "./ports.js";
+} from "./comment.ports.js";
 import { newForbiddenError, newResourceNotFound } from "../../shared/errors/app-error.js";
 
 export class DefaultCommentService implements CommentService {

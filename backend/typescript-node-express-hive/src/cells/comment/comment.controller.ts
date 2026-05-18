@@ -1,8 +1,9 @@
-import { Router, type Response, type NextFunction } from "express";
-import type { CommentService } from "./ports.js";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import type { CommentService } from "./comment.ports.js";
 import { type AuthenticatedRequest, authMiddleware } from "../../shared/web/auth-middleware.js";
-import type { JwtTokenGenerator } from "../../shared/security/token.js";
-import { createCommentSchema } from "./validator.js";
+import { JwtTokenGenerator } from "../../shared/security/token.js";
+import { createCommentSchema } from "./comment.validator.js";
+
 
 export class CommentHandler {
     constructor(

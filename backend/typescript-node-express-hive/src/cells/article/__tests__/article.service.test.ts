@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { DefaultArticleService } from "../service.js";
-import { Article } from "../article.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { DefaultArticleService } from "../article.service.js";
+import { Article } from "../article.domain.js";
 import { mockArticleRepository, mockUserProvider } from "../../../tests/mocks/article.mocks.js";
-import { User } from "../../user/user.js";
+import { User } from "../../user/user.domain.js";
 import { ErrorType } from "../../../shared/errors/app-error.js";
+
 
 describe("DefaultArticleService", () => {
     let service: DefaultArticleService;

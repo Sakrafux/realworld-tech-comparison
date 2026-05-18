@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { UserRepository } from "../../cells/user/ports.js";
+import type { UserRepository } from "../../cells/user/user.ports.js";
 import type { PasswordHasher } from "../../shared/security/password.js";
 import type { TokenGenerator } from "../../shared/security/token.js";
 

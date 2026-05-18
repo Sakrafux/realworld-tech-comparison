@@ -1,6 +1,6 @@
 import type { Database } from "../../shared/database/database.js";
-import { Comment } from "./comment.js";
-import type { CommentRepository } from "./ports.js";
+import { Comment } from "./comment.domain.js";
+import type { CommentRepository } from "./comment.ports.js";
 
 export class PostgresCommentRepository implements CommentRepository {
     constructor(private db: Database) {}

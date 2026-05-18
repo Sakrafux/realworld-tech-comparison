@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import type { ArticleService } from "./ports.js";
+import type { ArticleService } from "./article.ports.js";
 import { type AuthenticatedRequest, authMiddleware } from "../../shared/web/auth-middleware.js";
 import type { JwtTokenGenerator } from "../../shared/security/token.js";
 import {
@@ -7,7 +7,7 @@ import {
     updateArticleSchema,
     getArticlesQuerySchema,
     getFeedQuerySchema,
-} from "./validator.js";
+} from "./article.validator.js";
 
 export class ArticleHandler {
     constructor(

@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { DefaultCommentService } from "../service.js";
-import { Comment } from "../comment.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { DefaultCommentService } from "../comment.service.js";
+import { Comment } from "../comment.domain.js";
 import { ErrorType } from "../../../shared/errors/app-error.js";
+
 
 describe("DefaultCommentService", () => {
     let service: DefaultCommentService;

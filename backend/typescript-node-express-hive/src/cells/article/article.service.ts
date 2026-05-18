@@ -1,4 +1,4 @@
-import { Article, slugify, type Tag } from "./article.js";
+import { Article, slugify, type Tag } from "./article.domain.js";
 import type {
     CreateArticleCommand,
     UpdateArticleCommand,
@@ -12,7 +12,7 @@ import type {
     GetArticlesQuery,
     ArticlesList,
     GetArticlesFeedQuery,
-} from "./ports.js";
+} from "./article.ports.js";
 import {
     newAlreadyExistsError,
     newForbiddenError,

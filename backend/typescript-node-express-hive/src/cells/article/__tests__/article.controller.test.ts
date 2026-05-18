@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { ArticleHandler } from "../handler.js";
-import { Article } from "../article.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ArticleHandler } from "../article.controller.js";
+import { Article } from "../article.domain.js";
 import { JwtTokenGenerator } from "../../../shared/security/token.js";
+
 
 describe("ArticleHandler", () => {
     let handler: ArticleHandler;

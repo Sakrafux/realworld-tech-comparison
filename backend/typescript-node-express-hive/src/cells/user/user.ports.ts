@@ -1,4 +1,4 @@
-import { User, type Profile } from "./user.js";
+import { User, type Profile } from "./user.domain.js";
 
 export interface RegisterCommand {
     username: string;
