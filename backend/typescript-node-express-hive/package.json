@@ -29,7 +29,6 @@
         "@opentelemetry/instrumentation-http": "^0.218.0",
         "@opentelemetry/resources": "^2.7.1",
         "@opentelemetry/sdk-metrics": "^2.7.1",
-        "@opentelemetry/sdk-node": "^0.218.0",
         "@opentelemetry/semantic-conventions": "^1.41.1",
         "argon2": "^0.44.0",
         "express": "^5.2.1",
