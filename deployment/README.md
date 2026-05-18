@@ -44,8 +44,10 @@ docker-compose -f docker-compose.yml -f stacks/java-springboot-hive.yml up --bui
 docker-compose -f docker-compose.yml -f stacks/java-quarkus-vertical-jvm.yml up --build
 docker-compose -f docker-compose.yml -f stacks/java-quarkus-vertical-graalvm.yml up --build
 docker-compose -f docker-compose.yml -f stacks/java-micronaut-vertical-jvm.yml up --build
+docker-compose -f docker-compose.yml -f stacks/java-micronaut-vertical-graalvm.yml up --build
 docker-compose -f docker-compose.yml -f stacks/go-chi-hexagonal.yml up --build
 docker-compose -f docker-compose.yml -f stacks/go-chi-hive.yml up --build
+docker-compose -f docker-compose.yml -f stacks/typescript-node-express-hive.yml up --build
 ```
 
 ### With Monitoring
@@ -58,6 +60,8 @@ docker-compose -f docker-compose.yml -f stacks/java-springboot-hive.yml -f stack
 docker-compose -f docker-compose.yml -f stacks/java-quarkus-vertical-jvm.yml -f stacks/monitoring.yml up --build
 docker-compose -f docker-compose.yml -f stacks/java-quarkus-vertical-graalvm.yml -f stacks/monitoring.yml up --build
 docker-compose -f docker-compose.yml -f stacks/java-micronaut-vertical-jvm.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose.yml -f stacks/java-micronaut-vertical-graalvm.yml -f stacks/monitoring.yml up --build
 docker-compose -f docker-compose.yml -f stacks/go-chi-hexagonal.yml -f stacks/monitoring.yml up --build
 docker-compose -f docker-compose.yml -f stacks/go-chi-hive.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose.yml -f stacks/typescript-node-express-hive.yml -f stacks/monitoring.yml up --build
 ```

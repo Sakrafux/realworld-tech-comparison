@@ -1,5 +1,4 @@
 import { vi } from "vitest";
-import type { ArticleRepository, UserProvider } from "../../cells/article/ports.js";
 
 export const mockArticleRepository = (): any => ({
     create: vi.fn(),

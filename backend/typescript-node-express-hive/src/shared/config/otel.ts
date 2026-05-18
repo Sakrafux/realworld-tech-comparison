@@ -1,14 +1,13 @@
-import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
-import { NodeSDK } from "@opentelemetry/sdk-node";
+import { diag, DiagConsoleLogger, DiagLogLevel, metrics } from "@opentelemetry/api";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
-import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
-import { resourceFromAttributes } from "@opentelemetry/resources"; // Updated import
+import { MeterProvider, PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import { resourceFromAttributes } from "@opentelemetry/resources";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
+import { registerInstrumentations } from "@opentelemetry/instrumentation";
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
-import { ExpressInstrumentation } from "@opentelemetry/instrumentation-express";
 import type { OtelConfig } from "./config.js";
 
-export function initOtel(cfg: OtelConfig): NodeSDK | null {
+export function initOtel(cfg: OtelConfig): MeterProvider | null {
     if (!cfg.enabled) {
         return null;
     }
@@ -17,22 +16,30 @@ export function initOtel(cfg: OtelConfig): NodeSDK | null {
         diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
     }
 
-    const sdk = new NodeSDK({
+    // 1. Define the Metric Exporter and Reader
+    const metricReader = new PeriodicExportingMetricReader({
+        exporter: new OTLPMetricExporter({
+            url: `${cfg.endpoint}/v1/metrics`,
+        }),
+        exportIntervalMillis: 10000,
+    });
+
+    // 2. Initialize the standalone MeterProvider
+    const meterProvider = new MeterProvider({
         resource: resourceFromAttributes({
             [ATTR_SERVICE_NAME]: cfg.serviceName,
         }),
-        metricReaders: [
-            new PeriodicExportingMetricReader({
-                exporter: new OTLPMetricExporter({
-                    url: `${cfg.endpoint}/v1/metrics`,
-                }),
-                exportIntervalMillis: 10000,
-            }),
-        ],
-        instrumentations: [new HttpInstrumentation(), new ExpressInstrumentation()],
+        readers: [metricReader],
     });
 
-    sdk.start();
+    // 3. Set it globally so the API and instrumentations can locate it
+    metrics.setGlobalMeterProvider(meterProvider);
 
-    return sdk;
+    // 4. Explicitly bind instrumentations to the meter provider
+    registerInstrumentations({
+        meterProvider: meterProvider,
+        instrumentations: [new HttpInstrumentation()],
+    });
+
+    return meterProvider;
 }

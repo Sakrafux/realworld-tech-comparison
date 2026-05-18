@@ -1,16 +1,19 @@
-import { App } from "./hive/app.js";
 import { loadConfig } from "./shared/config/config.js";
 import { initOtel } from "./shared/config/otel.js";
 
+// 1. Initialize configuration and OpenTelemetry immediately.
+// No application code or framework modules can be imported above this line.
 const config = loadConfig();
-
 const otelSDK = initOtel(config.otel);
+
+// 2. Dynamically import the application logic.
+// This guarantees that Express/HTTP modules are loaded AFTER OTel hooks are ready.
+const { App } = await import("./hive/app.js");
 
 const hiveApp = new App(config);
 const app = await hiveApp.bootstrap();
 
 const PORT = config.server.port;
-
 const server = app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
