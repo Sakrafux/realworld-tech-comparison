@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { httpInstrumentationMiddleware } from "@hono/otel";
 import { type Config, loadConfig } from "../shared/config/config.js";
 import { newDatabase, type Database } from "../shared/database/database.js";
 import { errorHandler } from "../shared/web/error-handler.js";
@@ -40,6 +41,10 @@ export class App {
     }
 
     async bootstrap(): Promise<Hono<{ Variables: Variables }>> {
+        if (this.config.otel.enabled) {
+            this.honoApp.use(httpInstrumentationMiddleware());
+        }
+
         // Health Check
         this.honoApp.get("/health", (c) => {
             return c.text("OK", 200);
