@@ -3,7 +3,7 @@ from typing import Optional
 from features.user.domain import Profile, User
 from features.user.repository import find_by_email, find_by_username, create, find_by_id, update, \
     get_profile_by_username, follow, unfollow
-from shared.errors import (
+from shared.errors.app_error import (
     new_already_exists_error,
     new_not_found_error,
     new_resource_not_found,

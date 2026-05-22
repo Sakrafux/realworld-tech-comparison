@@ -5,8 +5,8 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
 from features.user.controller import router as user_router
-from shared.database import close_pool, get_pool
-from shared.errors import AppError
+from shared.database.pool import close_pool, get_pool
+from shared.errors.app_error import AppError
 from shared.web.error_handler import app_error_handler, generic_error_handler, validation_error_handler
 
 

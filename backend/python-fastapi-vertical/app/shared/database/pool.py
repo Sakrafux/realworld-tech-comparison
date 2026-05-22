@@ -1,6 +1,6 @@
 import asyncpg
 
-from shared.config import settings
+from shared.config.env import settings
 
 _pool: asyncpg.Pool | None = None
 

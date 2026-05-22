@@ -55,11 +55,3 @@ class ProfileResponse(BaseModel):
 
 class ProfileResponseWrapper(BaseModel):
     profile: ProfileResponse
-
-
-class ErrorBody(BaseModel):
-    body: list[str]
-
-
-class GenericErrorResponse(BaseModel):
-    errors: ErrorBody

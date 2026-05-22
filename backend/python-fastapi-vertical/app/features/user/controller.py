@@ -3,7 +3,6 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Request
 
 from features.user.dto import (
-    GenericErrorResponse,
     LoginRequestWrapper,
     NewUserRequestWrapper,
     ProfileResponse,
@@ -13,6 +12,7 @@ from features.user.dto import (
     UserResponseWrapper,
 )
 from features.user.service import unfollow_user, follow_user, get_profile, update_user, get_user, register, login
+from shared.errors.dto import GenericErrorResponse
 from shared.security.token import generate_token
 from shared.web.auth import get_auth_optional, get_auth_required
 

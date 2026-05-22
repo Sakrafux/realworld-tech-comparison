@@ -3,7 +3,7 @@ from typing import Optional
 import asyncpg
 
 from features.user.domain import Profile, User
-from shared.database import get_pool
+from shared.database.pool import get_pool
 
 
 async def create(user: User) -> None:

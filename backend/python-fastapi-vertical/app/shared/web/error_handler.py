@@ -4,7 +4,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
-from shared.errors import AppError, ErrorType
+from shared.errors.app_error import AppError, ErrorType
 
 
 status_code_map = {

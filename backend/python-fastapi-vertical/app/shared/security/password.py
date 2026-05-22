@@ -1,6 +1,6 @@
 import bcrypt
 
-from shared.errors import new_invalid_credentials_error
+from shared.errors.app_error import new_invalid_credentials_error
 
 
 def hash_password(password: str) -> str:

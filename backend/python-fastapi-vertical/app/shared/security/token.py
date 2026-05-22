@@ -2,8 +2,8 @@ import datetime
 
 import jwt
 
-from shared.config import settings
-from shared.errors import new_unauthorized_error
+from shared.config.env import settings
+from shared.errors.app_error import new_unauthorized_error
 
 
 def generate_token(user_id: int) -> str:

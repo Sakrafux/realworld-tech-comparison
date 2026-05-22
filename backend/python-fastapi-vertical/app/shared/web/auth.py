@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import Header
 
-from shared.errors import new_unauthorized_error
+from shared.errors.app_error import new_unauthorized_error
 from shared.security.token import verify_token
 
 
