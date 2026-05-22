@@ -83,6 +83,14 @@ This directory contains various backend implementations of the [RealWorld API sp
 - **Overall, the lack of magic makes it feel a bit more cumbersome to use, but also much more confident in the stability of the applicaiton.**
   - Would use again for most use cases. 
 
+### TypeScript - NodeJS - Express
+
+### TypeScript - Bun - Hono
+
+### Python - FastAPI
+
+### Python - Django
+
 ## Impression of architectures
 
 ### Layered
@@ -106,6 +114,7 @@ This directory contains various backend implementations of the [RealWorld API sp
 - Can be very hit-or-miss depending on languages.
   - Very natural fit for Go and its approach to interfaces. Barely any additional boilerplate, simply a sensible approach to ordering the code.
   - Horrible fit for Java, especially when using ORM entities, since either we need to separate them from the domain entities or violate hexagonal principles. Additionally, "one class, one file" leads to many more files.
+    - Similarly, Python works very badly as well, since it has no interface language concept, and its idiomatic patterns rely more on direct imports and functions than on clean contracts
 - Pure hexagonal architecture scales somewhat similarly bad as layered, since it distributes the code of single features across the codebase.
 
 ### Hive / Vertical Hexagonal
