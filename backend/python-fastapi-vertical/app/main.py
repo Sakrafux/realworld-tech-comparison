@@ -4,6 +4,7 @@ from fastapi import FastAPI, APIRouter
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
+from features.article.controller import router as article_router
 from features.user.controller import router as user_router
 from shared.database.pool import close_pool, get_pool
 from shared.errors.app_error import AppError
@@ -27,6 +28,7 @@ app = FastAPI(
 api_router = APIRouter(prefix="/api")
 
 api_router.include_router(user_router, tags=["users"])
+api_router.include_router(article_router, tags=["articles"])
 
 app.include_router(api_router)
 
