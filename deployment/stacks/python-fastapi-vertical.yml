@@ -1,14 +1,12 @@
 services:
   backend:
     build:
-      context: ../backend/typescript-bun-hono-hive
+      context: ../backend/python-fastapi-vertical
       dockerfile: Dockerfile
     container_name: backend
     ports:
       - "8080:8080"
     environment:
-      - SERVER_PORT=8080
-      - DB_TYPE=postgres
       - DB_PORT=5432
       - DB_HOST=db
       - DB_USER=postgres
@@ -19,7 +17,6 @@ services:
       - OTEL_ENABLED=true
       - OTEL_SERVICE_NAME=realworld
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
-      - OTEL_DIAGNOSTIC_LOGGING_ENABLED=true
     depends_on:
       - db
     networks:
