@@ -23,7 +23,7 @@ This directory contains various backend implementations of the [RealWorld API sp
 
 ### Python
 *   [**Django (Vertical Slice)**](./python-django-vertical/README.md): Leveraging standard Django apps with an additional Service Layer for logic isolation.
-*   [**FastAPI (Hive)**](./python-fastapi-hive/README.md): Utilizing Python Protocols and FastAPI's DI system for feature-grouped Hexagonal architecture.
+*   [**FastAPI (Vertical Slice)**](python-fastapi-vertical/README.md): Utilizing Python Protocols and FastAPI's DI system for feature-grouped Hexagonal architecture.
 
 ## Architectural Patterns Comparison
 

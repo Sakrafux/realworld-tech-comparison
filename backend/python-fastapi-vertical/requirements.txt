@@ -1,0 +1,16 @@
+# Web Framework & Validation
+fastapi[standard]>=0.136.1
+pydantic[email]>=2.10.0
+
+# Database Driver (Async PostgreSQL without ORM)
+asyncpg>=0.31.0
+
+# Security & Authentication
+bcrypt>=5.0.0
+pyjwt[crypto]>=2.12.1
+
+# OpenTelemetry Metrics & Observability
+opentelemetry-api>=1.42.0
+opentelemetry-sdk>=1.42.0
+opentelemetry-instrumentation-fastapi>=0.63b0
+opentelemetry-exporter-otlp>=1.42.0
