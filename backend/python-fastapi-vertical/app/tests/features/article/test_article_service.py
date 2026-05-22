@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import patch, AsyncMock
 
 from features.article.domain import Article, Author, slugify
+from features.article.repository import ArticlesList
 from features.article import service
 from shared.errors.app_error import ErrorType, AppError
 
@@ -306,3 +307,82 @@ async def test_get_tags():
         result = await service.get_tags()
 
         assert result == ["tag1", "tag2", "tag3"]
+
+
+@pytest.mark.asyncio
+async def test_get_articles_delegates_to_find_all():
+    article = Article(
+        id=1, slug="test-article", title="Test Article",
+        description="A test description", body="Test body content",
+        tag_list=["tag1"], created_at=datetime(2025, 1, 1), updated_at=datetime(2025, 1, 1),
+        favorited=False, favorites_count=0,
+        author=Author(username="testuser", bio="", image=None, following=False),
+    )
+    articles_list = ArticlesList(articles=[article], count=1)
+
+    with patch("features.article.service.find_all", new=AsyncMock(return_value=articles_list)) as mock_find_all:
+        result = await service.get_articles(tag="tag1", limit=20, offset=0)
+
+        assert result.articles == [article]
+        assert result.count == 1
+        mock_find_all.assert_called_once_with(tag="tag1", author=None, favorited=None, limit=20, offset=0, observer_id=None)
+
+
+@pytest.mark.asyncio
+async def test_get_articles_with_observer():
+    article = Article(
+        id=1, slug="test-article", title="Test Article",
+        description="A test description", body="Test body content",
+        tag_list=[], created_at=datetime(2025, 1, 1), updated_at=datetime(2025, 1, 1),
+        favorited=True, favorites_count=1,
+        author=Author(username="testuser", bio="", image=None, following=True),
+    )
+    articles_list = ArticlesList(articles=[article], count=1)
+
+    with patch("features.article.service.find_all", new=AsyncMock(return_value=articles_list)) as mock_find_all:
+        result = await service.get_articles(observer_id=1)
+
+        assert result.articles[0].favorited is True
+        assert result.articles[0].author.following is True
+        mock_find_all.assert_called_once_with(tag=None, author=None, favorited=None, limit=20, offset=0, observer_id=1)
+
+
+@pytest.mark.asyncio
+async def test_get_articles_empty():
+    articles_list = ArticlesList(articles=[], count=0)
+
+    with patch("features.article.service.find_all", new=AsyncMock(return_value=articles_list)):
+        result = await service.get_articles()
+
+        assert result.articles == []
+        assert result.count == 0
+
+
+@pytest.mark.asyncio
+async def test_get_feed_delegates_to_find_feed():
+    article = Article(
+        id=1, slug="test-article", title="Test Article",
+        description="A test description", body="Test body content",
+        tag_list=[], created_at=datetime(2025, 1, 1), updated_at=datetime(2025, 1, 1),
+        favorited=False, favorites_count=0,
+        author=Author(username="followeduser", bio="", image=None, following=True),
+    )
+    articles_list = ArticlesList(articles=[article], count=1)
+
+    with patch("features.article.service.find_feed", new=AsyncMock(return_value=articles_list)) as mock_find_feed:
+        result = await service.get_feed(user_id=1, limit=20, offset=0)
+
+        assert result.articles == [article]
+        assert result.count == 1
+        mock_find_feed.assert_called_once_with(user_id=1, limit=20, offset=0)
+
+
+@pytest.mark.asyncio
+async def test_get_feed_empty():
+    articles_list = ArticlesList(articles=[], count=0)
+
+    with patch("features.article.service.find_feed", new=AsyncMock(return_value=articles_list)):
+        result = await service.get_feed(user_id=1)
+
+        assert result.articles == []
+        assert result.count == 0

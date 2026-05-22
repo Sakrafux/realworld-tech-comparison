@@ -6,6 +6,12 @@ from features.article.domain import Article, Author
 from shared.database.pool import get_pool
 
 
+class ArticlesList:
+    def __init__(self, articles: list[Article], count: int):
+        self.articles = articles
+        self.count = count
+
+
 async def create(article: Article, author_id: int) -> None:
     pool = await get_pool()
     async with pool.acquire() as conn:
@@ -179,6 +185,138 @@ async def find_all_tags() -> list[str]:
     async with pool.acquire() as conn:
         rows = await conn.fetch("SELECT tag FROM tag")
         return [row["tag"] for row in rows]
+
+
+async def find_all(
+    tag: Optional[str] = None,
+    author: Optional[str] = None,
+    favorited: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+    observer_id: Optional[int] = None,
+) -> ArticlesList:
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        args = []
+        arg_idx = 1
+
+        join_clauses = ""
+        where_clauses = ""
+
+        if observer_id:
+            join_clauses += f"""
+            LEFT JOIN follow_is_user_to_user f ON a.fk_author = f.followed_user_id AND f.following_user_id = ${arg_idx}
+            LEFT JOIN favorite_is_article_to_user fav_obs ON a.id = fav_obs.article_id AND fav_obs.user_id = ${arg_idx}
+            """
+            args.append(observer_id)
+            arg_idx += 1
+
+        if tag:
+            join_clauses += f"""
+            JOIN tag_is_article_to_tag tat_{arg_idx} ON a.id = tat_{arg_idx}.article_id
+            JOIN tag t_{arg_idx} ON t_{arg_idx}.id = tat_{arg_idx}.tag_id AND t_{arg_idx}.tag = ${arg_idx}
+            """
+            args.append(tag)
+            arg_idx += 1
+
+        if favorited:
+            join_clauses += f"""
+            JOIN favorite_is_article_to_user fav_{arg_idx} ON a.id = fav_{arg_idx}.article_id
+            JOIN app_user u_fav_{arg_idx} ON u_fav_{arg_idx}.id = fav_{arg_idx}.user_id AND u_fav_{arg_idx}.username = ${arg_idx}
+            """
+            args.append(favorited)
+            arg_idx += 1
+
+        if author:
+            where_clauses += f" AND u.username = ${arg_idx}"
+            args.append(author)
+            arg_idx += 1
+
+        if observer_id:
+            following_expr = "CASE WHEN f.following_user_id IS NOT NULL THEN TRUE ELSE FALSE END"
+            favorited_expr = "CASE WHEN fav_obs.user_id IS NOT NULL THEN TRUE ELSE FALSE END"
+        else:
+            following_expr = "FALSE"
+            favorited_expr = "FALSE"
+
+        count_args = list(args)
+        count_query = f"""
+            SELECT COUNT(DISTINCT a.id)
+            FROM article a
+            JOIN app_user u ON a.fk_author = u.id
+            {join_clauses}
+            WHERE 1=1{where_clauses}
+            """
+        count_row = await conn.fetchrow(count_query, *count_args)
+        total_count = count_row["count"]
+
+        if total_count == 0:
+            return ArticlesList(articles=[], count=0)
+
+        data_args = list(args)
+        data_args.append(limit)
+        data_args.append(offset)
+        data_query = f"""
+            SELECT a.id, a.slug, a.title, a.description, a.body,
+                   a.created_at, a.updated_at,
+                   (SELECT COUNT(*) FROM favorite_is_article_to_user WHERE article_id = a.id) as favorites_count,
+                   {favorited_expr} as favorited,
+                   u.username, u.bio, u.image,
+                   {following_expr} as following,
+                   ARRAY(SELECT t.tag FROM tag t JOIN tag_is_article_to_tag tat ON t.id = tat.tag_id WHERE tat.article_id = a.id) as tag_list
+            FROM article a
+            JOIN app_user u ON a.fk_author = u.id
+            {join_clauses}
+            WHERE 1=1{where_clauses}
+            ORDER BY a.created_at DESC
+            LIMIT ${arg_idx} OFFSET ${arg_idx + 1}
+            """
+        rows = await conn.fetch(data_query, *data_args)
+        articles = [_map_row_to_article(row) for row in rows]
+        return ArticlesList(articles=articles, count=total_count)
+
+
+async def find_feed(
+    user_id: int,
+    limit: int = 20,
+    offset: int = 0,
+) -> ArticlesList:
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        count_row = await conn.fetchrow(
+            """
+            SELECT COUNT(*)
+            FROM article a
+            JOIN follow_is_user_to_user f ON a.fk_author = f.followed_user_id AND f.following_user_id = $1
+            """,
+            user_id,
+        )
+        total_count = count_row["count"]
+
+        if total_count == 0:
+            return ArticlesList(articles=[], count=0)
+
+        rows = await conn.fetch(
+            """
+            SELECT a.id, a.slug, a.title, a.description, a.body,
+                   a.created_at, a.updated_at,
+                   (SELECT COUNT(*) FROM favorite_is_article_to_user WHERE article_id = a.id) as favorites_count,
+                   (SELECT EXISTS(SELECT 1 FROM favorite_is_article_to_user WHERE article_id = a.id AND user_id = $1)) as favorited,
+                   u.username, u.bio, u.image,
+                   TRUE as following,
+                   ARRAY(SELECT t.tag FROM tag t JOIN tag_is_article_to_tag tat ON t.id = tat.tag_id WHERE tat.article_id = a.id) as tag_list
+            FROM article a
+            JOIN app_user u ON a.fk_author = u.id
+            JOIN follow_is_user_to_user f ON u.id = f.followed_user_id AND f.following_user_id = $1
+            ORDER BY a.created_at DESC
+            LIMIT $2 OFFSET $3
+            """,
+            user_id,
+            limit,
+            offset,
+        )
+        articles = [_map_row_to_article(row) for row in rows]
+        return ArticlesList(articles=articles, count=total_count)
 
 
 def _map_row_to_article(row: asyncpg.Record) -> Article:

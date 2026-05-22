@@ -1,11 +1,12 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from features.article.dto import (
     ArticleResponse,
     ArticleResponseWrapper,
     AuthorResponse,
+    MultipleArticlesResponse,
     NewArticleRequestWrapper,
     TagsResponse,
     UpdateArticleRequestWrapper,
@@ -15,6 +16,8 @@ from features.article.service import (
     delete_article,
     favorite_article,
     get_article,
+    get_articles,
+    get_feed,
     unfavorite_article,
     update_article,
     get_tags,
@@ -42,6 +45,50 @@ def _to_article_response(article) -> ArticleResponse:
             image=article.author.image,
             following=article.author.following,
         ),
+    )
+
+
+@router.get(
+    "/articles/feed",
+    response_model=MultipleArticlesResponse,
+    responses={401: {"model": GenericErrorResponse}, 422: {"model": GenericErrorResponse}},
+)
+async def api_get_feed(
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    user_id: int = Depends(get_auth_required()),
+):
+    result = await get_feed(user_id=user_id, limit=limit, offset=offset)
+    return MultipleArticlesResponse(
+        articles=[_to_article_response(a) for a in result.articles],
+        articlesCount=result.count,
+    )
+
+
+@router.get(
+    "/articles",
+    response_model=MultipleArticlesResponse,
+    responses={422: {"model": GenericErrorResponse}},
+)
+async def api_get_articles(
+    tag: Optional[str] = Query(None),
+    author: Optional[str] = Query(None),
+    favorited: Optional[str] = Query(None),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    user_id: Optional[int] = Depends(get_auth_optional()),
+):
+    result = await get_articles(
+        tag=tag,
+        author=author,
+        favorited=favorited,
+        limit=limit,
+        offset=offset,
+        observer_id=user_id,
+    )
+    return MultipleArticlesResponse(
+        articles=[_to_article_response(a) for a in result.articles],
+        articlesCount=result.count,
     )
 
 

@@ -6,6 +6,7 @@ import jwt
 from fastapi.testclient import TestClient
 
 from features.article.domain import Article, Author
+from features.article.repository import ArticlesList
 from main import app
 from shared.config.env import settings
 from shared.errors.app_error import ErrorType, AppError
@@ -308,6 +309,82 @@ class TestUnfavoriteArticle:
             response = client.delete("/api/articles/nonexistent/favorite", headers=auth_headers)
 
             assert response.status_code == 404
+
+
+class TestGetArticles:
+    def test_get_articles_success(self, client, sample_article):
+        articles_list = ArticlesList(articles=[sample_article], count=1)
+        with patch("features.article.controller.get_articles", new=AsyncMock(return_value=articles_list)):
+            response = client.get("/api/articles")
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["articlesCount"] == 1
+            assert len(data["articles"]) == 1
+            assert data["articles"][0]["slug"] == "test-article"
+
+    def test_get_articles_with_tag_filter(self, client, sample_article):
+        articles_list = ArticlesList(articles=[sample_article], count=1)
+        with patch("features.article.controller.get_articles", new=AsyncMock(return_value=articles_list)) as mock:
+            response = client.get("/api/articles?tag=tag1")
+
+            assert response.status_code == 200
+            mock.assert_called_once()
+
+    def test_get_articles_with_author_filter(self, client, sample_article):
+        articles_list = ArticlesList(articles=[sample_article], count=1)
+        with patch("features.article.controller.get_articles", new=AsyncMock(return_value=articles_list)):
+            response = client.get("/api/articles?author=testuser")
+
+            assert response.status_code == 200
+
+    def test_get_articles_empty(self, client):
+        articles_list = ArticlesList(articles=[], count=0)
+        with patch("features.article.controller.get_articles", new=AsyncMock(return_value=articles_list)):
+            response = client.get("/api/articles")
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["articlesCount"] == 0
+            assert data["articles"] == []
+
+
+class TestGetFeed:
+    def test_get_feed_success(self, client, sample_article, auth_headers):
+        author_following = Author(username="testuser", bio="Test bio", image=None, following=True)
+        feed_article = Article(
+            id=1, slug="test-article", title="Test Article",
+            description="A test description", body="Test body content",
+            tag_list=["tag1", "tag2"],
+            created_at=datetime(2025, 1, 1, 12, 0, 0),
+            updated_at=datetime(2025, 1, 1, 12, 0, 0),
+            favorited=False, favorites_count=0,
+            author=author_following,
+        )
+        articles_list = ArticlesList(articles=[feed_article], count=1)
+        with patch("features.article.controller.get_feed", new=AsyncMock(return_value=articles_list)):
+            response = client.get("/api/articles/feed", headers=auth_headers)
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["articlesCount"] == 1
+            assert len(data["articles"]) == 1
+            assert data["articles"][0]["author"]["following"] is True
+
+    def test_get_feed_unauthorized(self, client):
+        response = client.get("/api/articles/feed")
+
+        assert response.status_code == 401
+
+    def test_get_feed_empty(self, client, auth_headers):
+        articles_list = ArticlesList(articles=[], count=0)
+        with patch("features.article.controller.get_feed", new=AsyncMock(return_value=articles_list)):
+            response = client.get("/api/articles/feed", headers=auth_headers)
+
+            assert response.status_code == 200
+            data = response.json()
+            assert data["articlesCount"] == 0
+            assert data["articles"] == []
 
 
 class TestGetTags:

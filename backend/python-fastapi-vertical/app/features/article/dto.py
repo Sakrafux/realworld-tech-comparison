@@ -49,5 +49,10 @@ class ArticleResponseWrapper(BaseModel):
     article: ArticleResponse
 
 
+class MultipleArticlesResponse(BaseModel):
+    articles: list[ArticleResponse]
+    articlesCount: int
+
+
 class TagsResponse(BaseModel):
     tags: list[str]

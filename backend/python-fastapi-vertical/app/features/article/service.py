@@ -3,9 +3,12 @@ from typing import Optional
 
 from features.article.domain import Article, Author, slugify
 from features.article.repository import (
+    ArticlesList,
     create,
     find_by_slug,
     find_by_slug_for_author,
+    find_all,
+    find_feed,
     update,
     delete,
     favorite,
@@ -135,3 +138,33 @@ async def unfavorite_article(slug: str, user_id: int) -> Article:
 
 async def get_tags() -> list[str]:
     return await find_all_tags()
+
+
+async def get_articles(
+    tag: Optional[str] = None,
+    author: Optional[str] = None,
+    favorited: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+    observer_id: Optional[int] = None,
+) -> ArticlesList:
+    return await find_all(
+        tag=tag,
+        author=author,
+        favorited=favorited,
+        limit=limit,
+        offset=offset,
+        observer_id=observer_id,
+    )
+
+
+async def get_feed(
+    user_id: int,
+    limit: int = 20,
+    offset: int = 0,
+) -> ArticlesList:
+    return await find_feed(
+        user_id=user_id,
+        limit=limit,
+        offset=offset,
+    )
