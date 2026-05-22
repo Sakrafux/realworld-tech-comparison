@@ -1,3 +1,4 @@
+from datetime import UTC
 from typing import Optional
 
 from features.article.domain import Article, Author, slugify
@@ -51,8 +52,8 @@ async def create_article(
         description=description,
         body=body,
         tag_list=tag_list or [],
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
         favorited=False,
         favorites_count=0,
         author=author,
