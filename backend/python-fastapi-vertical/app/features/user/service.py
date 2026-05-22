@@ -58,7 +58,6 @@ async def get_user_by_username(username: str) -> User:
 
 
 async def update_user(
-    self,
     user_id: int,
     username: Optional[str] = None,
     email: Optional[str] = None,
@@ -66,7 +65,7 @@ async def update_user(
     bio: Optional[str] = None,
     image: Optional[str] = None,
 ) -> User:
-    user = await self.get_user(user_id)
+    user = await get_user(user_id)
 
     if email and email != user.email:
         existing_email = await find_by_email(email)
