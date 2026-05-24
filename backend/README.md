@@ -19,7 +19,8 @@ This directory contains various backend implementations of the [RealWorld API sp
 *   [**Go + Chi (Hive)**](./go-chi-hive/README.md): Vertical Hexagonal architecture, organizing features into self-contained hexagonal "cells."
 
 ### TypeScript
-*   [**Express (Hive)**](typescript-node-express-hive/README.md): High cohesion per feature using TypeScript for type safety across the slice.
+*   [**Node.js Express (Hive)**](typescript-node-express-hive/README.md): High cohesion per feature using TypeScript for type safety across the slice.
+*   [**Bun Hono (Hive)**](typescript-bun-hono-hive/README.md): High cohesion per feature using TypeScript for type safety across the slice.
 
 ### Python
 *   [**FastAPI (Vertical Slice)**](python-fastapi-vertical/README.md): Utilizing Python Protocols and FastAPI's DI system for feature-grouped Hexagonal architecture.
@@ -83,10 +84,31 @@ This directory contains various backend implementations of the [RealWorld API sp
   - Would use again for most use cases. 
 
 ### TypeScript - NodeJS - Express
+- Overwhelming amount of possible solutions and approaches.
+- The language itself is fairly simple and intuitive as well as giving great flexibility.
+- The core challenge is to remain architecturally pure without mixing styles.
+- Not particularly fast, but not horrible either. Fine for most realistic workloads.
+- If not explicitly opting in, few blackbox implementations.
+- Huge ecosystem.
+- **Overall, fairly easy to use, but very exhausting to not only find a viable solution, but stick to it consistently.**
+  - Would maybe use for small services using specific dependencies, but not for larger projects.
 
 ### TypeScript - Bun - Hono
+- Largely the same as using Express with Node.js with few appreciable differences.
+- Performs somewhat better than Node.js but not extremely so.
+- Largely compatible with Node.js but some dependencies might cause issues.
+- Future potential at risk due to maintainer attitude.
+- **Overall, more or less the same as Node.js with better performance and some compatibility risk.**
+  - Would use in the same situation as Node.js + Express.
 
 ### Python - FastAPI
+- Idiomatic Python programming patterns seem counter-intuitive to proper software engineering.
+- Very flexible, maybe too much so.
+- Since the language is still dynamically typed at its core (as opposed to TypeScript which deliberately introduces a boundary to JavaScript), many of the contracts feel unstable.
+- Huge ecosystem, particularly for Machine Learning applications.
+- Horribly slow. So much so that it would actually cause concern for scalability for moderately used services.
+- **Overall, it feels unfamiliar to work with and no features stand out as great speed-ups that would justify the bad performance.**
+  - Would only use it for machine learning related services.
 
 ## Impression of architectures
 
