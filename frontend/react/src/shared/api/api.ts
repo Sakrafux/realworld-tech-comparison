@@ -1,4 +1,6 @@
-const BASE_URL: string = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+import { triggerLogout } from "@/shared/api/events.ts";
+
+const BASE_URL: string = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const separator = endpoint.startsWith("/") ? "" : "/";
@@ -23,8 +25,17 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     const response = await fetch(url, config);
 
     if (!response.ok) {
+        // Can't be successfully authenticated in case of 401
+        if (response.status === 401) {
+            // Implicitly causes the removal of the localStorage token
+            triggerLogout();
+        }
+
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+        if (errorData?.errors?.body && Array.isArray(errorData.errors.body)) {
+            throw new Error(errorData.errors.body.join(" - "));
+        }
+        throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     if (response.status === 204) {
