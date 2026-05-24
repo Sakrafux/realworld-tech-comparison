@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AUTH_EVENT } from "@/shared/api/events.ts";
-import { useNavigate } from "@tanstack/react-router";
 
 export interface AuthContextType {
     token: string | null;
@@ -19,8 +18,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [token, setToken] = useState<string | null>(() => {
         return localStorage.getItem("realworld_token");
     });
-
-    const navigate = useNavigate();
 
     const login = (newToken: string) => {
         localStorage.setItem("realworld_token", newToken);
@@ -44,7 +41,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         const handleUnauthorized = async () => {
             logout();
-            await navigate({ to: "/login" });
+            window.location.href = "/login";
         };
         window.addEventListener(AUTH_EVENT, handleUnauthorized);
 

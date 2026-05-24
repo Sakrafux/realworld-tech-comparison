@@ -1,6 +1,18 @@
 import { Link } from "@tanstack/react-router";
+import { useAuth } from "@/features/auth/context/auth-context.tsx";
+import { useQuery } from "@tanstack/react-query";
+import { getUser } from "@/features/auth/api/user-api.ts";
+import defaultAvatar from "@/shared/assets/default-avatar.svg";
 
 export default function NavBar() {
+    const { isAuthenticated } = useAuth();
+
+    const { data, isSuccess } = useQuery({
+        queryKey: ["user"],
+        queryFn: () => getUser(),
+        enabled: isAuthenticated,
+    });
+
     return (
         <nav className="navbar navbar-light">
             <div className="container">
@@ -13,16 +25,43 @@ export default function NavBar() {
                             Home
                         </Link>
                     </li>
-                    <li className="nav-item">
-                        <Link className="nav-link" to="/login">
-                            Sign in
-                        </Link>
-                    </li>
-                    <li className="nav-item">
-                        <Link className="nav-link" to="/register">
-                            Sign up
-                        </Link>
-                    </li>
+                    {isAuthenticated && isSuccess ? (
+                        <>
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/editor">
+                                    <i className="ion-compose"></i>&nbsp;New Article
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/settings">
+                                    <i className="ion-gear-a"></i>&nbsp;Settings
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link className="nav-link" to={`/profile/${data.user.username}`}>
+                                    <img
+                                        src={data.user.image ?? defaultAvatar}
+                                        alt="avatar"
+                                        className="user-pic"
+                                    />
+                                    {data.user.username}
+                                </Link>
+                            </li>
+                        </>
+                    ) : (
+                        <>
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/login">
+                                    Sign in
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/register">
+                                    Sign up
+                                </Link>
+                            </li>
+                        </>
+                    )}
                 </ul>
             </div>
         </nav>
