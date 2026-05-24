@@ -2,151 +2,111 @@
 
 This directory contains various backend implementations of the [RealWorld API specification](https://docs.realworld.show/specs/backend-specs/introduction/), showcasing different programming languages, frameworks, and architectural patterns.
 
-**[**Spring Boot (Layered)**](./java-springboot-layered/README.md) is the most deliberate implementation**, featuring the most comprehensive documentation and test coverage; it serves as the reference for other implementations.
+The [**Spring Boot (Layered)**](./java-springboot-layered/README.md) implementation serves as the reference, featuring the most comprehensive documentation and test coverage.
+
+## Architectural Patterns
+
+For a broader discussion of where these patterns sit within the hierarchy of architectural decisions, see the [Architecture Discussion](../README.md#architecture-discussion) in the root README.
+
+| Pattern | Focus | Strengths | Trade-offs |
+| :--- | :--- | :--- | :--- |
+| **Layered** | Technical role | Simple, intuitive, industry standard | Logic leakage across layers; hard to navigate at scale |
+| **Vertical Slice** | Business feature | High cohesion; easy to navigate and scale | Potential model redundancy between slices |
+| **Hexagonal** | Logic isolation | Pure domain logic; tech-agnostic core | High boilerplate (mappers, DTOs); scattered feature code |
+| **Hive** | Feature isolation | Modular; microservice-ready; combines slice cohesion with port isolation | Complex structure to maintain |
 
 ## Available Implementations
 
 ### Java
-*   [**Spring Boot (Layered)**](./java-springboot-layered/README.md): Classic N-Tier architecture (Controller-Service-Repository).
-*   [**Spring Boot (Vertical Slice)**](./java-springboot-vertical/README.md): Grouped by business feature for high cohesion.
-*   [**Spring Boot (Hexagonal)**](./java-springboot-hexagonal/README.md): Strict separation of business logic using Ports and Adapters.
-*   [**Spring Boot (Hive)**](./java-springboot-hive/README.md): Vertical Hexagonal architecture, combining feature slices with strict ports.
-*   [**Quarkus (Vertical Slice)**](./java-quarkus-vertical/README.md): Optimized for performance and GraalVM, using the Active Record pattern (Panache).
-*   [**Micronaut (Vertical Slice)**](./java-micronaut-vertical/README.md): Grouped by business feature for high cohesion.
+
+| Implementation | Architecture | Key Tech | Link |
+| :--- | :--- | :--- | :--- |
+| Spring Boot (Layered) | N-Tier (Controller-Service-Repository-Domain) | Java 25, Spring Boot 4.0.5, Spring Data JPA, Maven | [README](./java-springboot-layered/README.md) |
+| Spring Boot (Vertical Slice) | Package-by-Feature | Java 25, Spring Boot 4.0.5, Spring Data JPA, Maven | [README](./java-springboot-vertical/README.md) |
+| Spring Boot (Hexagonal) | Ports and Adapters | Java 25, Spring Boot 4.0.5, Spring Data JPA, MapStruct, Maven | [README](./java-springboot-hexagonal/README.md) |
+| Spring Boot (Hive) | Vertical Hexagonal | Java 25, Spring Boot 4.0.5, Spring Data JPA, MapStruct, Maven | [README](./java-springboot-hive/README.md) |
+| Quarkus (Vertical Slice) | Package-by-Feature with Active Record | Java 25, Quarkus 3.35.2, Hibernate Panache, GraalVM, Maven | [README](./java-quarkus-vertical/README.md) |
+| Micronaut (Vertical Slice) | Package-by-Feature | Java 25, Micronaut 4.10.14, Micronaut Data (JPA), GraalVM, Maven | [README](./java-micronaut-vertical/README.md) |
 
 ### Go
-*   [**Go + Chi (Hexagonal)**](./go-chi-hexagonal/README.md): Using Go's implicit interfaces to implement the Ports and Adapters pattern.
-*   [**Go + Chi (Hive)**](./go-chi-hive/README.md): Vertical Hexagonal architecture, organizing features into self-contained hexagonal "cells."
+
+| Implementation | Architecture | Key Tech | Link |
+| :--- | :--- | :--- | :--- |
+| Go + Chi (Hexagonal) | Ports and Adapters | Go 1.26, Chi, Sqlx, SQLite/PostgreSQL | [README](./go-chi-hexagonal/README.md) |
+| Go + Chi (Hive) | Vertical Hexagonal | Go 1.26, Chi, Sqlx, SQLite/PostgreSQL | [README](./go-chi-hive/README.md) |
 
 ### TypeScript
-*   [**Node.js Express (Hive)**](typescript-node-express-hive/README.md): High cohesion per feature using TypeScript for type safety across the slice.
-*   [**Bun Hono (Hive)**](typescript-bun-hono-hive/README.md): High cohesion per feature using TypeScript for type safety across the slice.
+
+| Implementation | Architecture | Key Tech | Link |
+| :--- | :--- | :--- | :--- |
+| Node.js + Express (Hive) | Vertical Hexagonal | Node.js 24+, Express, pg-promise, Zod, Argon2, Jose, Vitest | [README](./typescript-node-express-hive/README.md) |
+| Bun + Hono (Hive) | Vertical Hexagonal | Bun Runtime, Hono, pg-promise, Zod, Bun.password, Jose, Bun Test | [README](./typescript-bun-hono-hive/README.md) |
 
 ### Python
-*   [**FastAPI (Vertical Slice)**](python-fastapi-vertical/README.md): Utilizing Python Protocols and FastAPI's DI system for feature-grouped Hexagonal architecture.
 
-## Architectural Patterns Comparison
+| Implementation | Architecture | Key Tech | Link |
+| :--- | :--- | :--- | :--- |
+| FastAPI (Vertical Slice) | Package-by-Feature | Python 3.13+, FastAPI, Pydantic, asyncpg, bcrypt, PyJWT | [README](./python-fastapi-vertical/README.md) |
 
-| Pattern | Focus | Pros | Cons                                           |
-| :--- | :--- | :--- |:-----------------------------------------------|
-| **Layered** | Technical Role | Simple, intuitive, industry standard. | Logic leakage, hard to scale as project grows. |
-| **Vertical Slice** | Business Feature | High cohesion, easy to navigate, scale-friendly. | Potential model redundancy between slices.     |
-| **Hexagonal** | Logic Isolation | Pure business logic, tech-agnostic core. | High boilerplate (Mappers, DTOs).              |
-| **Hive** | Feature Isolation | Best of both worlds, truly modular, "Microservice-ready." | Complex structure to maintain.                 |
+## Evaluation
 
-# Impressions
+### Technology Impressions
 
-## Impressions of implementations
+#### Java - Spring Boot
+Spring Boot provides a mature, well-documented framework with sensible defaults and a large ecosystem. The developer experience is strong, with excellent tooling, extensive community support, and straightforward customization. Performance is adequate for low-to-moderate workloads but degrades under sustained high concurrency due to JVM overhead and framework weight. The breadth of features can feel excessive for smaller projects.
 
-### Java - Spring Boot
-- The standard Java framework.
-- Lots of default behavior, but easy entrypoints to adjust it.
-- Fantastic documentation and a big community means there is rarely no answer to any issue.
-- Great developer tools and experience.
-- Works well enough for small and medium loads, but suffers at higher levels.
-- The sheer number of features and extensions makes it feel somewhat bloated.
-- **Overall, feels comfortable and safe to use.**
-  - Would use again if performance is not critical.
+**Verdict:** A reliable, comfortable choice where performance is not the primary constraint.
 
-### Java - Quarkus
-- Somewhat familiar due to reliance on Jakarta.
-- Too many blackboxes that are hard to debug and hard to trace due to less documentation and smaller community.
-- Most dependencies need a Quarkus wrapper to properly work.
-- Build-time properties are very confusing and require constant double-checking of the documentation. Not intuitive at all.
-- GraalVM as first-class citizen.
-- Fantastic performance both in JVM and GraalVM, both for singular requests and high load.
-- JVM implementation may break under high load!
-- **Overall, feels very frustrating due to it being very much a blackbox with many Quarkus dependency working very different from**
-**established (Spring Boot) ways of doing things, as well as very fragile and hard to debug.**
-  - Would not use again.
+#### Java - Quarkus
+Quarkus builds on Jakarta EE familiarity but introduces significant friction: many components operate as black boxes, debugging is difficult due to limited documentation and a smaller community, and most dependencies require Quarkus-specific wrappers. Build-time configuration is unintuitive and requires frequent reference to documentation. GraalVM support is first-class, and both JVM and native performance are impressive on individual requests. However, the JVM mode exhibited instability under heavy load in testing.
 
-### Java - Micronaut
-- Very similar style to Spring Boot, which makes it very familiar and comfortable to work with. 
-- Some implementation patterns differ somewhat, but very intuitive overall. 
-- Fantastic throughput performance, though not that amazing for singular requests.
-- GraalVM as first-class citizen.
-- **Overall, easy switch due to familiar patterns, easy interoperability, and feels like the natural evolution of Spring Boot**
-**without the baggage.**
-  - Would use again as an alternative to Spring Boot.
+**Verdict:** Impressive throughput, but the developer experience suffers from poor transparency and fragile tooling. Not recommended for production use without significant familiarity with the framework.
 
-### Go - Chi
-- Go is very much "batteries included", which means less need for dependencies.
-- Chi as a minimal router framework on top of the built-in router for a better developer experience without deviating much from the core.
-- Few language tools force simpler code, which is thus easy to understand.
-  - Can be somewhat boring, but boring is usually better for developing stable software.
-  - Feels similar to C in style but without having to do everything manually (strings, memory, etc.).
-- Necessarily exhaustive error handling is both a blessing and a curse.
-  - You are never blindsided by some error. If some error is not handled properly, it's on you.
-  - There are lots and lots of possible errors that all need to be handled, which can become tedious.
-- No blackboxes at all. You need to wire up everything yourself, which also means you understand everything that does or could happen.
-- The directory package system, lots of verbose code (largely due to error handling), and same-directory tests means that proper code architecture is of utmost importance.
-- **Overall, the lack of magic makes it feel a bit more cumbersome to use, but also much more confident in the stability of the applicaiton.**
-  - Would use again for most use cases. 
+#### Java - Micronaut
+Micronaut mirrors Spring Boot's programming model, making adoption straightforward for developers with Spring experience. Some implementation patterns differ, but the overall approach remains intuitive. Throughput performance is notably strong, though individual request latency is less competitive. GraalVM is a first-class target.
 
-### TypeScript - NodeJS - Express
-- Overwhelming amount of possible solutions and approaches.
-- The language itself is fairly simple and intuitive as well as giving great flexibility.
-- The core challenge is to remain architecturally pure without mixing styles.
-- Not particularly fast, but not horrible either. Fine for most realistic workloads.
-- If not explicitly opting in, few blackbox implementations.
-- Huge ecosystem.
-- **Overall, fairly easy to use, but very exhausting to not only find a viable solution, but stick to it consistently.**
-  - Would maybe use for small services using specific dependencies, but not for larger projects.
+**Verdict:** A compelling alternative to Spring Boot with similar ergonomics, better throughput, and less legacy baggage.
 
-### TypeScript - Bun - Hono
-- Largely the same as using Express with Node.js with few appreciable differences.
-- Performs somewhat better than Node.js but not extremely so.
-- Largely compatible with Node.js but some dependencies might cause issues.
-- Future potential at risk due to maintainer attitude.
-- **Overall, more or less the same as Node.js with better performance and some compatibility risk.**
-  - Would use in the same situation as Node.js + Express.
+#### Go - Chi
+Go's standard library provides much of what a backend service needs, reducing external dependencies. The Chi router adds a thin ergonomic layer over the built-in HTTP machinery without obscuring it. The language's simplicity — static typing, explicit error handling, no inheritance — produces code that is easy to read and reason about, if sometimes verbose. There are no implicit frameworks or "magic"; everything is wired explicitly. The package system and mandatory error handling demand disciplined architecture, but reward it with confidence in correctness.
 
-### Python - FastAPI
-- Idiomatic Python programming patterns seem counter-intuitive to proper software engineering.
-- Very flexible, maybe too much so.
-- Since the language is still dynamically typed at its core (as opposed to TypeScript which deliberately introduces a boundary to JavaScript), many of the contracts feel unstable.
-- Huge ecosystem, particularly for Machine Learning applications.
-- Horribly slow. So much so that it would actually cause concern for scalability for moderately used services.
-- **Overall, it feels unfamiliar to work with and no features stand out as great speed-ups that would justify the bad performance.**
-  - Would only use it for machine learning related services.
+**Verdict:** Excellent stability and performance with minimal abstraction overhead. A strong choice for most backend services where straightforward, maintainable code is valued.
 
-## Impression of architectures
+#### TypeScript - Node.js - Express
+The Node.js ecosystem offers overwhelming choice in libraries and patterns, which is both a strength and a risk. TypeScript provides useful type safety, but the burden of selecting and consistently applying architectural patterns falls entirely on the team. Performance is adequate but not competitive with compiled or natively concurrent runtimes. The lack of opinionated defaults means projects can easily accumulate inconsistent approaches.
 
-### Layered
-- The classic.
-- Great for small projects with few features, as separating the files over their respective layers is easy to understand and clear.
-- Scales horribly for larger projects, as single features are split over the entire codebase, which becomes hard to navigate.
-- Natural fit for Java and other languages that have loose import rules and rely on ORM entity objects.
-  - Horrible fit for Go, where packages are imported as a whole and strong import rules. Feels like fighting against the language.
+**Verdict:** Suitable for small-to-medium services with well-defined dependency choices. Requires significant discipline to maintain architectural consistency at scale.
 
-### Vertical Slice
-- Also known as feature-based architecture.
-- Separates code by feature first, leading to small, self-contained packages.
-  - All the code lives in one place, which makes navigation and changes much easier as the project scales.
-- Can be combined with Layered architecture, by applying the layers in the separate slices as they grow in size
-- Slices should be coupled very loosely with no circular dependencies.
-- Easily applicable to all languages.
+#### TypeScript - Bun - Hono
+The Bun runtime with Hono is largely comparable to Node.js with Express in terms of developer experience and architectural approach. Performance is modestly better in benchmarks, but Bun's compatibility with the Node.js ecosystem is not yet complete — some packages may cause issues. The long-term trajectory of the runtime depends on maintainer sustainability.
 
-### Hexagonal
-- Enforces proper definition of APIs and contracts.
-- Leads to more boilerplate code.
-- Can be very hit-or-miss depending on languages.
-  - Very natural fit for Go and its approach to interfaces. Barely any additional boilerplate, simply a sensible approach to ordering the code.
-  - Horrible fit for Java, especially when using ORM entities, since either we need to separate them from the domain entities or violate hexagonal principles. Additionally, "one class, one file" leads to many more files.
-    - Similarly, Python works very badly as well, since it has no interface language concept, and its idiomatic patterns rely more on direct imports and functions than on clean contracts
-- Pure hexagonal architecture scales somewhat similarly bad as layered, since it distributes the code of single features across the codebase.
+**Verdict:** A viable alternative to Node.js with incremental performance gains, offset by ecological and compatibility risk. Best suited for the same categories of projects as Express.
 
-### Hive / Vertical Hexagonal
-- Combination of Vertical Slice and Hexagonal principles.
-- Small hexagons separated by feature.
-- Hexagonal's emphasis on ports is a natural fit for proper decoupling of features with communication over established ports.
-- The smaller size makes navigation and changes easier.
-- Natural choice for languages that already work well with Hexagonal architecture.
+#### Python - FastAPI
+Python's dynamic typing and idiomatic patterns tend to resist the explicit contract definitions that structured architectures favor. FastAPI's dependency injection and Pydantic validation provide useful scaffolding, but the language's inherent dynamism makes runtime contracts feel less stable than their static equivalents. Performance is a significant concern: even with async I/O, request throughput and latency are substantially lower than all other implementations tested, to a degree that would raise scalability concerns for moderately loaded services.
 
-## What would I choose in the future?
+**Verdict:** Best suited for machine learning services or rapid prototyping. The performance gap and lack of static contracts make it a less compelling choice for general-purpose backend services.
 
-The implementation most persuasive in terms of both developer experience and performance was _Go_ with _Chi_ using a _Hive_ architecture.
-It is easy to understand, both individual code and the codebase itself, scales well with additional features, contains no surprises, and performs exceedingly well.
+### Architecture Impressions
 
-However, _Java_ with _Micronaut_ using a _Vertical_ architecture is well worth mentioning.
-It has a similarly good developer experience and style to Spring Boot, but simply performs significantly better.
+#### Layered
+The Layered (N-Tier) pattern is the most widely recognized and understood approach. It works well for small projects where distributing files across technical layers is simple to navigate. As projects grow, individual features become scattered across the codebase, making changes harder to locate and increasing coupling between layers. This pattern is a natural fit for Java and similar languages with loose import conventions and ORM-centric data models. It is a poor fit for Go, where package-level imports and strict visibility rules make cross-layer references cumbersome.
+
+#### Vertical Slice
+Vertical Slice (feature-based) architecture groups all code for a business capability into a single package, producing small, self-contained modules that are easy to navigate and modify. Slices should be loosely coupled with no circular dependencies. This pattern scales well because adding or changing a feature requires touching only one area of the codebase. It is applicable across all evaluated languages and can be combined with internal sub-layering as individual slices grow.
+
+#### Hexagonal
+Hexagonal Architecture enforces strict separation between domain logic and infrastructure through ports (interfaces) and adapters. This produces highly testable, framework-independent core logic but at the cost of significant boilerplate — mappers, DTOs, and separate entity types. The pattern's suitability varies strongly by language: it is a natural fit for Go, where implicit interfaces introduce almost no additional overhead. In Java, ORM entity requirements and the one-class-per-file convention inflate the number of artifacts. In Python, the absence of a native interface concept and the language's preference for direct imports over explicit contracts make hexagonal boundaries difficult to enforce.
+
+#### Hive (Vertical Hexagonal)
+Hive combines Vertical Slice locality with Hexagonal isolation. Each feature is a self-contained "cell" with its own domain, ports, and adapters, communicating with other cells only through defined interfaces. This preserves both navigability and architectural rigor. It is particularly well-suited to languages that already work well with Hexagonal patterns (Go, TypeScript), and it scales naturally toward a modular monolith or microservice extraction.
+
+## Performance Summary
+
+TBD
+
+## Conclusion
+
+The implementation that best balances developer experience, architectural clarity, and performance is **Go with Chi using a Hive architecture**. It produces code that is easy to understand at both the individual and structural level, scales naturally with additional features, contains no implicit behavior, and performs exceptionally well across all load profiles.
+
+**Java with Micronaut using a Vertical Slice architecture** deserves mention as a strong alternative. It offers a developer experience similar to Spring Boot with significantly better throughput, making it well-suited for teams that prefer the JVM ecosystem.
