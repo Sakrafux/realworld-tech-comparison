@@ -103,7 +103,100 @@ Hive combines Vertical Slice locality with Hexagonal isolation. Each feature is 
 
 ## Performance Summary
 
-TBD
+All benchmarks were run under comparable conditions (PostgreSQL backend, Docker deployment). Full per-endpoint breakdowns are available in each implementation's individual README.
+
+> **Caveats:**
+> - The Quarkus JVM implementation broke under heavy load (200 VUs / 3 min, 0.55% error rate) and did not recover afterward.
+> - The Python FastAPI heavy-load data is incomplete due to a data cutoff during the test.
+> - JVM-based implementations show significant warm-up: API test suite times drop from ~3 s on cold start to ~1 s after warm-up. Native (GraalVM) and Go runtimes show stable times.
+
+### Resources & Throughput
+
+| Implementation | Arch. | CPU | Memory | Max RPS | API Test Suite (cold → after load) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Spring Boot (Layered) | Layered | 6.44% | 580 MiB | 223 | 3.27 s → 1.01 s |
+| Spring Boot (Vertical) | Vertical | 6.39% | 496 MiB | 197 | 3.30 s → 1.06 s |
+| Spring Boot (Hexagonal) | Hexagonal | 7.04% | 502 MiB | 209 | 3.29 s → 1.13 s |
+| Spring Boot (Hive) | Hive | 6.88% | 550 MiB | 215 | 3.04 s → 1.15 s |
+| Quarkus (JVM) | Vertical | 12.70% | 624 MiB | 949 | 2.32 s → 1.05 s |
+| Quarkus (GraalVM) | Vertical | 13.00% | 112 MiB | 782 | 1.21 s → 1.18 s |
+| Micronaut (JVM) | Vertical | 12.70% | 344 MiB | 579 | 2.91 s → 1.75 s |
+| Micronaut (GraalVM) | Vertical | 12.90% | 79 MiB | 521 | 1.47 s → 1.60 s |
+| Go + Chi (Hexagonal) | Hexagonal | 12.90% | 24 MiB | 669 | 0.80 s → 0.80 s |
+| Go + Chi (Hive) | Hive | 12.50% | 24 MiB | 751 | 0.80 s → 0.80 s |
+| Node.js + Express (Hive) | Hive | 12.60% | 424 MiB | 254 | 1.72 s → 1.56 s |
+| Bun + Hono (Hive) | Hive | 14.30% | 443 MiB | 289 | 1.54 s → 1.54 s |
+| Python + FastAPI (Vertical) | Vertical | 4.17% | 67 MiB | 36 | 4.20 s → 4.39 s |
+
+### Light Load (10 VUs / 30 s)
+
+| Implementation | Avg RPS | Med Duration | p(90) Duration |
+| :--- | ---: | ---: | ---: |
+| Spring Boot (Layered) | 74 /s | 6.29 ms | 13.0 ms |
+| Spring Boot (Vertical) | 74 /s | 5.90 ms | 12.5 ms |
+| Spring Boot (Hexagonal) | 73 /s | 6.42 ms | 12.8 ms |
+| Spring Boot (Hive) | 73 /s | 6.39 ms | 13.1 ms |
+| Quarkus (JVM) | 75 /s | 3.47 ms | 6.5 ms |
+| Quarkus (GraalVM) | 76 /s | 2.71 ms | 4.6 ms |
+| Micronaut (JVM) | 76 /s | 3.67 ms | 11.3 ms |
+| Micronaut (GraalVM) | 77 /s | 2.72 ms | 8.1 ms |
+| Go + Chi (Hexagonal) | 78 /s | 2.38 ms | 4.6 ms |
+| Go + Chi (Hive) | 77 /s | 2.50 ms | 4.9 ms |
+| Node.js + Express (Hive) | 76 /s | 3.21 ms | 9.1 ms |
+| Bun + Hono (Hive) | 75 /s | 2.50 ms | 5.6 ms |
+| Python + FastAPI (Vertical) | 60 /s | 6.25 ms | 152.4 ms |
+
+### Medium Load (50 VUs / 1 min)
+
+| Implementation | Avg RPS | Med Duration | p(90) Duration |
+| :--- | ---: | ---: | ---: |
+| Spring Boot (Layered) | 222 /s | 4.92 ms | 21.6 ms |
+| Spring Boot (Vertical) | 189 /s | 7.96 ms | 71.1 ms |
+| Spring Boot (Hexagonal) | 197 /s | 6.33 ms | 31.1 ms |
+| Spring Boot (Hive) | 210 /s | 6.39 ms | 30.0 ms |
+| Quarkus (JVM) | 300 /s | 2.51 ms | 5.5 ms |
+| Quarkus (GraalVM) | 296 /s | 2.82 ms | 6.4 ms |
+| Micronaut (JVM) | 283 /s | 6.84 ms | 34.6 ms |
+| Micronaut (GraalVM) | 286 /s | 7.09 ms | 30.3 ms |
+| Go + Chi (Hexagonal) | 299 /s | 2.59 ms | 7.9 ms |
+| Go + Chi (Hive) | 300 /s | 2.59 ms | 9.7 ms |
+| Node.js + Express (Hive) | 182 /s | 37.89 ms | 379.7 ms |
+| Bun + Hono (Hive) | 250 /s | 11.31 ms | 94.7 ms |
+| Python + FastAPI (Vertical) | 32 /s | 914.74 ms | 2.74 s |
+
+### Heavy Load (200 VUs / 3 min)
+
+| Implementation | Avg RPS | Med Duration | p(90) Duration |
+| :--- | ---: | ---: | ---: |
+| Spring Boot (Layered) | 76 /s | 253.4 ms | 882.1 ms |
+| Spring Boot (Vertical) | 71 /s | 305.4 ms | 1.04 s |
+| Spring Boot (Hexagonal) | 85 /s | 328.7 ms | 933.8 ms |
+| Spring Boot (Hive) | 80 /s | 324.6 ms | 1.05 s |
+| Quarkus (JVM) ⚠️ | 499 /s | 13.1 ms | 104.5 ms |
+| Quarkus (GraalVM) | 756 /s | 19.5 ms | 204.1 ms |
+| Micronaut (JVM) | 562 /s | 107.5 ms | 328.6 ms |
+| Micronaut (GraalVM) | 510 /s | 148.3 ms | 371.4 ms |
+| Go + Chi (Hexagonal) | 648 /s | 78.2 ms | 229.7 ms |
+| Go + Chi (Hive) | 734 /s | 54.6 ms | 172.5 ms |
+| Node.js + Express (Hive) | 247 /s | 185.1 ms | 2.19 s |
+| Bun + Hono (Hive) | 279 /s | 224.5 ms | 1.45 s |
+| Python + FastAPI (Vertical) ⚠️ | 24 /s | 5.18 s | 18.87 s |
+
+### Technology Ranking (Averaged Across Architectures)
+
+Each technology is ranked per metric (1 = best) across all 14 performance dimensions (CPU, memory, max RPS, cold/warm API test, RPS/median/p90 at each load level), then averaged for an overall score.
+
+| Rank | Technology         | Avg. Rank | Notable |
+| :---: |:-------------------| ---: | :--- |
+| 1 | Go + Chi           | 1.50 | Top 2 on nearly every metric; lowest memory and latency, highest heavy-load RPS |
+| 2 | Java + Quarkus     | 2.57 | Highest max RPS and best heavy-load latency; higher CPU usage |
+| 3 | Java + Micronaut   | 3.71 | Strong throughput, low memory; higher per-request latency |
+| 4 | Bun + Hono         | 4.32 | Good light-load latency; highest CPU, degrades under load |
+| 5 | Node.js + Express  | 4.75 | Adequate at low load; poor tail latency under load |
+| 6 | Java + Spring Boot | 4.96 | Lowest CPU, good warm API test times; highest memory, weak heavy-load throughput |
+| 7 | Python + FastAPI   | 6.25 | Low resource usage; far lowest throughput and highest latency |
+
+> **Note:** The Quarkus JVM implementation exhibited instability under heavy load (see caveats above), which is not reflected in its aggregate numbers.
 
 ## Conclusion
 

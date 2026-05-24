@@ -90,7 +90,7 @@ The architecture is organized by business capability, not by technical layer:
 - After 10 warm-up runs: 4.42s
 - After load test: 4.39s
 
-### Load test suite (TBD)
+### Load test suite 
 
 #### Light load (10 VUs / 30s)
 

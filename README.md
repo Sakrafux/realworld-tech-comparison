@@ -9,6 +9,22 @@ This repository is dedicated to comparing various tech stacks and architectures 
 - `db/`: Database configurations, migrations, and schema definitions.
 - `test/`: Comprehensive testing suite, including load testing and end-to-end tests.
 
+## Backend Performance Ranking
+
+Each technology is ranked per metric (1 = best) across all 14 performance dimensions (CPU, memory, max RPS, cold/warm API test, RPS/median/p90 at each load level), then averaged for an overall score.
+
+| Rank | Technology         | Avg. Rank | Notable |
+| :---: |:-------------------| ---: | :--- |
+| 1 | Go + Chi           | 1.50 | Top 2 on nearly every metric; lowest memory and latency, highest heavy-load RPS |
+| 2 | Java + Quarkus     | 2.57 | Highest max RPS and best heavy-load latency; higher CPU usage |
+| 3 | Java + Micronaut   | 3.71 | Strong throughput, low memory; higher per-request latency |
+| 4 | Bun + Hono         | 4.32 | Good light-load latency; highest CPU, degrades under load |
+| 5 | Node.js + Express  | 4.75 | Adequate at low load; poor tail latency under load |
+| 6 | Java + Spring Boot | 4.96 | Lowest CPU, good warm API test times; highest memory, weak heavy-load throughput |
+| 7 | Python + FastAPI   | 6.25 | Low resource usage; far lowest throughput and highest latency |
+
+> **Note:** The Quarkus JVM implementation exhibited instability under heavy load (see caveats above), which is not reflected in its aggregate numbers.
+
 ## Architecture Discussion
 
 Understanding software architecture requires distinguishing between different levels of abstraction. This project focuses primarily on **Code Architecture**, but it sits within a broader hierarchy of architectural decisions.

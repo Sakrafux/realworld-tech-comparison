@@ -72,7 +72,7 @@ The architecture is divided into three distinct layers, organized by their role 
 - After 10 warm-up runs: 1.55s
 - After load test: 1.54s
 
-### Load test suite (TBD)
+### Load test suite 
 
 #### Light load (10 VUs / 30s)
 
