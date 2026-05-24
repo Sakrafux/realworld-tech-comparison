@@ -22,7 +22,6 @@ This directory contains various backend implementations of the [RealWorld API sp
 *   [**Express (Hive)**](typescript-node-express-hive/README.md): High cohesion per feature using TypeScript for type safety across the slice.
 
 ### Python
-*   [**Django (Vertical Slice)**](./python-django-vertical/README.md): Leveraging standard Django apps with an additional Service Layer for logic isolation.
 *   [**FastAPI (Vertical Slice)**](python-fastapi-vertical/README.md): Utilizing Python Protocols and FastAPI's DI system for feature-grouped Hexagonal architecture.
 
 ## Architectural Patterns Comparison
@@ -88,8 +87,6 @@ This directory contains various backend implementations of the [RealWorld API sp
 ### TypeScript - Bun - Hono
 
 ### Python - FastAPI
-
-### Python - Django
 
 ## Impression of architectures
 
