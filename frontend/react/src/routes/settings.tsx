@@ -1,7 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import SettingsPage from "@/features/settings/pages/SettingsPage.tsx";
 
 export const Route = createFileRoute("/settings")({
-    component: () => <div>Settings</div>,
+    component: SettingsPage,
     beforeLoad: ({ context }) => {
         if (!context.auth.isAuthenticated) {
             throw redirect({ to: "/login" });

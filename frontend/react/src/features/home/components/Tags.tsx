@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getTags } from "@/features/home/api/tag-api.ts";
+import { getTags } from "@/shared/api/features/tag-api.ts";
 import { Link } from "@tanstack/react-router";
 import type { HomeSearch } from "@/routes";
 

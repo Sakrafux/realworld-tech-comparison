@@ -1,4 +1,4 @@
-import type { Profile } from "@/features/profile/api/profile-api.ts";
+import type { Profile } from "@/shared/api/features/profile-api.ts";
 import api from "@/shared/api";
 
 export type Article = {

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { type HomeSearch, Route } from "@/routes";
 import Tags from "@/features/home/components/Tags.tsx";
 import { useAuth } from "@/features/auth/context/auth-context.tsx";
-import { getArticles, getArticlesFeed } from "@/features/article/api/article-api.ts";
+import { getArticles, getArticlesFeed } from "@/shared/api/features/article-api.ts";
 import ArticlePreview from "@/features/article/components/ArticlePreview.tsx";
 
 const PAGE_SIZE = 5;

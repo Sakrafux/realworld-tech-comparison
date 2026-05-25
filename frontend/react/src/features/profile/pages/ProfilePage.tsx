@@ -5,13 +5,13 @@ import {
     getProfile,
     type ProfileResponse,
     unfollowUserByUsername,
-} from "@/features/profile/api/profile-api.ts";
+} from "@/shared/api/features/profile-api.ts";
 import defaultAvatar from "@/shared/assets/default-avatar.svg";
 import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import ArticlePreview from "@/features/article/components/ArticlePreview.tsx";
-import { getArticles } from "@/features/article/api/article-api.ts";
+import { getArticles } from "@/shared/api/features/article-api.ts";
 
 const PAGE_SIZE = 5;
 
@@ -82,7 +82,7 @@ export default function ProfilePage() {
                     <div className="row">
                         <div className="col-xs-12 col-md-10 offset-md-1">
                             <img
-                                src={profile.profile.image ?? defaultAvatar}
+                                src={profile.profile.image || defaultAvatar}
                                 alt="avatar"
                                 className="user-img"
                             />

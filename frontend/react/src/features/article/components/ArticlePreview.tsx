@@ -5,7 +5,7 @@ import {
     createArticleFavorite,
     deleteArticleFavorite,
     type MultipleArticlesResponse,
-} from "@/features/article/api/article-api.ts";
+} from "@/shared/api/features/article-api.ts";
 import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -23,7 +23,7 @@ export default function ArticlePreview({ article, queryKey }: ArticlePreviewProp
         <div className="article-preview">
             <div className="article-meta">
                 <Link to={`/profile/${article.author.username}`}>
-                    <img src={article.author.image ?? defaultAvatar} alt="avatar" />
+                    <img src={article.author.image || defaultAvatar} alt="avatar" />
                 </Link>
                 <div className="info">
                     <Link to={`/profile/${article.author.username}`} className="author">

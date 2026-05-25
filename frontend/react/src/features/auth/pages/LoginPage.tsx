@@ -1,6 +1,6 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { login as loginWithApi } from "@/features/auth/api/user-api.ts";
+import { login as loginWithApi } from "@/shared/api/features/user-api.ts";
 import { useAuth } from "@/features/auth/context/auth-context.tsx";
 
 export default function LoginPage() {
