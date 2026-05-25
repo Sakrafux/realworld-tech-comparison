@@ -42,7 +42,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
         return null as T;
     }
 
-    return response.json();
+    return response.json().catch(() => null as T);
 }
 
 const api = {

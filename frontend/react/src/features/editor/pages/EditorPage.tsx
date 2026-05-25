@@ -17,13 +17,21 @@ export default function EditorPage() {
 
     const { slug } = useParams({ strict: false }) as { slug?: string };
 
-    const { data: articleData, isLoading } = useQuery({
+    const {
+        data: articleData,
+        isLoading,
+        isError,
+    } = useQuery({
         queryKey: ["article", slug!],
         queryFn: () => getArticle(slug!),
         enabled: slug !== undefined,
+        retry: false,
     });
 
     const article = articleData?.article;
+
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         if (article) {
@@ -33,8 +41,11 @@ export default function EditorPage() {
         }
     }, [article]);
 
-    const navigate = useNavigate();
-    const queryClient = useQueryClient();
+    useEffect(() => {
+        if (isError) {
+            navigate({ to: "/" });
+        }
+    }, [isError]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {

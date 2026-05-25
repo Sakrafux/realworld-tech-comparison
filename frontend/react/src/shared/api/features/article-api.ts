@@ -99,3 +99,7 @@ export async function updateArticle(
 export async function getArticle(slug: string): Promise<SingleArticleResponse> {
     return api.get(`/articles/${slug}`);
 }
+
+export async function deleteArticle(slug: string): Promise<void> {
+    return api.delete(`/articles/${slug}`);
+}
