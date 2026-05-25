@@ -46,8 +46,15 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 const api = {
-    get: <T>(endpoint: string, options: Omit<RequestInit, "method"> = {}): Promise<T> =>
-        request<T>(endpoint, { ...options, method: "GET" }),
+    get: <T>(
+        endpoint: string,
+        searchParams: Record<string, string> = {},
+        options: Omit<RequestInit, "method" | "body"> = {},
+    ): Promise<T> =>
+        request<T>(`${endpoint}?${new URLSearchParams(searchParams).toString()}`, {
+            ...options,
+            method: "GET",
+        }),
 
     post: <T>(
         endpoint: string,
@@ -63,7 +70,7 @@ const api = {
     ): Promise<T> =>
         request<T>(endpoint, { ...options, method: "PUT", body: JSON.stringify(body) }),
 
-    delete: <T>(endpoint: string, options: Omit<RequestInit, "method"> = {}): Promise<T> =>
+    delete: <T>(endpoint: string, options: Omit<RequestInit, "method" | "body"> = {}): Promise<T> =>
         request<T>(endpoint, { ...options, method: "DELETE" }),
 };
 
