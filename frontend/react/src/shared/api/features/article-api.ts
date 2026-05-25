@@ -1,6 +1,27 @@
 import type { Profile } from "@/shared/api/features/profile-api.ts";
 import api from "@/shared/api";
 
+export type NewArticle = {
+    title: string;
+    description: string;
+    body: string;
+    tagList?: string[];
+};
+
+export type UpdateArticle = {
+    title: string;
+    description: string;
+    body: string;
+};
+
+export type NewArticleRequest = {
+    article: NewArticle;
+};
+
+export type UpdateArticleRequest = {
+    article: UpdateArticle;
+};
+
 export type Article = {
     slug: string;
     title: string;
@@ -62,4 +83,19 @@ export async function createArticleFavorite(slug: string): Promise<SingleArticle
 
 export async function deleteArticleFavorite(slug: string): Promise<SingleArticleResponse> {
     return api.delete(`/articles/${slug}/favorite`);
+}
+
+export async function createArticle(newArticle: NewArticle): Promise<SingleArticleResponse> {
+    return api.post(`/articles`, { article: newArticle });
+}
+
+export async function updateArticle(
+    slug: string,
+    updateArticle: UpdateArticle,
+): Promise<SingleArticleResponse> {
+    return api.put(`/articles/${slug}`, { article: updateArticle });
+}
+
+export async function getArticle(slug: string): Promise<SingleArticleResponse> {
+    return api.get(`/articles/${slug}`);
 }
