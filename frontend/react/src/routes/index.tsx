@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Home from "@/features/home/pages/Home.tsx";
+import HomePage from "@/features/home/pages/HomePage.tsx";
 import { z } from "zod";
 
 const homeSearchSchema = z.object({
@@ -11,6 +11,6 @@ const homeSearchSchema = z.object({
 export type HomeSearch = z.infer<typeof homeSearchSchema>;
 
 export const Route = createFileRoute("/")({
-    component: Home,
+    component: HomePage,
     validateSearch: homeSearchSchema,
 });

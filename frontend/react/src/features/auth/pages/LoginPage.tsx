@@ -1,10 +1,9 @@
-import { type SubmitEvent, useState } from "react";
+import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { register } from "@/features/auth/api/user-api.ts";
+import { login as loginWithApi } from "@/features/auth/api/user-api.ts";
 import { useAuth } from "@/features/auth/context/auth-context.tsx";
 
-export default function Register() {
-    const [username, setUsername] = useState("");
+export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string>();
@@ -16,17 +15,16 @@ export default function Register() {
         e.preventDefault();
         setError(undefined);
 
-        if (!username || !email || !password) {
-            setError("All fields are required");
+        if (!email || !password) {
+            setError("Please fill in all fields");
             return;
         }
 
         try {
-            const result = await register({ user: { username, email, password } });
-            login(result.user.token);
+            const result = await loginWithApi({ user: { email, password } });
+            login(result.user.username, result.user.token);
         } catch (err) {
-            setError((err as Error).message || "Something went wrong during registration");
-            return;
+            setError((err as Error).message || "Invalid credentials");
         }
 
         await navigate({ to: "/" });
@@ -37,9 +35,9 @@ export default function Register() {
             <div className="container page">
                 <div className="row">
                     <div className="col-md-6 offset-md-3 col-xs-12">
-                        <h1 className="text-xs-center">Sign up</h1>
+                        <h1 className="text-xs-center">Sign in</h1>
                         <p className="text-xs-center">
-                            <Link to="/login">Have an account?</Link>
+                            <Link to="/register">Need an account?</Link>
                         </p>
 
                         {error && (
@@ -49,15 +47,6 @@ export default function Register() {
                         )}
 
                         <form onSubmit={handleSubmit}>
-                            <fieldset className="form-group">
-                                <input
-                                    className="form-control form-control-lg"
-                                    type="text"
-                                    placeholder="Username"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                />
-                            </fieldset>
                             <fieldset className="form-group">
                                 <input
                                     className="form-control form-control-lg"
@@ -77,7 +66,7 @@ export default function Register() {
                                 />
                             </fieldset>
                             <button type="submit" className="btn btn-lg btn-primary pull-xs-right">
-                                Sign up
+                                Sign in
                             </button>
                         </form>
                     </div>

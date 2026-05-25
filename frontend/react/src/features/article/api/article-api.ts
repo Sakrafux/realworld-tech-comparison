@@ -27,7 +27,7 @@ export async function getArticles(
     params: {
         tag?: string;
         author?: string;
-        favorited?: boolean;
+        favorited?: string;
         offset?: number;
         limit?: number;
     } = {},

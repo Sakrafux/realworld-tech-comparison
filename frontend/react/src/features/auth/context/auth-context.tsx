@@ -2,9 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { AUTH_EVENT } from "@/shared/api/events.ts";
 
 export interface AuthContextType {
+    username: string | null;
     token: string | null;
     isAuthenticated: boolean;
-    login: (token: string) => void;
+    login: (username: string, token: string) => void;
     logout: () => void;
 }
 
@@ -15,17 +16,24 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+    const [username, setUsername] = useState<string | null>(() => {
+        return localStorage.getItem("realworld_username");
+    });
     const [token, setToken] = useState<string | null>(() => {
         return localStorage.getItem("realworld_token");
     });
 
-    const login = (newToken: string) => {
+    const login = (newUsername: string, newToken: string) => {
+        localStorage.setItem("realworld_username", newUsername);
         localStorage.setItem("realworld_token", newToken);
+        setUsername(newUsername);
         setToken(newToken);
     };
 
     const logout = () => {
+        localStorage.removeItem("realworld_username");
         localStorage.removeItem("realworld_token");
+        setUsername(null);
         setToken(null);
     };
 
@@ -35,6 +43,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
             if (e.key === "realworld_token") {
                 // If token was deleted or changed in another tab, update state
                 setToken(e.newValue);
+            }
+            if (e.key === "realworld_username") {
+                setUsername(e.newValue);
             }
         };
         window.addEventListener("storage", handleStorageChange);
@@ -55,7 +66,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const isAuthenticated = !!token;
 
     return (
-        <AuthContext.Provider value={{ token, isAuthenticated, login, logout }}>
+        <AuthContext.Provider value={{ username, token, isAuthenticated, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

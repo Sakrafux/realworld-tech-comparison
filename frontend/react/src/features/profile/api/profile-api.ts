@@ -12,5 +12,13 @@ export type ProfileResponse = {
 };
 
 export async function getProfile(username: string): Promise<ProfileResponse> {
-    return api.get<ProfileResponse>(`/api/profiles/${username}`);
+    return api.get<ProfileResponse>(`/profiles/${username}`);
+}
+
+export async function followUserByUsername(username: string): Promise<ProfileResponse> {
+    return api.post<ProfileResponse>(`/profiles/${username}/follow`);
+}
+
+export async function unfollowUserByUsername(username: string): Promise<ProfileResponse> {
+    return api.delete<ProfileResponse>(`/profiles/${username}/follow`);
 }
