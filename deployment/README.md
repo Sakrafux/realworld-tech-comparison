@@ -27,49 +27,54 @@ docker-compose -f docker-compose.yml -f stacks/java-springboot-layered.yml -f mo
 
 ## Structure
 - `stacks/`: Specific `docker-compose` fragments using profiles.
+  - `backend/`: Backend fragments to start with `-f docker-compose-backend.yml`
+  - `frontend/`: Frontend fragments to start with `-f docker-compose-frontend.yml`
+  - `monitoring.yml`: Special monitoring fragment
 - `scripts/`: Helper scripts for seeding databases or cleaning up volumes.
 - `env/`: Pre-configured environment variables for different scenarios.
 
 ## Monitoring via Grafana
 
-If a configuration is started with `-f monitoring.yml`, then Grafana is available on http://localhost:4000 with the pre-configured dashboard `Server Overview`.
+If a configuration is started with `-f stacks/monitoring.yml`, then Grafana is available on http://localhost:4000 with the pre-configured dashboard `Server Overview`.
 
 ## All setups
+
+For deploying a full-stack application, both a backend fragment and a frontend fragment have to be started independently.
 
 ### Backends
 
 ```bash
-docker-compose -f docker-compose.yml -f stacks/java-springboot-layered.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-springboot-vertical.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-springboot-hexagonal.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-springboot-hive.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-quarkus-vertical-jvm.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-quarkus-vertical-graalvm.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-micronaut-vertical-jvm.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-micronaut-vertical-graalvm.yml up --build
-docker-compose -f docker-compose.yml -f stacks/go-chi-hexagonal.yml up --build
-docker-compose -f docker-compose.yml -f stacks/go-chi-hive.yml up --build
-docker-compose -f docker-compose.yml -f stacks/typescript-node-express-hive.yml up --build
-docker-compose -f docker-compose.yml -f stacks/typescript-bun-hono-hive.yml up --build
-docker-compose -f docker-compose.yml -f stacks/python-fastapi-vertical.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-springboot-layered.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-springboot-vertical.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-springboot-hexagonal.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-springboot-hive.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-quarkus-vertical-jvm.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-quarkus-vertical-graalvm.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-micronaut-vertical-jvm.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-micronaut-vertical-graalvm.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/go-chi-hexagonal.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/go-chi-hive.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/typescript-node-express-hive.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/typescript-bun-hono-hive.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/python-fastapi-vertical.yml up --build
 ```
 
 #### With Monitoring
 
 ```bash
-docker-compose -f docker-compose.yml -f stacks/java-springboot-layered.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-springboot-vertical.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-springboot-hexagonal.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-springboot-hive.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-quarkus-vertical-jvm.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-quarkus-vertical-graalvm.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-micronaut-vertical-jvm.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/java-micronaut-vertical-graalvm.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/go-chi-hexagonal.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/go-chi-hive.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/typescript-node-express-hive.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/typescript-bun-hono-hive.yml -f stacks/monitoring.yml up --build
-docker-compose -f docker-compose.yml -f stacks/python-fastapi-vertical.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-springboot-layered.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-springboot-vertical.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-springboot-hexagonal.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-springboot-hive.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-quarkus-vertical-jvm.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-quarkus-vertical-graalvm.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-micronaut-vertical-jvm.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/java-micronaut-vertical-graalvm.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/go-chi-hexagonal.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/go-chi-hive.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/typescript-node-express-hive.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/typescript-bun-hono-hive.yml -f stacks/monitoring.yml up --build
+docker-compose -f docker-compose-backend.yml -f stacks/backend/python-fastapi-vertical.yml -f stacks/monitoring.yml up --build
 ```
 
 ### Frontends

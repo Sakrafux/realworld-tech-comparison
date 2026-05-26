@@ -1,4 +1,8 @@
 services:
+  backend:
+    environment:
+      OTEL_ENABLED: true
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
     user: "0:0" # root access to grant access to the Docker socket
