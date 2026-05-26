@@ -36,6 +36,8 @@ If a configuration is started with `-f monitoring.yml`, then Grafana is availabl
 
 ## All setups
 
+### Backends
+
 ```bash
 docker-compose -f docker-compose.yml -f stacks/java-springboot-layered.yml up --build
 docker-compose -f docker-compose.yml -f stacks/java-springboot-vertical.yml up --build
@@ -52,7 +54,7 @@ docker-compose -f docker-compose.yml -f stacks/typescript-bun-hono-hive.yml up -
 docker-compose -f docker-compose.yml -f stacks/python-fastapi-vertical.yml up --build
 ```
 
-### With Monitoring
+#### With Monitoring
 
 ```bash
 docker-compose -f docker-compose.yml -f stacks/java-springboot-layered.yml -f stacks/monitoring.yml up --build
@@ -68,4 +70,10 @@ docker-compose -f docker-compose.yml -f stacks/go-chi-hive.yml -f stacks/monitor
 docker-compose -f docker-compose.yml -f stacks/typescript-node-express-hive.yml -f stacks/monitoring.yml up --build
 docker-compose -f docker-compose.yml -f stacks/typescript-bun-hono-hive.yml -f stacks/monitoring.yml up --build
 docker-compose -f docker-compose.yml -f stacks/python-fastapi-vertical.yml -f stacks/monitoring.yml up --build
+```
+
+### Frontends
+
+```bash
+docker-compose -f docker-compose-frontend.yml -f stacks/frontend/react.yml up --build
 ```

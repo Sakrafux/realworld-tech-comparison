@@ -1,0 +1,15 @@
+# This is the main orchestrator for the RealWorld Tech Comparison.
+# It uses Docker Compose Files to allow mixing and matching implementations.
+#
+# Usage Examples:
+#   Start Java Backend:         docker-compose -f docker-compose.yml -f java-springboot-layered.yml up -d
+#   Start with Monitoring:      docker-compose -f docker-compose.yml -f java-springboot-layered.yml -f monitoring.yml up -d
+#
+#   IMPORTANT: The -f flag MUST come BEFORE the command (e.g., 'up').
+#   Incorrect: docker-compose up -f ...
+#   Correct:   docker-compose -f ... up
+name: realworld-tech-comparison
+
+networks:
+  realworld-network:
+    name: realworld-network
