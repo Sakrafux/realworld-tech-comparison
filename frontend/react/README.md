@@ -1,73 +1,87 @@
-# React + TypeScript + Vite
+# RealWorld Frontend: React ("Feature-Sliced")
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is an implementation of the [RealWorld UI](https://docs.realworld.show/specs/frontend-specs/introduction/) using React and a **Feature-Sliced Architecture**. It groups code by business domain rather than by technical role, keeping each feature self-contained while sharing a thin foundation of cross-cutting utilities.
 
-Currently, two official plugins are available:
+## Architecture (Feature-Sliced)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The architecture is divided into three layers, organized by their role in the system:
 
-## React Compiler
+- **Shared (`src/shared`)**: The foundation. Contains the HTTP client, API modules, shared types, and static assets. It has zero knowledge of page layout or component logic.
+- **Features (`src/features`)**: The business features. Each subdirectory represents a self-contained feature module (article, auth, editor, home, navigation, profile, settings) with its own pages, components, and context providers.
+    - *Independence*: Features rarely import from each other. When they do, it is through the shared layer — never directly.
+    - *Thin Routes*: Route files delegate to page components inside features. They only handle route config, search param validation, and auth guards.
+- **Routes (`src/routes`)**: The wiring layer. TanStack Router's file-based convention auto-generates the route tree. Route files are intentionally thin — they connect URLs to feature pages and enforce access control, but contain no UI logic.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+- **React 19**
+- **TanStack Router**: File-based routing with typed search params and code splitting
+- **TanStack Query**: Server state management with optimistic cache updates
+- **Zod**: Schema validation for route search parameters
+- **Vite 8**: Build tooling with React Fast Refresh
+- **react-markdown**: Article body rendering
+- **TypeScript 6**: Strict mode with no unused locals/parameters
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Directory Structure
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+.
+├── public/
+│   └── favicon.svg                  # App favicon
+├── src/
+│   ├── main.tsx                     # Entry point: AuthProvider > QueryClientProvider > Router
+│   ├── App.tsx                      # Router creation with auth context
+│   ├── index.css                    # Custom CSS framework (no external dependency)
+│   ├── routes/                      # --- ROUTE DEFINITIONS (THIN WRAPPERS) ---
+│   │   ├── __root.tsx               # Root layout: NavBar + Outlet + Footer
+│   │   ├── index.tsx                # Home page route (Zod-validated search params)
+│   │   ├── login.tsx                # Login route
+│   │   ├── register.tsx             # Register route
+│   │   ├── article.$slug.tsx        # Article detail route
+│   │   ├── editor.tsx               # New article route (auth guard)
+│   │   ├── editor.$slug.tsx         # Edit article route (auth guard)
+│   │   ├── profile.$username.tsx    # User profile route (Zod search params)
+│   │   └── settings.tsx             # Settings route (auth guard)
+│   ├── features/                    # --- BUSINESS FEATURES (VERTICAL SLICES) ---
+│   │   ├── article/                 # Article & Comment feature
+│   │   │   ├── components/          #   ArticleMeta, ArticlePreview, Comments
+│   │   │   └── pages/               #   ArticlePage
+│   │   ├── auth/                    # Authentication feature
+│   │   │   ├── context/             #   AuthProvider + useAuth hook
+│   │   │   └── pages/               #   LoginPage, RegisterPage
+│   │   ├── editor/                  # Article editor feature
+│   │   │   └── pages/               #   EditorPage
+│   │   ├── home/                    # Home feed feature
+│   │   │   ├── components/          #   Tags
+│   │   │   └── pages/               #   HomePage
+│   │   ├── navigation/              # App chrome feature
+│   │   │   └── components/          #   NavBar, Footer
+│   │   ├── profile/                 # User profile feature
+│   │   │   └── pages/               #   ProfilePage
+│   │   └── settings/                # User settings feature
+│   │       └── pages/               #   SettingsPage
+│   └── shared/                      # --- CROSS-CUTTING UTILITIES ---
+│       ├── api/
+│       │   ├── api.ts               # Base HTTP client (auth token injection, 401 handling)
+│       │   ├── events.ts            # Auth event bus (cross-tab logout signaling)
+│       │   └── features/            # Domain API modules
+│       │       ├── article-api.ts
+│       │       ├── comment-api.ts
+│       │       ├── profile-api.ts
+│       │       ├── tag-api.ts
+│       │       └── user-api.ts
+│       ├── assets/                  # Static assets (default avatar)
+│       └── types/                   # Shared TypeScript types (RouterContext)
+├── index.html                       # HTML shell
+├── vite.config.ts                   # Vite + TanStack Router plugin config
+├── tsconfig.json                    # TypeScript project references
+└── package.json
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Why this works for React
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Colocation**: Each feature groups its pages and components together, making it easy to find and modify related code without jumping across directories.
+2. **No Global Store**: Auth state uses React Context; server state uses TanStack Query. There is no Zustand, Redux, or Jotai — the simplest tool for each concern.
+3. **Optimistic by Default**: Mutations update the TanStack Query cache directly with `queryClient.setQueryData()`, giving instant UI feedback without full refetches.
+4. **Typed Routing**: TanStack Router generates types for every route and validates search parameters with Zod, catching navigation bugs at compile time.
+5. **Code Splitting**: The router plugin auto-splits each route into its own chunk, keeping the initial bundle small.
