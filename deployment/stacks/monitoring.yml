@@ -1,7 +1,7 @@
 services:
   backend:
     environment:
-      OTEL_ENABLED: true
+      OTEL_ENABLED: true # merges and overrides the existing keys to enable monitoring
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
