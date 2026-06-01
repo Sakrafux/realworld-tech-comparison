@@ -64,3 +64,6 @@ logs
 
 *.iml
 .antigravitycli
+
+playwright-report
+test-results
