@@ -11,14 +11,15 @@ import { useMemo } from "react";
 import ArticlePreview from "@/features/article/components/ArticlePreview.tsx";
 import { getArticles } from "@/shared/api/features/article-api.ts";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export default function ProfilePage() {
     const { username } = useParams({ strict: false }) as { username: string };
     const location = useLocation();
     const isFavoritesRoute = location.pathname.endsWith("/favorites");
     const search = useSearch({ strict: false }) as { page?: number };
-    const currentPage = search.page ?? 1;
+
+    const currentPage = useMemo(() => search.page ?? 1, [search.page]);
 
     const { user: currentUser, isAuthenticated } = useAuth();
 
@@ -48,10 +49,22 @@ export default function ProfilePage() {
         const elements = [];
         for (let i = 1; i <= Math.ceil(articles.articlesCount / PAGE_SIZE); i++) {
             elements.push(
-                <li key={`page-link-${i}`} className="page-item">
-                    <Link className="page-link" to="." search={{ page: i }}>
+                <li
+                    key={`page-link-${i}`}
+                    className={`page-item ${currentPage === i ? "active" : ""}`}
+                >
+                    <button
+                        className="page-link"
+                        type="button"
+                        onClick={() =>
+                            navigate({
+                                to: ".",
+                                search: { page: i },
+                            })
+                        }
+                    >
                         {i}
-                    </Link>
+                    </button>
                 </li>,
             );
         }

@@ -6,7 +6,7 @@ import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { getArticles, getArticlesFeed } from "@/shared/api/features/article-api.ts";
 import ArticlePreview from "@/features/article/components/ArticlePreview.tsx";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export type HomeContentProps = {
     tag?: string;
@@ -33,15 +33,20 @@ export default function HomeContent({ tag, page = 1, feed }: HomeContentProps) {
         const elements = [];
         for (let i = 1; i <= Math.ceil(articles.articlesCount / PAGE_SIZE); i++) {
             elements.push(
-                <li key={`page-link-${i}`} className="page-item">
-                    <Link
+                <li key={`page-link-${i}`} className={`page-item ${page === i ? "active" : ""}`}>
+                    <button
                         className="page-link"
-                        to={tag ? "/tag/$tag" : "/"}
-                        params={tag ? { tag } : undefined}
-                        search={tag ? { page: i } : { feed, page: i }}
+                        type="button"
+                        onClick={() =>
+                            navigate({
+                                to: tag ? "/tag/$tag" : "/",
+                                params: tag ? { tag } : undefined,
+                                search: tag ? { page: i } : { feed, page: i },
+                            })
+                        }
                     >
                         {i}
-                    </Link>
+                    </button>
                 </li>,
             );
         }
