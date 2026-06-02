@@ -1,6 +1,5 @@
 import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { type SubmitEvent, useState } from "react";
-import defaultAvatar from "@/shared/assets/default-avatar.svg";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getUser } from "@/shared/api/features/user-api.ts";
 import {
@@ -62,7 +61,7 @@ export default function Comments({ slug, isAuthor }: CommentsProps) {
                         </div>
                         <div className="card-footer">
                             <img
-                                src={user.user.image || defaultAvatar}
+                                src={user.user.image || "./default-avatar.svg"}
                                 alt="avatar"
                                 className="comment-author-img"
                             />
@@ -85,7 +84,7 @@ export default function Comments({ slug, isAuthor }: CommentsProps) {
                                     className="comment-author"
                                 >
                                     <img
-                                        src={comment.author.image || defaultAvatar}
+                                        src={comment.author.image || "./default-avatar.svg"}
                                         alt="avatar"
                                         className="comment-author-img"
                                     />

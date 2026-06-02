@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import defaultAvatar from "@/shared/assets/default-avatar.svg";
 import {
     type Article,
     createArticleFavorite,
@@ -23,7 +22,7 @@ export default function ArticlePreview({ article, queryKey }: ArticlePreviewProp
         <div className="article-preview">
             <div className="article-meta">
                 <Link to={`/profile/${article.author.username}`}>
-                    <img src={article.author.image || defaultAvatar} alt="avatar" />
+                    <img src={article.author.image || "./default-avatar.svg"} alt="avatar" />
                 </Link>
                 <div className="info">
                     <Link to={`/profile/${article.author.username}`} className="author">

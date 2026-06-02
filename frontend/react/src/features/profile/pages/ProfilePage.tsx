@@ -5,7 +5,6 @@ import {
     type ProfileResponse,
     unfollowUserByUsername,
 } from "@/shared/api/features/profile-api.ts";
-import defaultAvatar from "@/shared/assets/default-avatar.svg";
 import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { Link, useLocation, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -50,11 +49,7 @@ export default function ProfilePage() {
         for (let i = 1; i <= Math.ceil(articles.articlesCount / PAGE_SIZE); i++) {
             elements.push(
                 <li key={`page-link-${i}`} className="page-item">
-                    <Link
-                        className="page-link"
-                        to="."
-                        search={{ page: i }}
-                    >
+                    <Link className="page-link" to="." search={{ page: i }}>
                         {i}
                     </Link>
                 </li>,
@@ -84,7 +79,7 @@ export default function ProfilePage() {
                     <div className="row">
                         <div className="col-xs-12 col-md-10 offset-md-1">
                             <img
-                                src={profile.profile.image || defaultAvatar}
+                                src={profile.profile.image || "./default-avatar.svg"}
                                 alt="avatar"
                                 className="user-img"
                             />
