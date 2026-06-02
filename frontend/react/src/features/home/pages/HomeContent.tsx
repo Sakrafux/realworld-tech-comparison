@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { type HomeSearch, Route } from "@/routes";
 import Tags from "@/features/home/components/Tags.tsx";
 import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { getArticles, getArticlesFeed } from "@/shared/api/features/article-api.ts";
@@ -9,23 +8,24 @@ import ArticlePreview from "@/features/article/components/ArticlePreview.tsx";
 
 const PAGE_SIZE = 5;
 
-function getArticleQuery(search: HomeSearch, isAuthenticated: boolean) {
-    const page = search.page ?? 1;
-    if (search.feed === "following" && isAuthenticated) {
-        return getArticlesFeed({ offset: (page - 1) * PAGE_SIZE, limit: PAGE_SIZE });
-    }
-    return getArticles({ tag: search.tag, offset: (page - 1) * PAGE_SIZE, limit: PAGE_SIZE });
-}
+export type HomeContentProps = {
+    tag?: string;
+    page?: number;
+    feed?: string;
+};
 
-export default function HomePage() {
-    const search = Route.useSearch() as HomeSearch;
+export default function HomeContent({ tag, page = 1, feed }: HomeContentProps) {
     const { isAuthenticated } = useAuth();
-
     const navigate = useNavigate();
 
     const { data: articles } = useQuery({
-        queryKey: ["articles", search.tag, search.feed, search.page],
-        queryFn: () => getArticleQuery(search, isAuthenticated),
+        queryKey: ["articles", tag, feed, page],
+        queryFn: () => {
+            if (feed === "following" && isAuthenticated) {
+                return getArticlesFeed({ offset: (page - 1) * PAGE_SIZE, limit: PAGE_SIZE });
+            }
+            return getArticles({ tag, offset: (page - 1) * PAGE_SIZE, limit: PAGE_SIZE });
+        },
         initialData: () => ({ articles: [], articlesCount: 0 }),
     });
 
@@ -36,8 +36,9 @@ export default function HomePage() {
                 <li key={`page-link-${i}`} className="page-item">
                     <Link
                         className="page-link"
-                        to="."
-                        search={(prev: HomeSearch) => ({ ...prev, page: i }) as HomeSearch}
+                        to={tag ? "/tag/$tag" : "/"}
+                        params={tag ? { tag } : undefined}
+                        search={tag ? { page: i } : { feed, page: i }}
                     >
                         {i}
                     </Link>
@@ -45,23 +46,23 @@ export default function HomePage() {
             );
         }
         return elements;
-    }, [articles.articlesCount, search.page]);
+    }, [articles.articlesCount, page, tag, feed]);
 
     const articleElements = useMemo(() => {
         return articles.articles.map((article) => (
             <ArticlePreview
                 key={article.slug}
                 article={article}
-                queryKey={["articles", search.tag, search.feed, search.page]}
+                queryKey={["articles", tag, feed, page]}
             />
         ));
-    }, [articles.articles]);
+    }, [articles.articles, tag, feed, page]);
 
     useEffect(() => {
-        if (search.feed === "following" && !isAuthenticated) {
+        if (feed === "following" && !isAuthenticated) {
             navigate({ to: "/login" });
         }
-    }, [search.feed, isAuthenticated]);
+    }, [feed, isAuthenticated]);
 
     return (
         <div className="home-page">
@@ -80,8 +81,8 @@ export default function HomePage() {
                                 <li className="nav-item">
                                     <Link
                                         className="nav-link"
-                                        to="."
-                                        search={{ feed: "following" } as HomeSearch}
+                                        to="/"
+                                        search={{ feed: "following" }}
                                     >
                                         Your Feed
                                     </Link>
@@ -89,26 +90,22 @@ export default function HomePage() {
                                 <li className="nav-item">
                                     <Link
                                         className="nav-link"
-                                        to="."
+                                        to="/"
                                         activeProps={{
-                                            className:
-                                                search.tag === undefined &&
-                                                search.feed === undefined
-                                                    ? "active"
-                                                    : "",
+                                            className: !tag && !feed ? "active" : "",
                                         }}
                                     >
                                         Global Feed
                                     </Link>
                                 </li>
-                                {search.tag && (
+                                {tag && (
                                     <li className="nav-item">
                                         <Link
-                                            className="nav-link"
-                                            to="."
-                                            search={{ tag: search.tag } as HomeSearch}
+                                            className="nav-link active"
+                                            to="/tag/$tag"
+                                            params={{ tag }}
                                         >
-                                            #{search.tag}
+                                            #{tag}
                                         </Link>
                                     </li>
                                 )}
@@ -116,7 +113,12 @@ export default function HomePage() {
                         </div>
 
                         {articleElements.length === 0 ? (
-                            <div className="empty-feed-message">No articles are here... yet.</div>
+                            <div className="empty-feed-message">
+                                Your feed is empty{" "}
+                                {feed === "following" ? (
+                                    <Link to="/">Back to Global Feed</Link>
+                                ) : null}
+                            </div>
                         ) : (
                             articleElements
                         )}

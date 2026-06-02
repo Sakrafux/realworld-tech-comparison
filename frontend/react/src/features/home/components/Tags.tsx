@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getTags } from "@/shared/api/features/tag-api.ts";
 import { Link } from "@tanstack/react-router";
-import type { HomeSearch } from "@/routes";
 
 export default function Tags() {
     const { data: tags } = useQuery({
@@ -15,7 +14,7 @@ export default function Tags() {
             return [];
         }
         return tags.tags.map((tag) => (
-            <Link key={tag} to="." search={{ tag } as HomeSearch} className="tag-pill tag-default">
+            <Link key={tag} to="/tag/$tag" params={{ tag }} className="tag-pill tag-default">
                 {tag}
             </Link>
         ));

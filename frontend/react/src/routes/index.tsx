@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import HomePage from "@/features/home/pages/HomePage.tsx";
 import { z } from "zod";
+import HomeContent from "@/features/home/pages/HomeContent.tsx";
 
 const homeSearchSchema = z.object({
     feed: z.string().optional(),
-    tag: z.string().optional(),
     page: z.number().optional().catch(1),
 });
 
@@ -14,3 +13,8 @@ export const Route = createFileRoute("/")({
     component: HomePage,
     validateSearch: homeSearchSchema,
 });
+
+function HomePage() {
+    const search = Route.useSearch() as HomeSearch;
+    return <HomeContent page={search.page ?? 1} feed={search.feed} />;
+}

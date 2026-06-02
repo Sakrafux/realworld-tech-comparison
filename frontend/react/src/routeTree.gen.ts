@@ -14,6 +14,7 @@ import { Route as RegisterRouteImport } from "./routes/register"
 import { Route as LoginRouteImport } from "./routes/login"
 import { Route as EditorRouteImport } from "./routes/editor"
 import { Route as IndexRouteImport } from "./routes/index"
+import { Route as TagTagRouteImport } from "./routes/tag.$tag"
 import { Route as ProfileUsernameRouteImport } from "./routes/profile.$username"
 import { Route as EditorSlugRouteImport } from "./routes/editor.$slug"
 import { Route as ArticleSlugRouteImport } from "./routes/article.$slug"
@@ -42,6 +43,11 @@ const EditorRoute = EditorRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TagTagRoute = TagTagRouteImport.update({
+  id: "/tag/$tag",
+  path: "/tag/$tag",
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileUsernameRoute = ProfileUsernameRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   "/article/$slug": typeof ArticleSlugRoute
   "/editor/$slug": typeof EditorSlugRoute
   "/profile/$username": typeof ProfileUsernameRouteWithChildren
+  "/tag/$tag": typeof TagTagRoute
   "/profile/$username/favorites": typeof ProfileUsernameFavoritesRoute
 }
 export interface FileRoutesByTo {
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   "/article/$slug": typeof ArticleSlugRoute
   "/editor/$slug": typeof EditorSlugRoute
   "/profile/$username": typeof ProfileUsernameRouteWithChildren
+  "/tag/$tag": typeof TagTagRoute
   "/profile/$username/favorites": typeof ProfileUsernameFavoritesRoute
 }
 export interface FileRoutesById {
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   "/article/$slug": typeof ArticleSlugRoute
   "/editor/$slug": typeof EditorSlugRoute
   "/profile/$username": typeof ProfileUsernameRouteWithChildren
+  "/tag/$tag": typeof TagTagRoute
   "/profile/$username/favorites": typeof ProfileUsernameFavoritesRoute
 }
 export interface FileRouteTypes {
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | "/article/$slug"
     | "/editor/$slug"
     | "/profile/$username"
+    | "/tag/$tag"
     | "/profile/$username/favorites"
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | "/article/$slug"
     | "/editor/$slug"
     | "/profile/$username"
+    | "/tag/$tag"
     | "/profile/$username/favorites"
   id:
     | "__root__"
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | "/article/$slug"
     | "/editor/$slug"
     | "/profile/$username"
+    | "/tag/$tag"
     | "/profile/$username/favorites"
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   ArticleSlugRoute: typeof ArticleSlugRoute
   ProfileUsernameRoute: typeof ProfileUsernameRouteWithChildren
+  TagTagRoute: typeof TagTagRoute
 }
 
 declare module "@tanstack/react-router" {
@@ -181,6 +194,13 @@ declare module "@tanstack/react-router" {
       path: "/"
       fullPath: "/"
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/tag/$tag": {
+      id: "/tag/$tag"
+      path: "/tag/$tag"
+      fullPath: "/tag/$tag"
+      preLoaderRoute: typeof TagTagRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/profile/$username": {
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   ArticleSlugRoute: ArticleSlugRoute,
   ProfileUsernameRoute: ProfileUsernameRouteWithChildren,
+  TagTagRoute: TagTagRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
