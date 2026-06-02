@@ -95,7 +95,7 @@ export default function ArticleMeta({ article, isAuthor, slug }: ArticleMetaProp
                     </button>
                     &nbsp;&nbsp;
                     <button
-                        className={`btn btn-sm btn-outline-primary ${article.favorited ? "active" : ""}`}
+                        className={`btn btn-sm ${article.favorited ? "btn-primary" : "btn-outline-primary"}`}
                         onClick={async () => {
                             if (!isAuthenticated) {
                                 await navigate({ to: "/login" });
@@ -127,7 +127,7 @@ export default function ArticleMeta({ article, isAuthor, slug }: ArticleMetaProp
                         }}
                     >
                         <i className="ion-heart"></i>
-                        &nbsp; {article.favorited ? "Unfavorite" : "Favorite"} Post{" "}
+                        &nbsp; {article.favorited ? "Unfavorite" : "Favorite"} Article{" "}
                         <span className="counter">({article.favoritesCount})</span>
                     </button>
                 </>

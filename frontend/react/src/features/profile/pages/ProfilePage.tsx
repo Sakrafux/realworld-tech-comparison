@@ -1,4 +1,3 @@
-import { type ProfileSearch, Route } from "@/routes/profile.$username.tsx";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     followUserByUsername,
@@ -8,7 +7,7 @@ import {
 } from "@/shared/api/features/profile-api.ts";
 import defaultAvatar from "@/shared/assets/default-avatar.svg";
 import { useAuth } from "@/features/auth/context/auth-context.tsx";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useMemo } from "react";
 import ArticlePreview from "@/features/article/components/ArticlePreview.tsx";
 import { getArticles } from "@/shared/api/features/article-api.ts";
@@ -16,8 +15,11 @@ import { getArticles } from "@/shared/api/features/article-api.ts";
 const PAGE_SIZE = 5;
 
 export default function ProfilePage() {
-    const search = Route.useSearch() as ProfileSearch;
-    const { username } = Route.useParams() as { username: string };
+    const { username } = useParams({ strict: false }) as { username: string };
+    const location = useLocation();
+    const isFavoritesRoute = location.pathname.endsWith("/favorites");
+    const search = useSearch({ strict: false }) as { page?: number };
+    const currentPage = search.page ?? 1;
 
     const { username: currentUsername, isAuthenticated } = useAuth();
 
@@ -32,12 +34,12 @@ export default function ProfilePage() {
     });
 
     const { data: articles } = useQuery({
-        queryKey: ["articles", username, search.tab, search.page],
+        queryKey: ["articles", username, isFavoritesRoute, currentPage],
         queryFn: () =>
             getArticles({
-                favorited: search.tab === "favorites" ? username : undefined,
-                author: search.tab !== "favorites" ? username : undefined,
-                offset: ((search.page ?? 1) - 1) * PAGE_SIZE,
+                favorited: isFavoritesRoute ? username : undefined,
+                author: !isFavoritesRoute ? username : undefined,
+                offset: (currentPage - 1) * PAGE_SIZE,
                 limit: PAGE_SIZE,
             }),
         initialData: () => ({ articles: [], articlesCount: 0 }),
@@ -51,7 +53,7 @@ export default function ProfilePage() {
                     <Link
                         className="page-link"
                         to="."
-                        search={(prev: ProfileSearch) => ({ ...prev, page: i }) as ProfileSearch}
+                        search={{ page: i }}
                     >
                         {i}
                     </Link>
@@ -59,14 +61,14 @@ export default function ProfilePage() {
             );
         }
         return elements;
-    }, [articles.articlesCount, search.page]);
+    }, [articles.articlesCount, currentPage]);
 
     const articleElements = useMemo(() => {
         return articles.articles.map((article) => (
             <ArticlePreview
                 key={article.slug}
                 article={article}
-                queryKey={["articles", username, search.tab, search.page]}
+                queryKey={["articles", username, isFavoritesRoute, currentPage]}
             />
         ));
     }, [articles.articles]);
@@ -153,9 +155,10 @@ export default function ProfilePage() {
                                 <li className="nav-item">
                                     <Link
                                         className="nav-link"
-                                        to="."
+                                        to="/profile/$username"
+                                        params={{ username }}
                                         activeProps={{
-                                            className: search.tab === undefined ? "active" : "",
+                                            className: !isFavoritesRoute ? "active" : "",
                                         }}
                                     >
                                         My Articles
@@ -164,10 +167,13 @@ export default function ProfilePage() {
                                 <li className="nav-item">
                                     <Link
                                         className="nav-link"
-                                        to="."
-                                        search={{ tab: "favorites" } as ProfileSearch}
+                                        to="/profile/$username/favorites"
+                                        params={{ username }}
+                                        activeProps={{
+                                            className: isFavoritesRoute ? "active" : "",
+                                        }}
                                     >
-                                        Favorited Articles
+                                        Favorited
                                     </Link>
                                 </li>
                             </ul>

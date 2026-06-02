@@ -110,6 +110,7 @@ export default function EditorPage() {
                                 <fieldset className="form-group">
                                     <input
                                         type="text"
+                                        name="title"
                                         className="form-control form-control-lg"
                                         placeholder="Article Title"
                                         value={title}
@@ -119,6 +120,7 @@ export default function EditorPage() {
                                 <fieldset className="form-group">
                                     <input
                                         type="text"
+                                        name="description"
                                         className="form-control"
                                         placeholder="What's this article about?"
                                         value={description}
@@ -128,6 +130,7 @@ export default function EditorPage() {
                                 <fieldset className="form-group">
                                     <textarea
                                         className="form-control"
+                                        name="body"
                                         rows={8}
                                         placeholder="Write your article (in markdown)"
                                         value={body}

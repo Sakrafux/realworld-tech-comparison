@@ -20,19 +20,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return localStorage.getItem("realworld_username");
     });
     const [token, setToken] = useState<string | null>(() => {
-        return localStorage.getItem("realworld_token");
+        return localStorage.getItem("jwtToken");
     });
 
     const login = (newUsername: string, newToken: string) => {
         localStorage.setItem("realworld_username", newUsername);
-        localStorage.setItem("realworld_token", newToken);
+        localStorage.setItem("jwtToken", newToken);
         setUsername(newUsername);
         setToken(newToken);
     };
 
     const logout = () => {
         localStorage.removeItem("realworld_username");
-        localStorage.removeItem("realworld_token");
+        localStorage.removeItem("jwtToken");
         setUsername(null);
         setToken(null);
     };
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Sync logout/login changes across multiple open browser tabs
     useEffect(() => {
         const handleStorageChange = (e: StorageEvent) => {
-            if (e.key === "realworld_token") {
+            if (e.key === "jwtToken") {
                 // If token was deleted or changed in another tab, update state
                 setToken(e.newValue);
             }
@@ -64,6 +64,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Derived state for quick checking
     const isAuthenticated = !!token;
+
+    // Expose debug interface on window
+    useEffect(() => {
+        window.__conduit_debug__ = {
+            getToken: () => token,
+            getAuthState: (): "authenticated" | "unauthenticated" | "unavailable" | "loading" => {
+                if (token === null && username === null) {
+                    return "unauthenticated";
+                }
+                if (token) {
+                    return "authenticated";
+                }
+                return "unavailable";
+            },
+            getCurrentUser: () => {
+                if (!token || !username) return null;
+                return {
+                    username,
+                    email: "",
+                    bio: null,
+                    image: null,
+                    token,
+                };
+            },
+        };
+    }, [token, username]);
 
     return (
         <AuthContext.Provider value={{ username, token, isAuthenticated, login, logout }}>

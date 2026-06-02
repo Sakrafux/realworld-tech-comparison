@@ -11,7 +11,7 @@ const PAGE_SIZE = 5;
 
 function getArticleQuery(search: HomeSearch, isAuthenticated: boolean) {
     const page = search.page ?? 1;
-    if (search.personal && isAuthenticated) {
+    if (search.feed === "following" && isAuthenticated) {
         return getArticlesFeed({ offset: (page - 1) * PAGE_SIZE, limit: PAGE_SIZE });
     }
     return getArticles({ tag: search.tag, offset: (page - 1) * PAGE_SIZE, limit: PAGE_SIZE });
@@ -24,7 +24,7 @@ export default function HomePage() {
     const navigate = useNavigate();
 
     const { data: articles } = useQuery({
-        queryKey: ["articles", search.tag, search.personal, search.page],
+        queryKey: ["articles", search.tag, search.feed, search.page],
         queryFn: () => getArticleQuery(search, isAuthenticated),
         initialData: () => ({ articles: [], articlesCount: 0 }),
     });
@@ -52,16 +52,16 @@ export default function HomePage() {
             <ArticlePreview
                 key={article.slug}
                 article={article}
-                queryKey={["articles", search.tag, search.personal, search.page]}
+                queryKey={["articles", search.tag, search.feed, search.page]}
             />
         ));
     }, [articles.articles]);
 
     useEffect(() => {
-        if (search.personal && !isAuthenticated) {
+        if (search.feed === "following" && !isAuthenticated) {
             navigate({ to: "/login" });
         }
-    }, [search.personal, isAuthenticated]);
+    }, [search.feed, isAuthenticated]);
 
     return (
         <div className="home-page">
@@ -81,7 +81,7 @@ export default function HomePage() {
                                     <Link
                                         className="nav-link"
                                         to="."
-                                        search={{ personal: true } as HomeSearch}
+                                        search={{ feed: "following" } as HomeSearch}
                                     >
                                         Your Feed
                                     </Link>
@@ -93,7 +93,7 @@ export default function HomePage() {
                                         activeProps={{
                                             className:
                                                 search.tag === undefined &&
-                                                search.personal === undefined
+                                                search.feed === undefined
                                                     ? "active"
                                                     : "",
                                         }}
@@ -115,7 +115,11 @@ export default function HomePage() {
                             </ul>
                         </div>
 
-                        {articleElements}
+                        {articleElements.length === 0 ? (
+                            <div className="empty-feed-message">No articles are here... yet.</div>
+                        ) : (
+                            articleElements
+                        )}
 
                         <ul className="pagination">{pageElements}</ul>
                     </div>

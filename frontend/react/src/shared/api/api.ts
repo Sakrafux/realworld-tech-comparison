@@ -2,6 +2,12 @@ import { triggerLogout } from "@/shared/api/events.ts";
 
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
+const AUTH_URLS = ["register", "login"];
+
+function isAuthEndpoint(endpoint: string) {
+    return AUTH_URLS.some((authEndpoint) => endpoint.includes(authEndpoint));
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const separator = endpoint.startsWith("/") ? "" : "/";
     const url = `${BASE_URL}${separator}${endpoint}`;
@@ -12,7 +18,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     };
 
     // Safe localStorage read for the browser
-    const token = localStorage.getItem("realworld_token");
+    const token = localStorage.getItem("jwtToken");
     if (token) {
         headers["Authorization"] = `Token ${token}`;
     }
@@ -26,7 +32,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
     if (!response.ok) {
         // Can't be successfully authenticated in case of 401
-        if (response.status === 401) {
+        if (response.status === 401 && !isAuthEndpoint(endpoint)) {
             // Implicitly causes the removal of the localStorage token
             triggerLogout();
         }
@@ -50,11 +56,13 @@ const api = {
         endpoint: string,
         searchParams: Record<string, string> = {},
         options: Omit<RequestInit, "method" | "body"> = {},
-    ): Promise<T> =>
-        request<T>(`${endpoint}?${new URLSearchParams(searchParams).toString()}`, {
+    ): Promise<T> => {
+        const searchParamsStr = new URLSearchParams(searchParams).toString();
+        return request<T>(`${endpoint}${searchParamsStr ? "?" + searchParamsStr : ""}`, {
             ...options,
             method: "GET",
-        }),
+        });
+    },
 
     post: <T>(
         endpoint: string,

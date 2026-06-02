@@ -3,7 +3,7 @@ import HomePage from "@/features/home/pages/HomePage.tsx";
 import { z } from "zod";
 
 const homeSearchSchema = z.object({
-    personal: z.boolean().optional().catch(false),
+    feed: z.string().optional(),
     tag: z.string().optional(),
     page: z.number().optional().catch(1),
 });

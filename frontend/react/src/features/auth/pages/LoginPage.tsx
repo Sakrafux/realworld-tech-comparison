@@ -25,6 +25,7 @@ export default function LoginPage() {
             login(result.user.username, result.user.token);
         } catch (err) {
             setError((err as Error).message || "Invalid credentials");
+            return;
         }
 
         await navigate({ to: "/" });
@@ -51,6 +52,7 @@ export default function LoginPage() {
                                 <input
                                     className="form-control form-control-lg"
                                     type="email"
+                                    name="email"
                                     placeholder="Email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -60,6 +62,7 @@ export default function LoginPage() {
                                 <input
                                     className="form-control form-control-lg"
                                     type="password"
+                                    name="password"
                                     placeholder="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
