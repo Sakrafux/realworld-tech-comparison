@@ -67,7 +67,7 @@ export default function ArticlePage() {
                     <ArticleMeta article={article} slug={slug} isAuthor={isAuthor} />
                 </div>
 
-                <Comments slug={slug} isAuthor={isAuthor} />
+                <Comments slug={slug} />
             </div>
         </div>
     );

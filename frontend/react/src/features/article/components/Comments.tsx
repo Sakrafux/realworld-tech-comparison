@@ -12,10 +12,9 @@ import { Link } from "@tanstack/react-router";
 
 export type CommentsProps = {
     slug: string;
-    isAuthor: boolean;
 };
 
-export default function Comments({ slug, isAuthor }: CommentsProps) {
+export default function Comments({ slug }: CommentsProps) {
     const [commentText, setCommentText] = useState<string>();
 
     const { username, isAuthenticated } = useAuth();
@@ -48,7 +47,7 @@ export default function Comments({ slug, isAuthor }: CommentsProps) {
     return (
         <div className="row">
             <div className="col-xs-12 col-md-8 offset-md-2">
-                {isAuthenticated && user && !isAuthor && (
+                {isAuthenticated && user && (
                     <form onSubmit={handleSubmit} className="card comment-form">
                         <div className="card-block">
                             <textarea
