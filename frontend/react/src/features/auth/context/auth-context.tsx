@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AUTH_EVENT } from "@/shared/api/events.ts";
+import type { User } from "@/shared/api/features/user-api.ts";
 
 export interface AuthContextType {
-    username: string | null;
+    user: User | null;
     token: string | null;
     isAuthenticated: boolean;
-    login: (username: string, token: string) => void;
+    login: (newUser: User) => void;
     logout: () => void;
 }
 
@@ -16,24 +17,25 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-    const [username, setUsername] = useState<string | null>(() => {
-        return localStorage.getItem("realworld_username");
+    const [user, setUser] = useState<User | null>(() => {
+        const serializedUser = localStorage.getItem("realworld_user");
+        return serializedUser ? JSON.parse(serializedUser) : null;
     });
     const [token, setToken] = useState<string | null>(() => {
         return localStorage.getItem("jwtToken");
     });
 
-    const login = (newUsername: string, newToken: string) => {
-        localStorage.setItem("realworld_username", newUsername);
-        localStorage.setItem("jwtToken", newToken);
-        setUsername(newUsername);
-        setToken(newToken);
+    const login = (newUser: User) => {
+        localStorage.setItem("realworld_user", JSON.stringify(newUser));
+        localStorage.setItem("jwtToken", newUser.token);
+        setUser(newUser);
+        setToken(newUser.token);
     };
 
     const logout = () => {
-        localStorage.removeItem("realworld_username");
+        localStorage.removeItem("realworld_user");
         localStorage.removeItem("jwtToken");
-        setUsername(null);
+        setUser(null);
         setToken(null);
     };
 
@@ -44,8 +46,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 // If token was deleted or changed in another tab, update state
                 setToken(e.newValue);
             }
-            if (e.key === "realworld_username") {
-                setUsername(e.newValue);
+            if (e.key === "realworld_user") {
+                setUser(e.newValue ? JSON.parse(e.newValue) : null);
             }
         };
         window.addEventListener("storage", handleStorageChange);
@@ -67,10 +69,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Expose debug interface on window
     useEffect(() => {
+        console.log(user);
         window.__conduit_debug__ = {
             getToken: () => token,
             getAuthState: (): "authenticated" | "unauthenticated" | "unavailable" | "loading" => {
-                if (token === null && username === null) {
+                if (token === null && user === null) {
                     return "unauthenticated";
                 }
                 if (token) {
@@ -79,20 +82,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 return "unavailable";
             },
             getCurrentUser: () => {
-                if (!token || !username) return null;
+                if (!token || !user) return null;
                 return {
-                    username,
-                    email: "",
-                    bio: null,
-                    image: null,
-                    token,
+                    username: user.username,
+                    email: user.email,
+                    bio: user.bio || null,
+                    image: user.image || null,
+                    token: user.token,
                 };
             },
         };
-    }, [token, username]);
+    }, [token, user]);
 
     return (
-        <AuthContext.Provider value={{ username, token, isAuthenticated, login, logout }}>
+        <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

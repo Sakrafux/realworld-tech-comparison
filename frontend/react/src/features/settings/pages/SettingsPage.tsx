@@ -42,16 +42,21 @@ export default function SettingsPage() {
         e.preventDefault();
         setError(undefined);
 
-        if (!email || !password || !username) {
-            setError("Please fill in the email, password, and username fields");
-            return;
-        }
-
         try {
-            const result = await updateUser({ user: { email, password, username, bio, image } });
-            login(result.user.username, result.user.token);
+            const result = await updateUser({
+                user: {
+                    email: email || undefined,
+                    password: password || undefined,
+                    username: username || undefined,
+                    bio: bio || undefined,
+                    image: image || undefined,
+                },
+            });
+            login(result.user);
 
             queryClient.setQueryData(["user"], () => result);
+
+            await navigate({ to: `/profile/${result.user.username}` });
         } catch (err) {
             setError((err as Error).message || "Error at user update");
         }
@@ -93,14 +98,14 @@ export default function SettingsPage() {
                                     />
                                 </fieldset>
                                 <fieldset className="form-group">
-                                <textarea
-                                    className="form-control form-control-lg"
-                                    name="bio"
-                                    rows={8}
-                                    placeholder="Short bio about you"
-                                    value={bio}
-                                    onChange={(e) => setBio(e.target.value)}
-                                ></textarea>
+                                    <textarea
+                                        className="form-control form-control-lg"
+                                        name="bio"
+                                        rows={8}
+                                        placeholder="Short bio about you"
+                                        value={bio}
+                                        onChange={(e) => setBio(e.target.value)}
+                                    ></textarea>
                                 </fieldset>
                                 <fieldset className="form-group">
                                     <input

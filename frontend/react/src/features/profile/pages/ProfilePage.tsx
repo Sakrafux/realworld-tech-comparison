@@ -20,9 +20,9 @@ export default function ProfilePage() {
     const search = useSearch({ strict: false }) as { page?: number };
     const currentPage = search.page ?? 1;
 
-    const { username: currentUsername, isAuthenticated } = useAuth();
+    const { user: currentUser, isAuthenticated } = useAuth();
 
-    const isCurrentUser = username === currentUsername;
+    const isCurrentUser = username === currentUser?.username;
 
     const navigate = useNavigate();
     const queryClient = useQueryClient();

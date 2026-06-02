@@ -9,7 +9,7 @@ import { useNavigate } from "@tanstack/react-router";
 import Comments from "@/features/article/components/Comments.tsx";
 
 export default function ArticlePage() {
-    const { username: currentUsername, isAuthenticated } = useAuth();
+    const { user: currentUser, isAuthenticated } = useAuth();
     const { slug } = Route.useParams() as { slug: string };
 
     const {
@@ -23,7 +23,7 @@ export default function ArticlePage() {
     });
     const article = articleData?.article;
 
-    const isAuthor = isAuthenticated && article?.author.username === currentUsername;
+    const isAuthor = isAuthenticated && article?.author.username === currentUser?.username;
 
     const navigate = useNavigate();
 

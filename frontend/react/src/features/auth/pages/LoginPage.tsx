@@ -22,7 +22,7 @@ export default function LoginPage() {
 
         try {
             const result = await loginWithApi({ user: { email, password } });
-            login(result.user.username, result.user.token);
+            login(result.user);
         } catch (err) {
             setError((err as Error).message || "Invalid credentials");
             return;

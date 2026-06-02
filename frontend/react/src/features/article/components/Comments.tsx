@@ -17,7 +17,7 @@ export type CommentsProps = {
 export default function Comments({ slug }: CommentsProps) {
     const [commentText, setCommentText] = useState<string>();
 
-    const { username, isAuthenticated } = useAuth();
+    const { user: currentUser, isAuthenticated } = useAuth();
     const queryClient = useQueryClient();
 
     const { data: user } = useQuery({
@@ -98,7 +98,7 @@ export default function Comments({ slug }: CommentsProps) {
                                 <span className="date-posted">
                                     {new Date(comment.createdAt).toLocaleDateString()}
                                 </span>
-                                {comment.author.username === username && (
+                                {comment.author.username === currentUser?.username && (
                                     <span
                                         className="mod-options"
                                         onClick={async () => {

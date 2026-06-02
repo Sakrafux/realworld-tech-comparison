@@ -23,7 +23,7 @@ export default function RegisterPage() {
 
         try {
             const result = await register({ user: { username, email, password } });
-            login(result.user.username, result.user.token);
+            login(result.user);
         } catch (err) {
             setError((err as Error).message || "Something went wrong during registration");
             return;
