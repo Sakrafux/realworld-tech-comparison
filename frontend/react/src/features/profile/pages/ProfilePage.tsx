@@ -79,7 +79,7 @@ export default function ProfilePage() {
                     <div className="row">
                         <div className="col-xs-12 col-md-10 offset-md-1">
                             <img
-                                src={profile.profile.image || "./default-avatar.svg"}
+                                src={profile.profile.image || "/default-avatar.svg"}
                                 alt="avatar"
                                 className="user-img"
                             />

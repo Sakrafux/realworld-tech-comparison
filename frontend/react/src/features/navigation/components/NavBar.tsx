@@ -39,7 +39,7 @@ export default function NavBar() {
                             <li className="nav-item">
                                 <Link className="nav-link" to={`/profile/${data.user.username}`}>
                                     <img
-                                        src={data.user.image || "./default-avatar.svg"}
+                                        src={data.user.image || "/default-avatar.svg"}
                                         alt="avatar"
                                         className="user-pic"
                                     />

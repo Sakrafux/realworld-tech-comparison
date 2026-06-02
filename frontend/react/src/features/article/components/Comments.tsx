@@ -61,7 +61,7 @@ export default function Comments({ slug, isAuthor }: CommentsProps) {
                         </div>
                         <div className="card-footer">
                             <img
-                                src={user.user.image || "./default-avatar.svg"}
+                                src={user.user.image || "/default-avatar.svg"}
                                 alt="avatar"
                                 className="comment-author-img"
                             />
@@ -84,7 +84,7 @@ export default function Comments({ slug, isAuthor }: CommentsProps) {
                                     className="comment-author"
                                 >
                                     <img
-                                        src={comment.author.image || "./default-avatar.svg"}
+                                        src={comment.author.image || "/default-avatar.svg"}
                                         alt="avatar"
                                         className="comment-author-img"
                                     />

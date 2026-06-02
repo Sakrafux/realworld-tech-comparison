@@ -24,7 +24,7 @@ export default function ArticleMeta({ article, isAuthor, slug }: ArticleMetaProp
     return (
         <div className="article-meta">
             <Link to={`/profile/${article.author.username}`}>
-                <img src={article.author.image || "./default-avatar.svg"} alt="avatar" />
+                <img src={article.author.image || "/default-avatar.svg"} alt="avatar" />
             </Link>
             <div className="info">
                 <Link to={`/profile/${article.author.username}`} className="author">
