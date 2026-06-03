@@ -168,7 +168,7 @@ export default function EditorPage() {
                                     className="btn btn-lg pull-xs-right btn-primary"
                                     type="submit"
                                 >
-                                    {slug ? "Update" : "Publish"} Article
+                                    Publish Article
                                 </button>
                             </fieldset>
                         </form>
