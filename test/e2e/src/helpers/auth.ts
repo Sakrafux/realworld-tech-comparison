@@ -50,9 +50,10 @@ export async function logout(page: Page) {
 
 export function generateUniqueUser() {
   const timestamp = Date.now();
+  const random = Math.ceil(Math.random() * 1000);
   return {
-    username: `testuser${timestamp}`,
-    email: `test${timestamp}@example.com`,
+    username: `testuser${timestamp}-${random}`,
+    email: `test${timestamp}-${random}@example.com`,
     password: 'password123',
   };
 }
