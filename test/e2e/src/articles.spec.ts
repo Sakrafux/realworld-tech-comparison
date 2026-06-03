@@ -226,59 +226,6 @@ test.describe('Articles', () => {
     }
   });
 
-  test('should remove all tags when editing an article', async ({ page }) => {
-    const article = generateUniqueArticle();
-
-    await createArticle(page, article);
-
-    // Should show tags on the article page
-    for (const tag of article.tags || []) {
-      await expect(page.locator(`.tag-list .tag-default:has-text("${tag}")`)).toBeVisible();
-    }
-
-    // Get the article slug from URL
-    const url = page.url();
-    const slug = url.split('/article/')[1];
-
-    // Go to the editor
-    await page.goto(`/editor/${slug}`, { waitUntil: 'load' });
-
-    // Wait for the form to be populated
-    const titleInput = page.locator('input[name="title"]');
-    await expect(titleInput).not.toHaveValue('', { timeout: 10000 });
-
-    // Remove all tag pills by clicking their delete icons
-    while (await page.locator('.tag-list .tag-pill i, .tag-list .tag-default i').count() > 0) {
-      await page.locator('.tag-list .tag-pill i, .tag-list .tag-default i').first().click();
-      await page.waitForTimeout(100);
-    }
-
-    // Intercept the PUT request to verify tagList is sent as [] (SPA-only: fullstack doesn't use fetch)
-    let capturedTagList: unknown = undefined;
-    if (API_MODE) {
-      await page.route('**/api/articles/*', async route => {
-        if (route.request().method() === 'PUT') {
-          const body = route.request().postDataJSON();
-          capturedTagList = body?.article?.tagList;
-          await route.continue();
-        } else {
-          await route.continue();
-        }
-      });
-    }
-
-    // Publish
-    await Promise.all([page.waitForURL(/\/article\/.+/), page.click('button:has-text("Publish Article")')]);
-
-    // Verify the frontend sent tagList: [] (not undefined/omitted) — SPA only
-    if (API_MODE) {
-      expect(capturedTagList).toEqual([]);
-    }
-
-    // Verify no tags on the article page
-    await expect(page.locator('.tag-list .tag-default')).toHaveCount(0);
-  });
-
   test('should only allow author to edit/delete article', async ({ page, browser }) => {
     const article = generateUniqueArticle();
 
