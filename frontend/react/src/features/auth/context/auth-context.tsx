@@ -69,7 +69,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Expose debug interface on window
     useEffect(() => {
-        console.log(user);
         window.__conduit_debug__ = {
             getToken: () => token,
             getAuthState: (): "authenticated" | "unauthenticated" | "unavailable" | "loading" => {

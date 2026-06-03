@@ -45,11 +45,11 @@ export default function SettingsPage() {
         try {
             const result = await updateUser({
                 user: {
-                    email: email || undefined,
+                    email: email,
                     password: password || undefined,
-                    username: username || undefined,
-                    bio: bio || undefined,
-                    image: image || undefined,
+                    username: username,
+                    bio: bio,
+                    image: image,
                 },
             });
             login(result.user);
