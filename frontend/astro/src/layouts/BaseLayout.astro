@@ -1,5 +1,9 @@
 ---
-import "../index.css";
+import { ClientRouter } from "astro:transitions";
+import Footer from "@/components/Footer.astro";
+import NavBar from "@/components/NavBar.tsx";
+
+const { pathname } = Astro.url;
 ---
 
 <html lang="en">
@@ -18,13 +22,19 @@ import "../index.css";
             href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700|Lora:400,700"
         />
 
+        <link rel="stylesheet" href="/index.css" />
+
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
         <meta name="generator" content={Astro.generator} />
         <title>Conduit</title>
+
+        <ClientRouter />
     </head>
     <body>
+        <NavBar client:load initialPath={pathname} transition:persist />
         <slot />
+        <Footer />
     </body>
 </html>
