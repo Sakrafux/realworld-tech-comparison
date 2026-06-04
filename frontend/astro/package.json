@@ -12,14 +12,11 @@
         "astro": "astro"
     },
     "dependencies": {
-        "@astrojs/react": "^5.0.7",
+        "@astrojs/preact": "^5.1.5",
         "astro": "^6.4.4",
-        "react": "^19.2.7",
-        "react-dom": "^19.2.7"
+        "preact": "^10.29.2"
     },
     "devDependencies": {
-        "@types/react": "^19.2.16",
-        "@types/react-dom": "^19.2.3",
         "prettier": "^3.8.3",
         "prettier-plugin-astro": "^0.14.1"
     }
