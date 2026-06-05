@@ -71,7 +71,8 @@ function UnauthenticatedLinks({ currentPath }: { currentPath: string }) {
 
 function AuthenticatedLinks({ currentPath }: { currentPath: string }) {
     // At this point, it is established we are both on the client *and* authenticated
-    const user = getCurrentUser()!;
+    // However, during logout this may be out-of-sync for a very short time
+    const user = getCurrentUser();
 
     return (
         <>
@@ -95,13 +96,13 @@ function AuthenticatedLinks({ currentPath }: { currentPath: string }) {
                 <a
                     class={getClassNameForCurrentPath(
                         "nav-link",
-                        `/profile/${user.username}`,
+                        `/profile/${user?.username}`,
                         currentPath,
                     )}
-                    href={`/profile/${user.username}`}
+                    href={`/profile/${user?.username}`}
                 >
-                    <img alt="avatar" src={user.image || "/default-avatar.svg"} class="user-pic" />
-                    {user.username}
+                    <img alt="avatar" src={user?.image || "/default-avatar.svg"} class="user-pic" />
+                    {user?.username}
                 </a>
             </li>
         </>

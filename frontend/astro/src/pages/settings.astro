@@ -1,7 +1,11 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import SettingsPage from "@/components/SettingsPage.tsx";
+import AuthGuard from "@/components/AuthGuard.tsx";
 ---
 
 <BaseLayout>
-    <h1>Settings</h1>
+    <AuthGuard client:load>
+        <SettingsPage client:load />
+    </AuthGuard>
 </BaseLayout>

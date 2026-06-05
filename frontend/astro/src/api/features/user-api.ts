@@ -1,3 +1,5 @@
+import api from "@/api/api.ts";
+
 export type LoginRequest = {
     user: {
         email: string;
@@ -34,3 +36,19 @@ export type User = {
 export type UserResponse = {
     user: User;
 };
+
+export async function login(loginRequest: LoginRequest): Promise<UserResponse> {
+    return api.post<UserResponse>("/users/login", loginRequest);
+}
+
+export async function register(registerRequest: RegisterRequest): Promise<UserResponse> {
+    return api.post<UserResponse>("/users", registerRequest);
+}
+
+export async function getUser(): Promise<UserResponse> {
+    return api.get<UserResponse>("/user");
+}
+
+export async function updateUser(updateUserRequest: UpdateUserRequest): Promise<UserResponse> {
+    return api.put<UserResponse>("/user", updateUserRequest);
+}
