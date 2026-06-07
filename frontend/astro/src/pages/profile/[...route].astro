@@ -82,7 +82,11 @@ try {
                             </li>
                         </ul>
                     </div>
-                    <ProfileArticles client:only="react" profile={profile} />
+                    <ProfileArticles
+                        client:only="react"
+                        profile={profile}
+                        isFavorites={isFavorites}
+                    />
                 </div>
             </div>
         </div>

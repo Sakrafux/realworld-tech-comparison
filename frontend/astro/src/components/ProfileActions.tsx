@@ -41,7 +41,7 @@ export default function ProfileActions({ profile }: ProfileActionsProps) {
                     setProfileState({ ...profileState, following: false });
                 }}
             >
-                <i class="ion-plus-round"></i>
+                <i class="ion-minus-round"></i>
                 &nbsp; Unfollow {profileState.username}
             </button>
         );
