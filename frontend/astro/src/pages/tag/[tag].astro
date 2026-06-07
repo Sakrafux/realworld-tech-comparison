@@ -2,6 +2,9 @@
 import HomeArticles from "@/components/HomeArticles";
 import Tags from "@/components/Tags";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+
+export const prerender = false;
+const { tag } = Astro.params;
 ---
 
 <BaseLayout>
@@ -19,43 +22,28 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
                     <div class="feed-toggle">
                         <ul class="nav nav-pills outline-active">
                             <li class="nav-item">
-                                <a id="link-your-feed" class="nav-link" href="/?feed=following"
-                                    >Your Feed</a
-                                >
+                                <a class="nav-link" href="/?feed=following">Your Feed</a>
                             </li>
                             <li class="nav-item">
-                                <a id="link-global-feed" class="nav-link" href="/">Global Feed</a>
+                                <a class="nav-link" href="/">Global Feed</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href={`/tag/${tag}`}>#{tag}</a>
                             </li>
                         </ul>
                     </div>
 
-                    <HomeArticles client:only="react" />
+                    <HomeArticles client:only="react" tag={tag} />
                 </div>
 
                 <div class="col-md-3">
                     <div class="sidebar">
                         <p>Popular Tags</p>
 
-                        <Tags client:load />
+                        <Tags client:only="react" />
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </BaseLayout>
-
-<script>
-    function handleSearchParams() {
-        const isFollowing = new URLSearchParams(window.location.search).has("feed", "following");
-        if (isFollowing) {
-            document.getElementById("link-your-feed")?.classList.add("active");
-            document.getElementById("link-global-feed")?.classList.remove("active");
-        } else {
-            document.getElementById("link-your-feed")?.classList.remove("active");
-            document.getElementById("link-global-feed")?.classList.add("active");
-        }
-    }
-
-    // Runs on initial load AND after every transition/redirect
-    document.addEventListener("astro:page-load", handleSearchParams);
-</script>

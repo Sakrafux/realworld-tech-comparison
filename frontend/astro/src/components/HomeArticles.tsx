@@ -5,7 +5,11 @@ import { isAuthenticated } from "@/util/auth-util.ts";
 
 const PAGE_SIZE = 10;
 
-export default function HomeArticles() {
+export type HomeArticlesProps = {
+    tag?: string;
+};
+
+export default function HomeArticles({ tag }: HomeArticlesProps) {
     const [articles, setArticles] = useState<Article[]>([]);
     const [articlesCount, setArticlesCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(
@@ -18,6 +22,7 @@ export default function HomeArticles() {
         const getArticlesFn = isFollowing && isAuthenticated() ? getArticlesFeed : getArticles;
 
         getArticlesFn({
+            tag,
             offset: (currentPage - 1) * PAGE_SIZE,
             limit: PAGE_SIZE,
         }).then((response) => {
