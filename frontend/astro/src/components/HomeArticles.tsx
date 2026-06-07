@@ -1,16 +1,11 @@
-import type { Profile } from "@/api/features/profile-api.ts";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { type Article, getArticles } from "@/api/features/article-api.ts";
+import { type Article, getArticles, getArticlesFeed } from "@/api/features/article-api.ts";
 import ArticlePreview from "@/components/ArticlePreview.tsx";
+import { isAuthenticated } from "@/util/auth-util.ts";
 
 const PAGE_SIZE = 10;
 
-export type ProfileArticlesProps = {
-    profile: Profile;
-    isFavorites: boolean;
-};
-
-export default function ProfileArticles({ profile, isFavorites }: ProfileArticlesProps) {
+export default function HomeArticles() {
     const [articles, setArticles] = useState<Article[]>([]);
     const [articlesCount, setArticlesCount] = useState(0);
     const [currentPage, setCurrentPage] = useState(
@@ -18,9 +13,11 @@ export default function ProfileArticles({ profile, isFavorites }: ProfileArticle
     );
 
     useEffect(() => {
-        getArticles({
-            favorited: isFavorites ? profile.username : undefined,
-            author: !isFavorites ? profile.username : undefined,
+        const isFollowing = new URLSearchParams(window.location.search).get("feed") === "following";
+
+        const getArticlesFn = isFollowing && isAuthenticated() ? getArticlesFeed : getArticles;
+
+        getArticlesFn({
             offset: (currentPage - 1) * PAGE_SIZE,
             limit: PAGE_SIZE,
         }).then((response) => {
@@ -41,7 +38,9 @@ export default function ProfileArticles({ profile, isFavorites }: ProfileArticle
                         className="page-link"
                         type="button"
                         onClick={() => {
-                            window.location.search = `?page=${i}`;
+                            const searchParams = new URLSearchParams(window.location.search);
+                            searchParams.set("page", i.toString());
+                            window.location.search = searchParams.toString();
                             setCurrentPage(i);
                         }}
                     >

@@ -1,4 +1,5 @@
 ---
+import HomeArticles from "@/components/HomeArticles";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 ---
 
@@ -17,72 +18,17 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
                     <div class="feed-toggle">
                         <ul class="nav nav-pills outline-active">
                             <li class="nav-item">
-                                <a class="nav-link" href="">Your Feed</a>
+                                <a id="link-your-feed" class="nav-link" href="/?feed=following"
+                                    >Your Feed</a
+                                >
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link active" href="">Global Feed</a>
+                                <a id="link-global-feed" class="nav-link" href="/">Global Feed</a>
                             </li>
                         </ul>
                     </div>
 
-                    <div class="article-preview">
-                        <div class="article-meta">
-                            <a href="/profile/eric-simons"
-                                ><img src="http://i.imgur.com/Qr71crq.jpg" /></a
-                            >
-                            <div class="info">
-                                <a href="/profile/eric-simons" class="author">Eric Simons</a>
-                                <span class="date">January 20th</span>
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                                <i class="ion-heart"></i> 29
-                            </button>
-                        </div>
-                        <a href="/article/how-to-build-webapps-that-scale" class="preview-link">
-                            <h1>How to build webapps that scale</h1>
-                            <p>This is the description for the post.</p>
-                            <span>Read more...</span>
-                            <ul class="tag-list">
-                                <li class="tag-default tag-pill tag-outline">realworld</li>
-                                <li class="tag-default tag-pill tag-outline">implementations</li>
-                            </ul>
-                        </a>
-                    </div>
-
-                    <div class="article-preview">
-                        <div class="article-meta">
-                            <a href="/profile/albert-pai"
-                                ><img src="http://i.imgur.com/N4VcUeJ.jpg" /></a
-                            >
-                            <div class="info">
-                                <a href="/profile/albert-pai" class="author">Albert Pai</a>
-                                <span class="date">January 20th</span>
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm pull-xs-right">
-                                <i class="ion-heart"></i> 32
-                            </button>
-                        </div>
-                        <a href="/article/the-song-you" class="preview-link">
-                            <h1>
-                                The song you won't ever stop singing. No matter how hard you try.
-                            </h1>
-                            <p>This is the description for the post.</p>
-                            <span>Read more...</span>
-                            <ul class="tag-list">
-                                <li class="tag-default tag-pill tag-outline">realworld</li>
-                                <li class="tag-default tag-pill tag-outline">implementations</li>
-                            </ul>
-                        </a>
-                    </div>
-
-                    <ul class="pagination">
-                        <li class="page-item active">
-                            <a class="page-link" href="">1</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="">2</a>
-                        </li>
-                    </ul>
+                    <HomeArticles client:only="react" />
                 </div>
 
                 <div class="col-md-3">
@@ -105,3 +51,19 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
         </div>
     </div>
 </BaseLayout>
+
+<script>
+    function handleSearchParams() {
+        const isFollowing = new URLSearchParams(window.location.search).has("feed", "following");
+        if (isFollowing) {
+            document.getElementById("link-your-feed")?.classList.add("active");
+            document.getElementById("link-global-feed")?.classList.remove("active");
+        } else {
+            document.getElementById("link-your-feed")?.classList.remove("active");
+            document.getElementById("link-global-feed")?.classList.add("active");
+        }
+    }
+
+    // Runs on initial load AND after every transition/redirect
+    document.addEventListener("astro:page-load", handleSearchParams);
+</script>

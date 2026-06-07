@@ -27,6 +27,7 @@ try {
             Astro.cookies.get("auth_token")?.value,
         )
     ).profile;
+    Astro.response.headers.set("Cache-Control", "public, max-age=3600");
 } catch (e) {
     console.log(e);
     return Astro.redirect("/");

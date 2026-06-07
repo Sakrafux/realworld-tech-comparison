@@ -1,43 +1,23 @@
-# Astro Starter Kit: Minimal
+# Astro
 
-```sh
-pnpm create astro@latest -- --template minimal
-```
+## Impressions
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Feels great to use for static content with some interactivity. 
+It's easy to build the website in a modular manner while adding some minor interactivity using the island system.
 
-## 🚀 Project Structure
+However, greater interactivity, i.e., forms, feel very wrong as they are wholly interactive, meaning the whole page
+is basically one large island. While this is fine for sparse usage, if it occurs for a large part of the application
+one may wonder, why even use Astro in the first place.
 
-Inside of your Astro project, you'll see the following folders and files:
+Statically generated dynamic routes feel good to use. On the other hand, on-demand dynamic routes feel very wonky 
+to implement. Mainly because this is the only real use case forcing SSR, which then implies some further consequences.
+Not only does it require handling authentication also via cookie for the use in SSR, other features like caching
+must now be controlled via headers. And most obvious, deployment now requires a server environment instead of static
+bundle to be served from anywhere.
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+I would use it for any kind of website that relies on static content where interactivity is largely contained on the
+client and is mainly used in order to enhance UX. Though some sporadic form-like elements are largely fine as well.
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Even some applications that theoretically rely on on-demand dynamic routes may be fine depending on the nature of the
+demand. E.g., a personal blog that allows one to add more blog pages. The specific blog pages would be dynamic routes,
+but due to long-lived nature of a blog, we could re-generate the static bundle on publish and re-deploy it.
