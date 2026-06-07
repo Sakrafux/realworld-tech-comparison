@@ -84,3 +84,38 @@ const api = {
 };
 
 export default api;
+
+export async function ssrGet<T>(
+    endpoint: string,
+    token?: string,
+    options: Omit<RequestInit, "method" | "body"> = {},
+): Promise<T> {
+    const separator = endpoint.startsWith("/") ? "" : "/";
+    const url = `${BASE_URL}${separator}${endpoint}`;
+
+    const headers: Record<string, string> = {
+        ...(options.headers as Record<string, string>),
+    };
+
+    if (token) {
+        headers["Authorization"] = `Token ${token}`;
+    }
+
+    const config: RequestInit = {
+        ...options,
+        headers,
+        method: "GET",
+    };
+
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        if (errorData?.errors?.body && Array.isArray(errorData.errors.body)) {
+            throw new Error(errorData.errors.body.join(" - "));
+        }
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    return response.json().catch(() => null as T);
+}

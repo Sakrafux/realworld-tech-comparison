@@ -1,0 +1,90 @@
+---
+import ProfileActions from "@/components/ProfileActions.tsx";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { ssrGet } from "@/api/api.ts";
+import type { Profile, ProfileResponse } from "@/api/features/profile-api.ts";
+import ProfileArticles from "@/components/ProfileArticles";
+import { getClassNameForCurrentPath } from "@/util/active-path-util.ts";
+
+export const prerender = false;
+const { route } = Astro.params;
+const { pathname } = Astro.url;
+
+const routePaths = route?.split("/") || [""];
+
+const username = routePaths[0];
+const isFavorites = routePaths.length === 2 && routePaths[1] === "favorites";
+
+if (routePaths.length >= 2 && !isFavorites) {
+    return Astro.redirect(`/profile/${routePaths[0]}`);
+}
+
+let profile: Profile = {} as Profile;
+try {
+    profile = (
+        await ssrGet<ProfileResponse>(
+            `/profiles/${username}`,
+            Astro.cookies.get("auth_token")?.value,
+        )
+    ).profile;
+} catch (e) {
+    console.log(e);
+    return Astro.redirect("/");
+}
+---
+
+<BaseLayout>
+    <div class="profile-page">
+        <div class="user-info">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xs-12 col-md-10 offset-md-1">
+                        <img
+                            alt="avatar"
+                            src={profile.image || "/default-avatar.svg"}
+                            class="user-img"
+                        />
+                        <h4>{profile.username}</h4>
+                        <p>
+                            {profile.bio}
+                        </p>
+                        <ProfileActions client:only="react" profile={profile} />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-md-10 offset-md-1">
+                    <div class="articles-toggle">
+                        <ul class="nav nav-pills outline-active">
+                            <li class="nav-item">
+                                <a
+                                    class={getClassNameForCurrentPath(
+                                        "nav-link",
+                                        `/profile/${profile.username}`,
+                                        pathname,
+                                    )}
+                                    href={`/profile/${profile.username}`}>My Articles</a
+                                >
+                            </li>
+                            <li class="nav-item">
+                                <a
+                                    class={getClassNameForCurrentPath(
+                                        "nav-link",
+                                        `/profile/${profile.username}/favorites`,
+                                        pathname,
+                                    )}
+                                    href={`/profile/${profile.username}/favorites`}
+                                    >Favorited Articles</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                    <ProfileArticles client:only="react" profile={profile} />
+                </div>
+            </div>
+        </div>
+    </div>
+</BaseLayout>
