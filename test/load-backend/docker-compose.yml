@@ -1,5 +1,5 @@
 version: '3.8'
-name: realworld-tech-comparison-load-test
+name: realworld-tech-comparison-load-test-backend
 
 services:
   k6-local:

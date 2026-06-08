@@ -130,3 +130,24 @@ Home page network stats:
 - Finish: 943 ms
 - DOMContentLoaded: 647 ms
 - Load: 928 ms
+
+### Standard Test
+
+    HTTP
+    http_req_duration..............: avg=1.21s    min=639.63µs med=171.4ms  max=30.05s p(90)=828.69ms p(95)=2.48s 
+      { expected_response:true }...: avg=1.21s    min=639.63µs med=171.4ms  max=30.05s p(90)=828.69ms p(95)=2.48s 
+      { scenario:article }.........: avg=501.85ms min=5.72ms   med=166.13ms max=30.05s p(90)=413.84ms p(95)=1.4s  
+      { scenario:home }............: avg=4.45s    min=639.63µs med=248.42ms max=28.96s p(90)=28.22s   p(95)=28.66s
+      { scenario:profile }.........: avg=288.58ms min=5.11ms   med=152.01ms max=20.04s p(90)=321.81ms p(95)=1.16s 
+    http_req_failed................: 0.00%  0 out of 27801
+    http_reqs......................: 27801  883.243211/s
+
+    EXECUTION
+    iteration_duration.............: avg=2.21s    min=1s       med=1.17s    max=31.15s p(90)=1.86s    p(95)=3.56s 
+    iterations.....................: 27801  883.243211/s
+    vus............................: 1291   min=1291       max=2000
+    vus_max........................: 2000   min=2000       max=2000
+
+    NETWORK
+    data_received..................: 273 MB 8.7 MB/s
+    data_sent......................: 2.3 MB 72 kB/s
