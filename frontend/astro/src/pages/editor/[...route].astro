@@ -1,0 +1,37 @@
+---
+import { ssrGet } from "@/api/api.ts";
+import type { Article, SingleArticleResponse } from "@/api/features/article-api.ts";
+import EditorPage from "@/components/EditorPage";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+export const prerender = false;
+const { route } = Astro.params;
+
+const routeParts = route?.split("/") ?? [""];
+
+if (routeParts.length > 1) {
+    return Astro.redirect("/");
+}
+
+const slug = routeParts[0];
+const isNew = !slug;
+
+let article: Article | undefined;
+if (!isNew) {
+    try {
+        article = (
+            await ssrGet<SingleArticleResponse>(
+                `/articles/${slug}`,
+                Astro.cookies.get("auth_token")?.value,
+            )
+        ).article;
+        Astro.response.headers.set("Cache-Control", "public, max-age=3600");
+    } catch (e) {
+        console.log(e);
+        return Astro.redirect("/");
+    }
+}
+---
+
+<BaseLayout>
+    <EditorPage slug={slug} article={article} client:load />
+</BaseLayout>
