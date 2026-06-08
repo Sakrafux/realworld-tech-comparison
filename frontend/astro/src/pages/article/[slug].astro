@@ -1,0 +1,61 @@
+---
+import { marked } from "marked";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { ssrGet } from "@/api/api.ts";
+import type { Article, SingleArticleResponse } from "@/api/features/article-api.ts";
+import ArticleMeta from "@/components/ArticleMeta";
+import Comments from "@/components/Comments";
+
+export const prerender = false;
+const { slug } = Astro.params;
+
+let article: Article = {} as Article;
+try {
+    article = (
+        await ssrGet<SingleArticleResponse>(
+            `/articles/${slug}`,
+            Astro.cookies.get("auth_token")?.value,
+        )
+    ).article;
+    article.body = await marked.parse(article.body);
+    Astro.response.headers.set("Cache-Control", "public, max-age=3600");
+} catch (e) {
+    console.log(e);
+    return Astro.redirect("/");
+}
+---
+
+<BaseLayout>
+    <div class="article-page">
+        <div class="banner">
+            <div class="container">
+                <h1>{article.title}</h1>
+
+                <ArticleMeta article={article} slug={slug!} client:only="react" />
+            </div>
+        </div>
+
+        <div class="container page">
+            <div class="row article-content">
+                <div class="col-md-12">
+                    <Fragment set:html={article.body} />
+                    <ul class="tag-list">
+                        {
+                            article.tagList.map((tag) => (
+                                <li class="tag-default tag-pill tag-outline">{tag}</li>
+                            ))
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="article-actions">
+                <ArticleMeta article={article} slug={slug!} client:only="react" />
+            </div>
+
+            <Comments slug={slug ?? ""} client:only="react" />
+        </div>
+    </div>
+</BaseLayout>
