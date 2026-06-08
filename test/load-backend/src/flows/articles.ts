@@ -1,7 +1,7 @@
-import {sleep} from 'k6';
-import {randomItem, randomString, getAuthHeaders, User} from '../utils.ts';
-import {articles, deleteArticle, feedsAndTags} from '../groups/articles.ts';
-import {favorites} from '../groups/favorites.ts';
+import { sleep } from "k6";
+import { randomItem, randomString, getAuthHeaders, User } from "../utils.ts";
+import { articles, deleteArticle, feedsAndTags } from "../groups/articles.ts";
+import { favorites } from "../groups/favorites.ts";
 
 export default function (users: User[]) {
     const user = randomItem(users);

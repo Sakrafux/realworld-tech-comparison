@@ -1,6 +1,6 @@
-import {sleep} from 'k6';
-import {randomItem, User, getAuthHeaders} from '../utils.ts';
-import {profiles} from '../groups/profiles.ts';
+import { sleep } from "k6";
+import { randomItem, User, getAuthHeaders } from "../utils.ts";
+import { profiles } from "../groups/profiles.ts";
 
 export default function (users: User[]) {
     const user = randomItem(users);
