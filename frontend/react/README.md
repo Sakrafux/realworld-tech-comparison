@@ -86,6 +86,21 @@ The architecture is divided into three layers, organized by their role in the sy
 4. **Typed Routing**: TanStack Router generates types for every route and validates search parameters with Zod, catching navigation bugs at compile time.
 5. **Code Splitting**: The router plugin auto-splits each route into its own chunk, keeping the initial bundle small.
 
+## Impressions
+
+Feels great to use for any content during development, though this is likely biased by my experience.
+
+TanStack query is a fantastic tool and provides a much better developer experience than Redux or simple React Context.
+It allows to easily enforce reactive patterns and subsequent UI updates even across component boundaries, requiring neither cumbersome prop drilling
+nor extensive glue code. It just works.
+
+TanStack router is largely fine, but has its own idiosyncrasies one needs to deal with. While I am personally not a big fan of file-based routing, the necessary wiring
+for code-based routing feels cumbersome and boilerplate-y. React Router's routes-as-elements system feels better in that regard.
+
+The only issue with using React is that the resulting website's stats are not ideal for largely static content. In that case, i.e., websites, static site generation 
+should be preferred. However, for interactive web applications it provides everything one needs with a large ecosystem. The production of a static bundle allows cheap
+and easy hosting, e.g., CDNs.
+
 ## Testing
 
 This implementation fully complies with the e2e test suite (`/test/e2e/`) and serves as a reference implementation.
