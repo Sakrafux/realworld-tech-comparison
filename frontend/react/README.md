@@ -85,3 +85,23 @@ The architecture is divided into three layers, organized by their role in the sy
 3. **Optimistic by Default**: Mutations update the TanStack Query cache directly with `queryClient.setQueryData()`, giving instant UI feedback without full refetches.
 4. **Typed Routing**: TanStack Router generates types for every route and validates search parameters with Zod, catching navigation bugs at compile time.
 5. **Code Splitting**: The router plugin auto-splits each route into its own chunk, keeping the initial bundle small.
+
+## Testing
+
+This implementation fully complies with the e2e test suite (`/test/e2e/`) and serves as a reference implementation.
+
+## Performance
+
+Lighthouse report available at [lighthouse.html](./lighthouse.html) with following scores:
+- Performance = 73
+- Accessibility = 93
+- Best Practices = 100
+- SEO = 83
+
+Home page network stats:
+- 20 requests
+- 606 kB transferred
+- 755 kB resources
+- Finish: 245 ms
+- DOMContentLoaded: 90 ms
+- Load: 148 ms

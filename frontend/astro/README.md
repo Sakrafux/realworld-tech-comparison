@@ -110,7 +110,23 @@ Even some applications that theoretically rely on on-demand dynamic routes may b
 demand. E.g., a personal blog that allows one to add more blog pages. The specific blog pages would be dynamic routes,
 but due to long-lived nature of a blog, we could re-generate the static bundle on publish and re-deploy it.
 
-## Notes
+## Testing
 
 This implementation doesn't comply completely with the e2e test suite (`/test/e2e`), since it only serves as POC of the
 technology, and fixing all details is not necessary.
+
+## Performance
+
+Lighthouse report available at [lighthouse.html](./lighthouse.html) with following scores:
+- Performance = 76
+- Accessibility = 90
+- Best Practices = 100
+- SEO = 91
+
+Home page network stats:
+- 29 requests
+- 284 kB transferred
+- 429 kB resources
+- Finish: 943 ms
+- DOMContentLoaded: 647 ms
+- Load: 928 ms
