@@ -5,11 +5,11 @@ import {
     type ProfileResponse,
     unfollowUserByUsername,
 } from "@/shared/api/features/profile-api.ts";
-import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { Link, useLocation, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useMemo } from "react";
-import ArticlePreview from "@/features/article/components/ArticlePreview.tsx";
 import { getArticles } from "@/shared/api/features/article-api.ts";
+import { useAuth } from "@/components/auth-context.tsx";
+import ArticlePreview from "@/components/ArticlePreview.tsx";
 
 const PAGE_SIZE = 10;
 

@@ -5,8 +5,8 @@ import {
     deleteArticleFavorite,
     type MultipleArticlesResponse,
 } from "@/shared/api/features/article-api.ts";
-import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/components/auth-context.tsx";
 
 export type ArticlePreviewProps = {
     article: Article;

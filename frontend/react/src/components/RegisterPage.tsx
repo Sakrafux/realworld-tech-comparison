@@ -1,7 +1,7 @@
 import { type SubmitEvent, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { register } from "@/shared/api/features/user-api.ts";
-import { useAuth } from "@/features/auth/context/auth-context.tsx";
+import { useAuth } from "@/components/auth-context.tsx";
 
 export default function RegisterPage() {
     const [username, setUsername] = useState("");

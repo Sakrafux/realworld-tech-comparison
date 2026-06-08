@@ -1,4 +1,4 @@
-import type { AuthContextType } from "@/features/auth/context/auth-context.tsx";
+import type { AuthContextType } from "@/components/auth-context.tsx";
 
 export interface RouterContext {
     auth: AuthContextType;

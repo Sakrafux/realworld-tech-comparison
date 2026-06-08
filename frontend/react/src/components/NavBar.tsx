@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { useQuery } from "@tanstack/react-query";
 import { getUser } from "@/shared/api/features/user-api.ts";
+import { useAuth } from "@/components/auth-context.tsx";
 
 export default function NavBar() {
     const { isAuthenticated } = useAuth();

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import HomeContent from "@/features/home/pages/HomeContent.tsx";
+import HomeContent from "@/components/HomeContent.tsx";
 
 const homeSearchSchema = z.object({
     feed: z.string().optional(),

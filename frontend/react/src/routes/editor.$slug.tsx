@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import EditorPage from "@/features/editor/pages/EditorPage.tsx";
+import EditorPage from "@/components/EditorPage.tsx";
 
 export const Route = createFileRoute("/editor/$slug")({
     component: EditorPage,

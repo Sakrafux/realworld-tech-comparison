@@ -1,12 +1,12 @@
-import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { useQuery } from "@tanstack/react-query";
 import { getArticle } from "@/shared/api/features/article-api.ts";
 import { Route } from "@/routes/article.$slug.tsx";
-import ArticleMeta from "@/features/article/components/ArticleMeta.tsx";
 import Markdown from "react-markdown";
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import Comments from "@/features/article/components/Comments.tsx";
+import { useAuth } from "@/components/auth-context.tsx";
+import ArticleMeta from "@/components/ArticleMeta.tsx";
+import Comments from "@/components/Comments.tsx";
 
 export default function ArticlePage() {
     const { user: currentUser, isAuthenticated } = useAuth();

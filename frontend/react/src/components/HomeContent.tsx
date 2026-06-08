@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import Tags from "@/features/home/components/Tags.tsx";
-import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { getArticles, getArticlesFeed } from "@/shared/api/features/article-api.ts";
-import ArticlePreview from "@/features/article/components/ArticlePreview.tsx";
+import { useAuth } from "@/components/auth-context.tsx";
+import ArticlePreview from "@/components/ArticlePreview.tsx";
+import Tags from "@/components/Tags.tsx";
 
 const PAGE_SIZE = 10;
 

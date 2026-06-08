@@ -1,8 +1,8 @@
 import { useState, useEffect, type SubmitEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getUser, updateUser } from "@/shared/api/features/user-api.ts";
-import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/components/auth-context.tsx";
 
 // Authentication is assumed
 export default function SettingsPage() {

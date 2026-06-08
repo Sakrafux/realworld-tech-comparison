@@ -7,8 +7,8 @@ import {
     type SingleArticleResponse,
 } from "@/shared/api/features/article-api.ts";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/features/auth/context/auth-context.tsx";
 import { followUserByUsername, unfollowUserByUsername } from "@/shared/api/features/profile-api.ts";
+import { useAuth } from "@/components/auth-context.tsx";
 
 export type ArticleMetaProps = {
     slug: string;

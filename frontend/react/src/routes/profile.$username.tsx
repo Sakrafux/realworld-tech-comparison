@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import ProfilePage from "@/features/profile/pages/ProfilePage.tsx";
 import { z } from "zod";
+import ProfilePage from "@/components/ProfilePage.tsx";
 
 const profileSearchSchema = z.object({
     tab: z.string().optional(),

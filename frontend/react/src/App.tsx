@@ -1,6 +1,6 @@
 import { createRouter, RouterProvider, Navigate } from "@tanstack/react-router";
-import { type AuthContextType, useAuth } from "@/features/auth/context/auth-context.tsx";
 import { routeTree } from "@/routeTree.gen.ts";
+import { type AuthContextType, useAuth } from "@/components/auth-context.tsx";
 
 const router = createRouter({
     routeTree,
