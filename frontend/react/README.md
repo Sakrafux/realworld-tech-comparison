@@ -1,16 +1,14 @@
-# RealWorld Frontend: React ("Feature-Sliced")
+# RealWorld Frontend: React ("Flat Components")
 
-This is an implementation of the [RealWorld UI](https://docs.realworld.show/specs/frontend-specs/introduction/) using React and a **Feature-Sliced Architecture**. It groups code by business domain rather than by technical role, keeping each feature self-contained while sharing a thin foundation of cross-cutting utilities.
+This is an implementation of the [RealWorld UI](https://docs.realworld.show/specs/frontend-specs/introduction/) using React with a **flat component architecture**. Components, pages, and auth context live in a single `src/components/` directory, with route files wiring them to URLs and a shared API layer handling all server communication.
 
-## Architecture (Feature-Sliced)
+## Architecture (Flat Components)
 
-The architecture is divided into three layers, organized by their role in the system:
+The architecture is divided into three areas, organized by their role in the system:
 
-- **Shared (`src/shared`)**: The foundation. Contains the HTTP client, API modules, shared types, and static assets. It has zero knowledge of page layout or component logic.
-- **Features (`src/features`)**: The business features. Each subdirectory represents a self-contained feature module (article, auth, editor, home, navigation, profile, settings) with its own pages, components, and context providers.
-    - *Independence*: Features rarely import from each other. When they do, it is through the shared layer — never directly.
-    - *Thin Routes*: Route files delegate to page components inside features. They only handle route config, search param validation, and auth guards.
-- **Routes (`src/routes`)**: The wiring layer. TanStack Router's file-based convention auto-generates the route tree. Route files are intentionally thin — they connect URLs to feature pages and enforce access control, but contain no UI logic.
+- **Components (`src/components`)**: All UI components in a flat directory — page components, navigation, auth context, and feature-specific pieces like article meta and comments. Each component is self-contained with no nesting.
+- **Routes (`src/routes`)**: TanStack Router's file-based convention auto-generates the route tree. Route files are intentionally thin — they connect URLs to component pages, validate search params with Zod, and enforce auth guards, but contain no UI logic.
+- **Shared (`src/shared`)**: The foundation. Contains the HTTP client, API modules, and shared types. It has zero knowledge of page layout or component logic.
 
 ## Tech Stack
 
@@ -32,6 +30,22 @@ The architecture is divided into three layers, organized by their role in the sy
 │   ├── main.tsx                     # Entry point: AuthProvider > QueryClientProvider > Router
 │   ├── App.tsx                      # Router creation with auth context
 │   ├── index.css                    # Custom CSS framework (no external dependency)
+│   ├── routeTree.gen.ts             # Auto-generated route tree (TanStack Router)
+│   ├── components/                  # --- ALL UI COMPONENTS (FLAT) ---
+│   │   ├── auth-context.tsx         # AuthProvider + useAuth hook
+│   │   ├── NavBar.tsx               # Top navigation bar (auth-aware)
+│   │   ├── Footer.tsx               # Site footer
+│   │   ├── LoginPage.tsx            # Login page component
+│   │   ├── RegisterPage.tsx         # Registration page component
+│   │   ├── HomeContent.tsx          # Home feed with pagination
+│   │   ├── Tags.tsx                 # Popular tags sidebar
+│   │   ├── ArticlePage.tsx          # Article detail page component
+│   │   ├── ArticleMeta.tsx          # Article metadata (author, date, favorites)
+│   │   ├── ArticlePreview.tsx       # Article card for feed listings
+│   │   ├── Comments.tsx             # Comment list with create/delete
+│   │   ├── EditorPage.tsx           # Article editor form (create + edit)
+│   │   ├── ProfilePage.tsx          # User profile page component
+│   │   ├── SettingsPage.tsx         # User settings page component
 │   ├── routes/                      # --- ROUTE DEFINITIONS (THIN WRAPPERS) ---
 │   │   ├── __root.tsx               # Root layout: NavBar + Outlet + Footer
 │   │   ├── index.tsx                # Home page route (Zod-validated search params)
@@ -40,38 +54,23 @@ The architecture is divided into three layers, organized by their role in the sy
 │   │   ├── article.$slug.tsx        # Article detail route
 │   │   ├── editor.tsx               # New article route (auth guard)
 │   │   ├── editor.$slug.tsx         # Edit article route (auth guard)
-│   │   ├── profile.$username.tsx    # User profile route (Zod search params)
-│   │   └── settings.tsx             # Settings route (auth guard)
-│   ├── features/                    # --- BUSINESS FEATURES (VERTICAL SLICES) ---
-│   │   ├── article/                 # Article & Comment feature
-│   │   │   ├── components/          #   ArticleMeta, ArticlePreview, Comments
-│   │   │   └── pages/               #   ArticlePage
-│   │   ├── auth/                    # Authentication feature
-│   │   │   ├── context/             #   AuthProvider + useAuth hook
-│   │   │   └── pages/               #   LoginPage, RegisterPage
-│   │   ├── editor/                  # Article editor feature
-│   │   │   └── pages/               #   EditorPage
-│   │   ├── home/                    # Home feed feature
-│   │   │   ├── components/          #   Tags
-│   │   │   └── pages/               #   HomePage
-│   │   ├── navigation/              # App chrome feature
-│   │   │   └── components/          #   NavBar, Footer
-│   │   ├── profile/                 # User profile feature
-│   │   │   └── pages/               #   ProfilePage
-│   │   └── settings/                # User settings feature
-│   │       └── pages/               #   SettingsPage
+│   │   ├── profile.$username.tsx    # User profile route
+│   │   ├── profile.$username.favorites.tsx  # User favorites route
+│   │   ├── settings.tsx             # Settings route (auth guard)
+│   │   └── tag.$tag.tsx             # Tag-filtered articles route
 │   └── shared/                      # --- CROSS-CUTTING UTILITIES ---
 │       ├── api/
 │       │   ├── api.ts               # Base HTTP client (auth token injection, 401 handling)
 │       │   ├── events.ts            # Auth event bus (cross-tab logout signaling)
+│       │   ├── index.ts             # API barrel export
 │       │   └── features/            # Domain API modules
 │       │       ├── article-api.ts
 │       │       ├── comment-api.ts
 │       │       ├── profile-api.ts
 │       │       ├── tag-api.ts
 │       │       └── user-api.ts
-│       ├── assets/                  # Static assets (default avatar)
-│       └── types/                   # Shared TypeScript types (RouterContext)
+│       └── types/
+│           └── router-types.ts      # Shared TypeScript types (RouterContext)
 ├── index.html                       # HTML shell
 ├── vite.config.ts                   # Vite + TanStack Router plugin config
 ├── tsconfig.json                    # TypeScript project references
@@ -80,7 +79,7 @@ The architecture is divided into three layers, organized by their role in the sy
 
 ## Why this works for React
 
-1. **Colocation**: Each feature groups its pages and components together, making it easy to find and modify related code without jumping across directories.
+1. **Discoverability**: All components in a single flat directory make it easy to find any piece of UI — no digging through nested feature folders or guessing which feature a shared component belongs to.
 2. **No Global Store**: Auth state uses React Context; server state uses TanStack Query. There is no Zustand, Redux, or Jotai — the simplest tool for each concern.
 3. **Optimistic by Default**: Mutations update the TanStack Query cache directly with `queryClient.setQueryData()`, giving instant UI feedback without full refetches.
 4. **Typed Routing**: TanStack Router generates types for every route and validates search parameters with Zod, catching navigation bugs at compile time.
