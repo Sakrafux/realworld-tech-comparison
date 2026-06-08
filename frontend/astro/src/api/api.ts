@@ -1,7 +1,8 @@
 import { navigate } from "astro:transitions/client";
 import { logout } from "@/util/auth-util.ts";
 
-const BASE_URL: string = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+const BASE_URL: string =
+    process.env.BASE_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 const AUTH_URLS = ["register", "login"];
 

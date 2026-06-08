@@ -81,4 +81,5 @@ docker-compose -f docker-compose-backend.yml -f stacks/backend/python-fastapi-ve
 
 ```bash
 docker-compose -f docker-compose-frontend.yml -f stacks/frontend/react.yml up --build
+docker-compose -f docker-compose-frontend.yml -f stacks/frontend/astro.yml up --build
 ```

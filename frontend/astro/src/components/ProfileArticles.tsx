@@ -27,7 +27,7 @@ export default function ProfileArticles({ profile, isFavorites }: ProfileArticle
             setArticles(response.articles);
             setArticlesCount(response.articlesCount);
         });
-    }, [currentPage]);
+    }, [profile, isFavorites, currentPage]);
 
     const pageElements = useMemo(() => {
         const elements = [];
