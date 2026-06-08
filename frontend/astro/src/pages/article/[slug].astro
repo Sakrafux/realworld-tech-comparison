@@ -31,7 +31,7 @@ try {
             <div class="container">
                 <h1>{article.title}</h1>
 
-                <ArticleMeta article={article} slug={slug!} client:only="react" />
+                <ArticleMeta article={article} slug={slug!} client:only="preact" />
             </div>
         </div>
 
@@ -52,10 +52,10 @@ try {
             <hr />
 
             <div class="article-actions">
-                <ArticleMeta article={article} slug={slug!} client:only="react" />
+                <ArticleMeta article={article} slug={slug!} client:only="preact" />
             </div>
 
-            <Comments slug={slug ?? ""} client:only="react" />
+            <Comments slug={slug ?? ""} client:only="preact" />
         </div>
     </div>
 </BaseLayout>

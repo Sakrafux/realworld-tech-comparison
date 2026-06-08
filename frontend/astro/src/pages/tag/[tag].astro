@@ -33,14 +33,14 @@ const { tag } = Astro.params;
                         </ul>
                     </div>
 
-                    <HomeArticles client:only="react" tag={tag} />
+                    <HomeArticles client:only="preact" tag={tag} />
                 </div>
 
                 <div class="col-md-3">
                     <div class="sidebar">
                         <p>Popular Tags</p>
 
-                        <Tags client:only="react" />
+                        <Tags client:only="preact" />
                     </div>
                 </div>
             </div>
